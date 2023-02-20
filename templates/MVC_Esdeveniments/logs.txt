@@ -1,0 +1,10 @@
+********************** Error date: Fri Feb 21 10:17:35 CET 2020
+java.lang.NullPointerException
+	at mvc_esdeveniments.control.Control.run(Control.java:28)
+********************** End error report
+
+********************** Error date: Fri Feb 21 10:18:04 CET 2020
+java.lang.NullPointerException
+	at mvc_esdeveniments.control.Control.run(Control.java:28)
+********************** End error report
+
