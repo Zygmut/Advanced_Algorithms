@@ -8,28 +8,9 @@
             "type": "java",
             "name": "Launch Main",
             "request": "launch",
-            "mainClass": "Main",
-            "projectName": "MVC_b427b30b"
-        },
-        {
-            "type": "java",
-            "name": "Launch Main",
-            "request": "launch",
-            "mainClass": "Main",
-            "projectName": "MVC_80fe8007"
-        },
-        {
-            "type": "java",
-            "name": "Launch Current File",
-            "request": "launch",
-            "mainClass": "${file}"
-        },
-        {
-            "type": "java",
-            "name": "Launch Main",
-            "request": "launch",
             "mainClass": "Main.Main",
-            "projectName": "MVC_80fe8007"
+            "projectName": "MVC_80fe8007",
+            "vmArgs": "-p ./lib --add-modules javafx.controls,javafx.base,javafx.fxml,javafx.graphics,javafx.media,javafx.web --add-opens=javafx.graphics/javafx.scene=ALL-UNNAMED --add-exports javafx.base/com.sun.javafx.event=ALL-UNNAMED"
         }
     ]
 }
