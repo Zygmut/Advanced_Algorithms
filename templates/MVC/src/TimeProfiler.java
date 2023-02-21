@@ -20,7 +20,7 @@ public class TimeProfiler {
     }
 
     /**
-     * Given a runnable funtion returns a Duration object with the mean value of
+     * Given a runnable funtion returns a Duration object with all the values of
      * time spent running that function. The amount of times that the function is
      * executed is defined by batchSize. If batchSize is <= 0, returns a Duration of
      * 0.
@@ -29,20 +29,21 @@ public class TimeProfiler {
      * @param batchSize Amount of times that the function will be executed
      * @return Duration
      */
-    public static Duration batchTimeIt(Runnable function, int batchSize) {
+    public static Duration[] batchTimeIt(Runnable function, int batchSize) {
         if (batchSize <= 0) {
-            return Duration.ofNanos(0);
+            return (Duration[]) Arrays.stream(new Duration[batchSize]).map(a -> Duration.ofNanos(0)).toArray();
         }
 
         long startingNanoSeconds, endingNanoSeconds;
-        long[] durations = new long[batchSize];
+        long[] functionDurations = new long[batchSize];
         for (int i = 0; i < batchSize; i++) {
             startingNanoSeconds = System.nanoTime();
             function.run();
             endingNanoSeconds = System.nanoTime();
-            durations[i] = endingNanoSeconds - startingNanoSeconds;
+            functionDurations[i] = endingNanoSeconds - startingNanoSeconds;
         }
-        return Duration.ofNanos(LongStream.of(durations).sum() / batchSize);
+
+        return Arrays.stream(functionDurations).mapToObj(Duration::ofNanos).toArray(Duration[]::new);
     }
 
     /**
@@ -78,23 +79,24 @@ public class TimeProfiler {
      * @param batchSize
      * @return
      */
-    public static Duration[] batchTimeIt(Runnable[] functions, int batchSize) {
+    public static Duration[][] batchTimeIt(Runnable[] functions, int batchSize) {
         if (batchSize <= 0) {
-            return (Duration[]) Arrays.stream(new Duration[batchSize]).map(a -> Duration.ofNanos(0)).toArray();
+            return (Duration[][]) Arrays.stream(new Duration[batchSize])
+                    .map(a -> new Duration[] { Duration.ofNanos(0) }).toArray();
         }
 
         long startingNanoSeconds, endingNanoSeconds;
-        Duration[] durations = new Duration[functions.length];
-        long[] function_durations = new long[batchSize];
+        Duration[][] durations = new Duration[functions.length][batchSize];
+        long[] functionDurations = new long[batchSize];
 
         for (int i = 0; i < functions.length; i++) {
             for (int j = 0; i < batchSize; i++) {
                 startingNanoSeconds = System.nanoTime();
                 functions[i].run();
                 endingNanoSeconds = System.nanoTime();
-                function_durations[j] = endingNanoSeconds - startingNanoSeconds;
+                functionDurations[j] = endingNanoSeconds - startingNanoSeconds;
             }
-            durations[i] = Duration.ofNanos(LongStream.of(function_durations).sum() / batchSize);
+            durations[i] = Arrays.stream(functionDurations).mapToObj(Duration::ofNanos).toArray(Duration[]::new);
         }
 
         return durations;
