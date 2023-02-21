@@ -5,7 +5,7 @@
         "lib/**/*.jar"
     ],
     "[java]": {
-        "editor.formatOnSave": true,
+        "editor.formatOnSave": false,
         "editor.defaultFormatter": "redhat.java"
     },
 }

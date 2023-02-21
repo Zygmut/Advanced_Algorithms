@@ -1,12 +1,14 @@
 package Controller;
 
-import Main.MVC;
+import Master.MVC;
 import Request.Notify;
 import Request.Request;
+import Request.RequestCode;
 
 public class Controller implements Notify {
 
     private MVC hub;
+    private Request baseRequest = new Request(RequestCode.None, this, hub.getModel());
 
     public Controller(MVC mvc) {
         this.hub = mvc;

@@ -1,35 +1,17 @@
 package Model;
 
-import Main.MVC;
+import Master.MVC;
 import Request.Notify;
 import Request.Request;
+import Request.RequestCode;
 
 public class Model implements Notify {
 
     private MVC hub;
-    private int x;
-    private int y;
+    private Request baseRequest = new Request(RequestCode.None, this, hub.getView());
 
     public Model(MVC mvc) {
         this.hub = mvc;
-        x = 0;
-        y = 0;
-    }
-
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public void setY(int y) {
-        this.y = y;
-    }
-
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
     }
 
     @Override

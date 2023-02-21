@@ -17,6 +17,10 @@ public class Request {
         this.target = target.getClass().getSimpleName();
     }
 
+    public void setCode(RequestCode code){
+        this.code = code;
+    }
+
     @Override
     public String toString() {
         return "Request " + code + ": From " + origin + " to " + target;
