@@ -1,4 +1,4 @@
-package Utils;
+package TimeProfiler;
 
 import java.time.Duration;
 import java.util.Arrays;
