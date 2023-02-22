@@ -36,7 +36,7 @@ public class TimeProfiler {
     public static TimeResult batchTimeIt(Runnable function, int batchSize) {
         if (batchSize <= 0) {
             return new TimeResult(Stream.generate(() -> Duration.ZERO)
-                    .limit(batchSize)
+                    .limit(1)
                     .toArray(Duration[]::new));
         }
 
@@ -83,8 +83,8 @@ public class TimeProfiler {
      */
     public static TimeResult[] batchTimeIt(Runnable[] functions, int batchSize) {
         if (batchSize <= 0) {
-            return Stream.generate(() -> new TimeResult(new Duration[] { Duration.ZERO }))
-                    .limit(batchSize)
+                return Stream.generate(() -> new TimeResult(new Duration[] { Duration.ZERO }))
+                    .limit(functions.length)
                     .toArray(TimeResult[]::new);
         }
 
