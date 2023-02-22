@@ -3,14 +3,13 @@ package View;
 import Master.MVC;
 import Request.Notify;
 import Request.Request;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
-
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -22,9 +21,18 @@ import java.awt.Color;
 public class View implements Notify {
 
     private MVC hub;
+    /**
+     * The frame of the view that contains the container of the view.
+     */
     private JFrame frame;
-    private ConfigLoader config;
+    /**
+     * The container of the frame that contains all the elements of the view.
+     */
     private Container container;
+    /**
+     * The configuration of the view.
+     */
+    private ConfigLoader config;
 
     public View(MVC mvc) {
         this.hub = mvc;
@@ -34,6 +42,9 @@ public class View implements Notify {
         this.hub = null;
     }
 
+    /**
+     * Allows to create and start the view.
+     */
     public void start() {
         config = new ConfigLoader();
         try {
@@ -64,21 +75,38 @@ public class View implements Notify {
         frame.setVisible(config.windowOnLoadVisible);
     }
 
-    public void setContainerLayout(LayoutManager mgr) {
-        container.setLayout(mgr);
+    /**
+     * Allows to set the layout of the container of the view.
+     * 
+     * @param layoutManager The layout manager of the container.
+     */
+    public void setContainerLayout(LayoutManager layoutManager) {
+        container.setLayout(layoutManager);
     }
 
+    /**
+     * Allows to restart the view. Useful to make changes to the view without having
+     * to restart the program.
+     */
     public void reStart() {
         this.stop();
         this.start();
     }
 
+    /**
+     * Allows to stop the view. Basically it closes the frame.
+     */
     public void stop() {
         frame.dispose();
     }
 
+    /**
+     * Allows to add a panel to the container of the view.
+     * 
+     * @param panel The panel to add.
+     */
     public void addPanels(JPanel panel) {
-        frame.add(panel);
+        container.add(panel);
     }
 
     @Override
@@ -86,10 +114,29 @@ public class View implements Notify {
         this.hub.handleRequest(request);
     }
 
+    // TODO: Finish the Section class implementation
+    private class Section extends JPanel {
+
+        public Section() {
+            super();
+        }
+    }
+
+    /**
+     * Allows to manage the key events of the view. Mainly used for debugging and
+     * development. The keys are:
+     * <ul>
+     * <li>Q: Quit the program.</li>
+     * <li>R: Restart the view.</li>
+     * <li>S: Stop the view.</li>
+     * <li>V: Show or hide the view.</li>
+     * </ul>
+     */
     private class KeyActionManager implements KeyListener {
 
         @Override
         public void keyTyped(KeyEvent e) {
+            // Do nothing
         }
 
         @Override
@@ -115,12 +162,34 @@ public class View implements Notify {
 
         @Override
         public void keyReleased(KeyEvent e) {
+            // Do nothing
         }
 
     }
 
+    /**
+     * Allows to load the configuration of the view. The configuration is loaded
+     * from a file. By default the file is "config.txt" but it can be changed. Also
+     * it has a default configuration. The configuration file can contain the
+     * following parameters:
+     * <ul>
+     * <li>width: The width of the view.</li>
+     * <li>height: The height of the view.</li>
+     * <li>x: The x position of the view.</li>
+     * <li>y: The y position of the view.</li>
+     * <li>windowCloseOperation: The operation to do when the view is closed.</li>
+     * <li>windowOnCenter: If the view is on the center of the screen.</li>
+     * <li>windowResizable: If the view is resizable.</li>
+     * <li>windowWidthCenter: If the view is centered on the width.</li>
+     * <li>windowOnLoadVisible: If the view is visible on load.</li>
+     * <li>title: The title of the view.</li>
+     * <li>lookAndFeel: The look and feel of the view.</li>
+     * <li>iconPath: The path of the icon of the view.</li>
+     * <li>configPath: The path of the configuration file.</li>
+     * <li>bgColor: The background color of the view.</li>
+     * </ul>
+     */
     private class ConfigLoader {
-
         private int width = 500;
         private int height = 500;
         private int x = 0;
@@ -140,6 +209,22 @@ public class View implements Notify {
             this.loadConfig();
         }
 
+        /**
+         * Allows to load the configuration from the configuration file. The file
+         * structure is:
+         * 
+         * <pre>
+         * # Use # to comment the line
+         * parameter: value
+         * </pre>
+         * 
+         * Example:
+         * 
+         * <pre>
+         * bgColor: "white"
+         * width: 500
+         * </pre>
+         */
         private void loadConfig() {
             try {
                 BufferedReader reader = new BufferedReader(new FileReader(this.configPath));
