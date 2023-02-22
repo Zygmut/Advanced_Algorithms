@@ -8,8 +8,15 @@
             "type": "java",
             "name": "Launch Main",
             "request": "launch",
+            "mainClass": "Master.Main",
+            "projectName": "MVC_281cfbed"
+        },
+        {
+            "type": "java",
+            "name": "Launch Main",
+            "request": "launch",
             "mainClass": "Main.Main",
-            "projectName": "MVC_80fe8007",
+            "projectName": "MVC_80fe8007"
         }
     ]
 }
