@@ -152,7 +152,7 @@ public class TimeResult {
      * </pre>
      *
      * Would return the maximum duration of them all in minutes
-     * 
+     *
      * @param timeStep
      * @return long
      * @see ToLongFunction

@@ -6,6 +6,46 @@ import java.util.stream.Stream;
 
 public class TimeProfiler {
 
+    private static void quadraticRatio(int n) {
+        int a = 0;
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                a = a + (a - 1);
+            }
+        }
+    }
+
+    public static double getInterferenceRatio(int ratioPrecision) {
+        Duration[] interferencedTimes = new Duration[ratioPrecision];
+        Duration[] nativeTimes = new Duration[ratioPrecision];
+        for (int i = 0; i < ratioPrecision; i++) {
+            RunnableFunction<Integer> fn = new RunnableFunction<>(params -> {
+                int a = 0;
+                for (int j = 0; j < params[0]; j++) {
+                    for (int k = 0; k < params[0]; k++) {
+                        a = a + (a - 1);
+                    }
+                }
+            }, i);
+
+            interferencedTimes[i] = timeIt(fn).getData()[0];
+
+            long startingNanoSeconds = System.nanoTime();
+            quadraticRatio(ratioPrecision);
+            long endingNanoSeconds = System.nanoTime();
+            nativeTimes[i] = Duration.ofNanos((endingNanoSeconds - startingNanoSeconds));
+        }
+
+        double interfenrecedTimeMean = Arrays.stream(interferencedTimes).mapToLong(Duration::toNanos).average()
+                .getAsDouble();
+        double nativeTimeMean = Arrays.stream(nativeTimes).mapToLong(Duration::toNanos).average().getAsDouble();
+        System.out.println(interfenrecedTimeMean);
+        System.out.println(nativeTimeMean);
+
+        return interfenrecedTimeMean / nativeTimeMean;
+
+    }
+
     /**
      * Given a runnable function returns a TimeResult object with the time that was
      * spent running that function. It doesn't contemplate errors within the
@@ -19,11 +59,12 @@ public class TimeProfiler {
         long startingNanoSeconds = System.nanoTime();
         function.run();
         long endingNanoSeconds = System.nanoTime();
-        return new TimeResult(new Duration[] { Duration.ofNanos((endingNanoSeconds - startingNanoSeconds)) });
+        return new TimeResult(new Duration[] {
+                Duration.ofNanos((endingNanoSeconds - startingNanoSeconds)) });
     }
 
     /**
-     * Given a runnable funtion returns a TimeResult  object with all the values of
+     * Given a runnable funtion returns a TimeResult object with all the values of
      * time spent running that function. The amount of times that the function is
      * executed is defined by batchSize. If batchSize is <= 0, returns a Duration of
      * 0.
@@ -48,7 +89,9 @@ public class TimeProfiler {
             functionDurations[i] = endingNanoSeconds - startingNanoSeconds;
         }
 
-        return new TimeResult(Arrays.stream(functionDurations).mapToObj(Duration::ofNanos).toArray(Duration[]::new));
+        return new TimeResult(Arrays.stream(functionDurations)
+                .mapToObj(Duration::ofNanos)
+                .toArray(Duration[]::new));
     }
 
     /**
@@ -83,7 +126,7 @@ public class TimeProfiler {
      */
     public static TimeResult[] batchTimeIt(Runnable[] functions, int batchSize) {
         if (batchSize <= 0) {
-                return Stream.generate(() -> new TimeResult(new Duration[] { Duration.ZERO }))
+            return Stream.generate(() -> new TimeResult(new Duration[] { Duration.ZERO }))
                     .limit(functions.length)
                     .toArray(TimeResult[]::new);
         }
