@@ -92,7 +92,7 @@ public class TimeProfiler {
         long[] functionDurations = new long[batchSize];
 
         for (int i = 0; i < functions.length; i++) {
-            for (int j = 0; i < batchSize; i++) {
+            for (int j = 0; j < batchSize; j++) {
                 long startingNanoSeconds = System.nanoTime();
                 functions[i].run();
                 long endingNanoSeconds = System.nanoTime();

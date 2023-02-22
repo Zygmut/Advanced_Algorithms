@@ -79,4 +79,11 @@ public class TimeResult {
                 .reduce(Duration.ZERO, Duration::plus)
                 .dividedBy(2);
     }
+
+    public String toString(ToLongFunction<? super Duration> timeStep) {
+        return Arrays.stream(this.data)
+            .mapToLong(timeStep)
+            .mapToObj(String::valueOf)
+            .collect(Collectors.joining(", "));
+    }
 }

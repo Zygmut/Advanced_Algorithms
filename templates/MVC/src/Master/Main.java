@@ -5,8 +5,8 @@ import java.util.Arrays;
 
 import Request.Request;
 import Request.RequestCode;
-import Utils.TimeProfiler;
-import mesurament.Mesurament;
+import TimeProfiler.TimeProfiler;
+import TimeProfiler.TimeResult;
 
 public class Main {
 
@@ -21,15 +21,14 @@ public class Main {
     }
 
     public void master() {
-        MVC mvc = new MVC();
-        Arrays.stream(TimeProfiler.batchTimeIt(this::fn, 10))
-                .mapToLong(Duration::toMillis)
+        Arrays.stream(TimeProfiler.batchTimeIt(new Runnable[] { this::fn, this::fn, this::fn }, 10))
+                .map(x -> x.mean(Duration::toMillis))
+                .map(Object::toString)
                 .forEach(System.out::println);
 
         System.out.println(new Request(RequestCode.None, this, this));
 
     }
-
 
     public static void main(String[] args) throws Exception {
         // Mesurament.mesura();
