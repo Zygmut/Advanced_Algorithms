@@ -21,10 +21,19 @@ public class Main {
     }
 
     public void master() {
-        Arrays.stream(TimeProfiler.batchTimeIt(new Runnable[] { this::fn, this::fn, this::fn }, 10))
-                .map(x -> x.mean(Duration::toMillis))
-                .map(Object::toString)
-                .forEach(System.out::println);
+        // Arrays.stream(TimeProfiler.batchTimeIt(new Runnable[] { this::fn, this::fn,
+        // this::fn }, 10))
+        // .map(x -> x.mean(Duration::toMillis))
+        // .map(Object::toString)
+        // .forEach(System.out::println);
+
+        // TimeResult a = TimeProfiler.batchTimeIt(this::fn, 10);
+        // System.out.println(a.toString(Duration::toMillis));
+        // System.out.println(a.mode(Duration::toMillis));
+
+        Arrays.stream(TimeProfiler.batchTimeIt(new Runnable[] { this::fn, this::fn , this::fn}, 10))
+            .map(x -> x.mean(Duration::toMillis))
+            .forEach(System.out::println);
 
         System.out.println(new Request(RequestCode.None, this, this));
 
