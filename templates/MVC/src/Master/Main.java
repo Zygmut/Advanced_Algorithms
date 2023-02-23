@@ -24,6 +24,8 @@ public class Main {
     }
 
     public void master() {
+
+        TimeProfiler tp = new TimeProfiler(500);
         RunnableFunction<Integer> fn = new RunnableFunction<>(params -> {
             int a = 0;
             for (int i = 0; i < params[0]; i++) {
@@ -42,10 +44,9 @@ public class Main {
         // TimeResult a = TimeProfiler.batchTimeIt(this::fn, 10);
         // System.out.println(a.toString(Duration::toMillis));
         // System.out.println(a.mode(Duration::toMillis));
-        double interferencedTimeRatio = TimeProfiler.getInterferenceRatio(1000);
-        System.out.println(interferencedTimeRatio);
+        System.out.println("interference: " + tp.getInterferenceRatio());
 
-        System.out.println("lambda: " + TimeProfiler.batchTimeIt(fn, 50).mean(Duration::toNanos)*interferencedTimeRatio);
+        System.out.println("lambda: " + tp.batchTimeIt(fn, 50).mean(Duration::toNanos)*interferencedTimeRatio);
 
         long[] functionDurations = new long[50];
         for (int i = 0; i < 50; i++) {
