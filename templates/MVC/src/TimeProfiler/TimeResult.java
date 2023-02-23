@@ -30,7 +30,8 @@ public class TimeResult {
      *
      * <pre>
      * {@code
-     * TimeProfiler.batchTimeIt(this::fn, 10).sum(Duration::toMillis);
+     * TimeProfiler tp = new TimeProfiler(700);
+     *tp.batchTimeIt(this::fn, 10).sum(Duration::toMillis);
      * }
      * </pre>
      *
@@ -53,7 +54,8 @@ public class TimeResult {
      *
      * <pre>
      * {@code
-     * TimeProfiler.batchTimeIt(this::fn, 10).mean(Duration::toNanos);
+     * TimeProfiler tp = new TimeProfiler(700);
+     *tp.batchTimeIt(this::fn, 10).mean(Duration::toNanos);
      * }
      * </pre>
      *
@@ -86,7 +88,8 @@ public class TimeResult {
      *
      * <pre>
      * {@code
-     * TimeProfiler.batchTimeIt(this::fn, 10).min(Duration::toSeconds);
+     * TimeProfiler tp = new TimeProfiler(700);
+     *tp.batchTimeIt(this::fn, 10).min(Duration::toSeconds);
      * }
      * </pre>
      *
@@ -110,7 +113,8 @@ public class TimeResult {
      *
      * <pre>
      * {@code
-     * TimeProfiler.batchTimeIt(this::fn, 10).max(Duration::toMinutes);
+     * TimeProfiler tp = new TimeProfiler(700);
+     *tp.batchTimeIt(this::fn, 10).max(Duration::toMinutes);
      * }
      * </pre>
      *
@@ -147,7 +151,8 @@ public class TimeResult {
      *
      * <pre>
      * {@code
-     * TimeProfiler.batchTimeIt(this::fn, 10).mode(Duration::toMinutes);
+     * TimeProfiler tp = new TimeProfiler(700);
+     *tp.batchTimeIt(this::fn, 10).mode(Duration::toMinutes);
      * }
      * </pre>
      *
@@ -176,12 +181,13 @@ public class TimeResult {
      *
      * <pre>
      * {@code
-     * TimeProfiler.batchTimeIt(this::fn, 10).median(Duration::toHours);
+     * TimeProfiler tp = new TimeProfiler(700);
+     *tp.batchTimeIt(this::fn, 10).median(Duration::toHours);
      * }
      * </pre>
      *
      * Would return the median duration of them all in hours
-     * 
+     *
      * @param timeStep
      * @return long
      * @see ToLongFunction
@@ -203,7 +209,8 @@ public class TimeResult {
      *
      * <pre>
      * {@code
-     * TimeProfiler.batchTimeIt(this::fn, 10).toString(Duration::toDays);
+     * TimeProfiler tp = new TimeProfiler(700);
+     *tp.batchTimeIt(this::fn, 10).toString(Duration::toDays);
      * }
      * </pre>
      *

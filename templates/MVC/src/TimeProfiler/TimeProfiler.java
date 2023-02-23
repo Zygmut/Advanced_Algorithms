@@ -19,6 +19,12 @@ public class TimeProfiler {
     System.out.println("Interference Ratio: " + this.interferenceRatio);
   }
 
+  /**
+   * Returns the ratio that embodies the amount of time wasted with the implementation
+   * of runnableFunctions. All calculations use this number to aproximate the real
+   * amount of time spent executing a function.
+   * @see RunnableFunction
+   */
   public double getInterferenceRatio() {
     return this.interferenceRatio;
   }
@@ -85,8 +91,7 @@ public class TimeProfiler {
 
   /**
    * Given a runnable function returns a TimeResult object with the time that was
-   * spent running that function. It doesn't contemplate errors within the
-   * function.
+   * spent running that function.
    *
    * @param function
    * @return TimeResult

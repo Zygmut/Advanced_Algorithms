@@ -26,14 +26,16 @@ public class Main {
     public void master() {
 
         TimeProfiler tp = new TimeProfiler(500);
+        int a = 0;
         RunnableFunction<Integer> fn = new RunnableFunction<>(params -> {
-            int a = 0;
+            int b = 0;
             for (int i = 0; i < params[0]; i++) {
                 for (int index = 0; index < params[0]; index++) {
-                    a = a + (a - 1);
+                    b += 1;
                 }
             }
-        }, 1000);
+            params[1] = b;
+        }, 1000, a);
 
         // Arrays.stream(TimeProfiler.batchTimeIt(new Runnable[] { this::fn, this::fn,
         // this::fn }, 10))
@@ -44,6 +46,10 @@ public class Main {
         // TimeResult a = TimeProfiler.batchTimeIt(this::fn, 10);
         // System.out.println(a.toString(Duration::toMillis));
         // System.out.println(a.mode(Duration::toMillis));
+        System.out.println(a);
+        fn.run();
+        System.out.println(a);
+
         System.out.println("interference: " + tp.getInterferenceRatio());
 
         System.out.println("lambda: " + tp.batchTimeIt(fn, 50).mean(Duration::toNanos)*interferencedTimeRatio);
