@@ -7,7 +7,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import java.awt.Toolkit;
@@ -18,8 +17,41 @@ import java.awt.LayoutManager;
 import java.awt.BorderLayout;
 import java.awt.Color;
 
+/**
+ * The view of the MVC pattern. It's the class that manages the view of the
+ * program and the user interface. Also, this class implements the Notify
+ * interface.
+ * <blockquote>
+ * Considerations: It's important to initialize the view before any other
+ * method of the view.
+ * </blockquote>
+ *
+ * Example:
+ * 
+ * <pre>
+ * {@code
+ * View view = new View(); // or View view = new View(mvc);
+ * // If the parameter is null, the view will load the default configuration.
+ * // It will search for a file named "config.txt" in the base directory of the
+ * // project.
+ * view.initConfig("config.txt"); // Init config
+ * view.start(); // Start the view
+ * }
+ * </pre>
+ * 
+ * Also, this class allows hot reloading the window. For more information, see
+ * the KeyActionManager class.
+ * 
+ * @see View#initConfig(String path)
+ * @see View#start()
+ * @see View#KeyActionManager
+ * @see Notify
+ */
 public class View implements Notify {
 
+    /**
+     * The MVC hub of the view.
+     */
     private MVC hub;
     /**
      * The frame of the view that contains the container of the view.
@@ -33,6 +65,10 @@ public class View implements Notify {
      * The configuration of the view.
      */
     private ConfigLoader config;
+    /**
+     * Indicates if the view is initialized.
+     */
+    private boolean isInitialized = false;
 
     public View(MVC mvc) {
         this.hub = mvc;
@@ -43,10 +79,15 @@ public class View implements Notify {
     }
 
     /**
-     * Allows to create and start the view.
+     * Allows to initialize the view. It loads the configuration of the view and
+     * creates the frame of the view. It's important to call this method before any
+     * other method of the view.
+     * 
+     * @param path The path of the configuration file.
      */
-    public void start() {
-        config = new ConfigLoader();
+    public void initConfig(String path) {
+        this.isInitialized = true;
+        config = new ConfigLoader(path);
         try {
             for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
                 if (config.lookAndFeel.equals(info.getName())) {
@@ -72,6 +113,18 @@ public class View implements Notify {
         }
         frame.setDefaultCloseOperation(config.windowCloseOperation);
         frame.addKeyListener(new KeyActionManager());
+    }
+
+    /**
+     * Allows to view the Frame. Basically it makes the frame visible. It's
+     * important to initialize the view before calling this method.
+     * 
+     * @see View#initConfig(String path)
+     */
+    public void start() {
+        if (!this.isInitialized) {
+            this.initConfig(null);
+        }
         frame.setVisible(config.windowOnLoadVisible);
     }
 
@@ -103,23 +156,15 @@ public class View implements Notify {
     /**
      * Allows to add a panel to the container of the view.
      * 
-     * @param panel The panel to add.
+     * @param section The section to add to the view.
      */
-    public void addPanels(JPanel panel) {
-        container.add(panel);
+    public void addSection(Section section) {
+        container.add(section.getPanel());
     }
 
     @Override
     public void notifyRequest(Request request) {
         this.hub.handleRequest(request);
-    }
-
-    // TODO: Finish the Section class implementation
-    private class Section extends JPanel {
-
-        public Section() {
-            super();
-        }
     }
 
     /**
@@ -205,7 +250,13 @@ public class View implements Notify {
         private String configPath = "config.txt";
         private Color bgColor = Color.BLACK;
 
-        public ConfigLoader() {
+        /**
+         * Allows to load the configuration from the default configuration file.
+         */
+        public ConfigLoader(String configPath) {
+            if (configPath != null) {
+                this.configPath = configPath;
+            }
             this.loadConfig();
         }
 
@@ -214,15 +265,17 @@ public class View implements Notify {
          * structure is:
          * 
          * <pre>
-         * # Use # to comment the line
+         * Use # to comment the line
          * parameter: value
          * </pre>
          * 
          * Example:
          * 
          * <pre>
+         * {@code
          * bgColor: "white"
          * width: 500
+         * }
          * </pre>
          */
         private void loadConfig() {
@@ -237,25 +290,13 @@ public class View implements Notify {
                     parts[0] = parts[0].trim();
                     parts[1] = parts[1].trim();
                     switch (parts[0]) {
-                        case "width":
-                            this.width = Integer.parseInt(parts[1]);
-                            break;
-                        case "height":
-                            this.height = Integer.parseInt(parts[1]);
-                            break;
-                        case "x":
-                            this.x = Integer.parseInt(parts[1]);
-                            break;
-                        case "y":
-                            this.y = Integer.parseInt(parts[1]);
-                            break;
-                        case "title":
-                            this.title = parts[1].replaceAll("^\"|\"$", "");
-                            break;
-                        case "lookAndFeel":
-                            this.lookAndFeel = parts[1].replaceAll("^\"|\"$", "");
-                            break;
-                        case "windowOnCenter":
+                        case "width" -> this.width = Integer.parseInt(parts[1]);
+                        case "height" -> this.height = Integer.parseInt(parts[1]);
+                        case "x" -> this.x = Integer.parseInt(parts[1]);
+                        case "y" -> this.y = Integer.parseInt(parts[1]);
+                        case "title" -> this.title = parts[1].replaceAll("^\"|\"$", "");
+                        case "lookAndFeel" -> this.lookAndFeel = parts[1].replaceAll("^\"|\"$", "");
+                        case "windowOnCenter" -> {
                             this.windowOnCenter = Boolean.parseBoolean(parts[1]);
                             if (this.windowOnCenter) {
                                 this.x = (int) (Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 2)
@@ -263,32 +304,11 @@ public class View implements Notify {
                                 this.y = (int) (Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 2)
                                         - (this.height / 2);
                             }
-                            break;
-                        case "windowResizable":
-                            this.windowResizable = Boolean.parseBoolean(parts[1]);
-                            break;
-                        case "windowCloseOperation":
-                            switch (parts[1]) {
-                                case "EXIT_ON_CLOSE":
-                                    this.windowCloseOperation = JFrame.EXIT_ON_CLOSE;
-                                    break;
-                                case "DISPOSE_ON_CLOSE":
-                                    this.windowCloseOperation = JFrame.DISPOSE_ON_CLOSE;
-                                    break;
-                                case "HIDE_ON_CLOSE":
-                                    this.windowCloseOperation = JFrame.HIDE_ON_CLOSE;
-                                    break;
-                                case "DO_NOTHING_ON_CLOSE":
-                                    this.windowCloseOperation = JFrame.DO_NOTHING_ON_CLOSE;
-                                    break;
-                                default:
-                                    break;
-                            }
-                            break;
-                        case "windowIcon":
-                            this.iconPath = parts[1].replaceAll("^\"|\"$", "");
-                            break;
-                        case "windowWidthCenter":
+                        }
+                        case "windowResizable" -> this.windowResizable = Boolean.parseBoolean(parts[1]);
+                        case "windowCloseOperation" -> this.windowCloseOperation = getWindowCloseOperation(parts[1]);
+                        case "windowIcon" -> this.iconPath = parts[1].replaceAll("^\"|\"$", "");
+                        case "windowWidthCenter" -> {
                             this.windowWidthCenter = Boolean.parseBoolean(parts[1]);
                             if (this.windowWidthCenter) {
                                 this.width = (int) (Toolkit.getDefaultToolkit().getScreenSize().getWidth()
@@ -296,57 +316,12 @@ public class View implements Notify {
                                 this.height = (int) (Toolkit.getDefaultToolkit().getScreenSize().getHeight()
                                         / 2);
                             }
-                            break;
-                        case "windowOnLoadVisible":
-                            this.windowOnLoadVisible = Boolean.parseBoolean(parts[1]);
-                            break;
-                        case "bgColor":
-                            switch (parts[1].replaceAll("^\"|\"$", "").toUpperCase()) {
-                                case "BLACK":
-                                    this.bgColor = Color.BLACK;
-                                    break;
-                                case "BLUE":
-                                    this.bgColor = Color.BLUE;
-                                    break;
-                                case "CYAN":
-                                    this.bgColor = Color.CYAN;
-                                    break;
-                                case "DARK_GRAY":
-                                    this.bgColor = Color.DARK_GRAY;
-                                    break;
-                                case "GRAY":
-                                    this.bgColor = Color.GRAY;
-                                    break;
-                                case "GREEN":
-                                    this.bgColor = Color.GREEN;
-                                    break;
-                                case "LIGHT_GRAY":
-                                    this.bgColor = Color.LIGHT_GRAY;
-                                    break;
-                                case "MAGENTA":
-                                    this.bgColor = Color.MAGENTA;
-                                    break;
-                                case "ORANGE":
-                                    this.bgColor = Color.ORANGE;
-                                    break;
-                                case "PINK":
-                                    this.bgColor = Color.PINK;
-                                    break;
-                                case "RED":
-                                    this.bgColor = Color.RED;
-                                    break;
-                                case "WHITE":
-                                    this.bgColor = Color.WHITE;
-                                    break;
-                                case "YELLOW":
-                                    this.bgColor = Color.YELLOW;
-                                    break;
-                                default:
-                                    break;
-                            }
-                            break;
-                        default:
-                            break;
+                        }
+                        case "windowOnLoadVisible" -> this.windowOnLoadVisible = Boolean.parseBoolean(parts[1]);
+                        case "bgColor" -> this.bgColor = getColor(parts[1].replaceAll("^\"|\"$", "").toUpperCase());
+                        default -> {
+                            // Do nothing
+                        }
                     }
                 }
                 reader.close();
@@ -354,6 +329,53 @@ public class View implements Notify {
                 e.printStackTrace();
             }
         }
-    }
 
+        private int getWindowCloseOperation(String windowCloseOperation) {
+            switch (windowCloseOperation) {
+                case "DO_NOTHING_ON_CLOSE":
+                    return JFrame.DO_NOTHING_ON_CLOSE;
+                case "HIDE_ON_CLOSE":
+                    return JFrame.HIDE_ON_CLOSE;
+                case "DISPOSE_ON_CLOSE":
+                    return JFrame.DISPOSE_ON_CLOSE;
+                case "EXIT_ON_CLOSE":
+                    return JFrame.EXIT_ON_CLOSE;
+                default:
+                    return JFrame.EXIT_ON_CLOSE;
+            }
+        }
+
+        private Color getColor(String color) {
+            switch (color) {
+                case "BLACK":
+                    return Color.BLACK;
+                case "BLUE":
+                    return Color.BLUE;
+                case "CYAN":
+                    return Color.CYAN;
+                case "DARK_GRAY":
+                    return Color.DARK_GRAY;
+                case "GRAY":
+                    return Color.GRAY;
+                case "GREEN":
+                    return Color.GREEN;
+                case "LIGHT_GRAY":
+                    return Color.LIGHT_GRAY;
+                case "MAGENTA":
+                    return Color.MAGENTA;
+                case "ORANGE":
+                    return Color.ORANGE;
+                case "PINK":
+                    return Color.PINK;
+                case "RED":
+                    return Color.RED;
+                case "WHITE":
+                    return Color.WHITE;
+                case "YELLOW":
+                    return Color.YELLOW;
+                default:
+                    return Color.WHITE;
+            }
+        }
+    }
 }
