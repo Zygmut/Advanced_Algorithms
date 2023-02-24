@@ -52,19 +52,8 @@ public class TimeProfiler {
     Duration[] interferencedTimes = new Duration[ratioPrecision];
     Duration[] nativeTimes = new Duration[ratioPrecision];
     for (int i = 0; i < ratioPrecision; i++) {
-      RunnableFunction<Integer> fn = new RunnableFunction<>(
-        params -> {
-          int a = 0;
-          for (int j = 0; j < params[0]; j++) {
-            for (int k = 0; k < params[0]; k++) {
-              a = a + (a - 1);
-            }
-          }
-        },
-        i
-      );
-
-      interferencedTimes[i] = timeIt(fn).getData()[0];
+      final int num = i;
+      interferencedTimes[i] = timeIt(() -> quadraticRatio(num)).getData()[0];
 
       long startingNanoSeconds = System.nanoTime();
       quadraticRatio(ratioPrecision);
@@ -73,7 +62,7 @@ public class TimeProfiler {
         Duration.ofNanos((endingNanoSeconds - startingNanoSeconds));
     }
 
-    double interfenrecedTimeMean = Arrays
+    double interferencedTimeMean = Arrays
       .stream(interferencedTimes)
       .mapToLong(Duration::toNanos)
       .average()
@@ -83,10 +72,10 @@ public class TimeProfiler {
       .mapToLong(Duration::toNanos)
       .average()
       .getAsDouble();
-    System.out.println("RunnableFunction: " + interfenrecedTimeMean);
+    System.out.println("RunnableFunction: " + interferencedTimeMean);
     System.out.println("Native: " + nativeTimeMean);
 
-    return interfenrecedTimeMean / nativeTimeMean;
+    return 1 - (interferencedTimeMean / nativeTimeMean);
   }
 
   /**
@@ -104,7 +93,7 @@ public class TimeProfiler {
     return new TimeResult(
       new Duration[] {
         Duration.ofNanos(
-          (endingNanoSeconds - startingNanoSeconds) / this.interferenceRatio
+          (long) ((endingNanoSeconds - startingNanoSeconds) * this.interferenceRatio)
         ),
       }
     );
@@ -134,7 +123,7 @@ public class TimeProfiler {
       function.run();
       long endingNanoSeconds = System.nanoTime();
       functionDurations[i] =
-        (endingNanoSeconds - startingNanoSeconds) / this.interferenceRatio;
+        (long)((endingNanoSeconds - startingNanoSeconds) * this.interferenceRatio);
     }
 
     return new TimeResult(
@@ -161,7 +150,7 @@ public class TimeProfiler {
       long endingNanoSeconds = System.nanoTime();
       durations[i] =
         Duration.ofNanos(
-          (endingNanoSeconds - startingNanoSeconds) / this.interferenceRatio
+        (long) ((endingNanoSeconds - startingNanoSeconds) * this.interferenceRatio)
         );
     }
     return new TimeResult(durations);
@@ -195,7 +184,7 @@ public class TimeProfiler {
         functions[i].run();
         long endingNanoSeconds = System.nanoTime();
         functionDurations[j] =
-          (endingNanoSeconds - startingNanoSeconds) / this.interferenceRatio;
+          (long)((endingNanoSeconds - startingNanoSeconds) * this.interferenceRatio);
       }
       durations[i] =
         new TimeResult(
