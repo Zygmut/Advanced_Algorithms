@@ -1,11 +1,8 @@
 package View;
 
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.border.EmptyBorder;
-
 import java.util.List;
 import java.util.ArrayList;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
@@ -19,6 +16,9 @@ import javax.swing.JLabel;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.MatteBorder;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.border.EmptyBorder;
 
 /**
  * This class represents a section of the application. It can be used to create
@@ -56,7 +56,7 @@ public class Section {
      * @param colors       The colors of the columns
      */
     public void createHistogramChart(String[] columnLabels, int[] values, Color[] colors) {
-        checkIfArraysAreValid(columnLabels, values, colors);
+        checkIfArraysAreValid(columnLabels.length, values.length, colors.length);
         HistogramChart chart = new HistogramChart();
         for (int i = 0; i < columnLabels.length; i++) {
             chart.addHistogramColumn(columnLabels[i], values[i], colors[i]);
@@ -69,14 +69,14 @@ public class Section {
      * Creates a line chart with the given column labels, values and colors. The
      * Object Section will convert into a LineChart Panel.
      * 
-     * @param columnLabels The labels of the columns
-     * @param values       The values of the columns
-     * @param colors       The colors of the columns
+     * @param labels The labels of the columns
+     * @param values The values of the columns
+     * @param colors The colors of the columns
      */
-    public void createLineChart(String[] columnLabels, int[] values, Color[] colors) {
-        checkIfArraysAreValid(columnLabels, values, colors);
-        // TODO: Improve line char drawing
-        LineChart chart = new LineChart(values);
+    public void createLineChart(String[] labels, int[][] values, Color[] colors, String[] lineNames) {
+        assert labels.length == 2; // X e Y
+        checkIfArraysAreValid(lineNames.length, values.length, colors.length);
+        MultiLineChart chart = new MultiLineChart(values, colors); 
         this.panel = chart;
     }
 
@@ -114,14 +114,87 @@ public class Section {
         this.panel = customComponent;
     }
 
-    private void checkIfArraysAreValid(String[] columnLabels, int[] values, Color[] colors) {
-        if (columnLabels.length != values.length || columnLabels.length != colors.length) {
-            throw new IllegalArgumentException("The arrays must have the same length, one or more parameters are not the same length");
-        }
+    private void checkIfArraysAreValid(int... lenghts) {
+        for (int i = 0; i < lenghts.length - 1; i++) {
+            if (lenghts[i] != lenghts[i + 1]) {
+                throw new IllegalArgumentException("The arrays must have the same length, one or more parameters are not the same length");
+            }
+        } 
     }
 
     public JPanel getPanel() {
         return this.panel;
+    }
+
+    public class MultiLineChart extends JPanel {
+
+        private int[][] data;
+        private Color[] colors;
+        private int rows;
+        private int columns;
+        private int padding = 25;
+
+        public MultiLineChart(int[][] data, Color[] colors) {
+            this.data = data;
+            this.colors = colors;
+            this.rows = data.length;
+            this.columns = data[0].length;
+            setPreferredSize(new Dimension(400, 300));
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g;
+
+            int width = getWidth();
+            int height = getHeight();
+            int chartWidth = width - 2 * padding;
+            int chartHeight = height - 2 * padding;
+
+            // draw grid lines
+            g2d.setColor(Color.LIGHT_GRAY);
+            for (int i = 1; i < columns; i++) {
+                int x = padding + chartWidth * i / columns;
+                g2d.drawLine(x, padding, x, padding + chartHeight);
+            }
+            for (int i = 1; i < rows; i++) {
+                int y = padding + chartHeight * i / rows;
+                g2d.drawLine(padding, y, padding + chartWidth, y);
+            }
+
+            // draw lines and circles
+            for (int i = 0; i < rows; i++) {
+                g2d.setColor(colors[i]);
+                int x1 = padding;
+                int y1 = height - padding - data[i][0] * chartHeight / 100;
+                for (int j = 1; j < columns; j++) {
+                    int x2 = padding + chartWidth * j / columns;
+                    int y2 = height - padding - data[i][j] * chartHeight / 100;
+                    g2d.drawLine(x1, y1, x2, y2);
+                    g2d.fillOval(x2 - 3, y2 - 3, 6, 6);
+                    x1 = x2;
+                    y1 = y2;
+                }
+            }
+
+            // draw x and y axis
+            g2d.setColor(Color.BLACK);
+            g2d.setStroke(new BasicStroke(2));
+            g2d.drawLine(padding, height - padding, width - padding, height - padding);
+            g2d.drawLine(padding, padding, padding, height - padding);
+
+            // draw numbers for x and y axis
+            g2d.setStroke(new BasicStroke(1));
+            for (int i = 0; i <= columns; i++) {
+                int x = padding + chartWidth * i / columns;
+                g2d.drawString(Integer.toString(i * 10), x - 5, height - padding + 15);
+            }
+            for (int i = 0; i <= rows; i++) {
+                int y = padding + chartHeight * i / rows;
+                g2d.drawString(Integer.toString(100 - i * 10), 5, y + 5);
+            }
+        }
     }
 
     private class CustomComponent extends JPanel {
@@ -191,57 +264,7 @@ public class Section {
                 default -> throw new IllegalArgumentException("Invalid position");
             }
         }
-    }
-
-    private class LineChart extends JPanel {
-        private int[] yCoords;
-        private int startX = 100;
-        private int startY = 100;
-        private int endX = 400;
-        private int endY = 400;
-        private int unitX = (endX - startX) / 10;
-        private int unitY = (endY - startY) / 10;
-        private int prevX = startX;
-        private int prevY = endY;
-
-        public LineChart(int[] yCoords) {
-            this.yCoords = yCoords;
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            Graphics2D g2d = (Graphics2D) g;
-
-            // We draw in the following 2 loops the grid so it's visible what I explained
-            // before about each "unit"
-            g2d.setColor(Color.BLUE);
-            for (int i = startX; i <= endX; i += unitX) {
-                g2d.drawLine(i, startY, i, endY);
-            }
-
-            for (int i = startY; i <= endY; i += unitY) {
-                g2d.drawLine(startX, i, endX, i);
-            }
-
-            // We draw the axis here instead of before because otherwise they would become
-            // blue colored.
-            g2d.setColor(Color.BLACK);
-            g2d.drawLine(startX, startY, startX, endY);
-            g2d.drawLine(startX, endY, endX, endY);
-
-            // We draw each of our coords in red color
-            g2d.setColor(Color.RED);
-            for (int y : yCoords) {
-                g2d.drawLine(prevX, prevY, prevX += unitX, prevY = endY - (y * unitY));
-            }
-        }
-
-        @Override
-        public Dimension getPreferredSize() {
-            return new Dimension(endX + 100, endY + 100);
-        }
-    }
+    } 
 
     private class HistogramChart extends JPanel {
         private int histogramHeight = 200;

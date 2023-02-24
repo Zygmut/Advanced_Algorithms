@@ -57,17 +57,16 @@ public class Main {
 
     private void testView() {
         Section panel = new Section();
-        String columnLabels[] = { "A", "B", "C", "D", "E", "F" };
-        int values[] = { 350, 690, 510, 570, 180, 504 };
+        String columnLabels[] = { "A", "B", "C"};
+        String shh[] = { "A", "B"};
+        int values[] = { 0, 1500, 50 };
         Color colors[] = {
                 Color.RED,
                 Color.YELLOW,
                 Color.BLUE,
-                Color.ORANGE,
-                Color.MAGENTA,
-                Color.CYAN,
         };
-        panel.createHistogramChart(columnLabels, values, colors);
+        int[][] data = {{20, 40, 60, 80, 150}, {10, 30, 50, 70, 90}, {5, 25, 45, 65, 85}};
+        panel.createLineChart(shh, data, colors, columnLabels);
         View v = new View();
         v.initConfig(".\\MVC\\config.txt"); // "config.txt"
         v.addSection(panel);
