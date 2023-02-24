@@ -10,13 +10,14 @@ import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
 import javax.swing.Icon;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.MatteBorder;
-import java.awt.Dimension;
-import java.awt.Graphics2D;
 
 /**
  * This class represents a section of the application. It can be used to create
@@ -78,6 +79,20 @@ public class Section {
         this.panel = chart;
     }
 
+    /**
+     * Adds a button to the section. The Object Section will convert into a JPanel 
+     * with the button/s in the direction and position specified.
+     * 
+     * @param buttons         The buttons to add
+     * @param positionInPanel The position of the buttons in the panel
+     * @param direction       The direction of the buttons in the panel
+     */
+    public void addButtons(JButton[] buttons, int positionInPanel, int direction) {
+        CustomComponent customComponent = new CustomComponent();
+        customComponent.addButtons(buttons, positionInPanel, direction);
+        this.panel = customComponent;
+    }
+
     private void checkIfArraysAreValid(String[] columnLabels, int[] values, Color[] colors) {
         if (columnLabels.length != values.length || columnLabels.length != colors.length) {
             throw new IllegalArgumentException("The arrays must have the same length");
@@ -86,6 +101,55 @@ public class Section {
 
     public JPanel getPanel() {
         return this.panel;
+    }
+
+    private class CustomComponent extends JPanel {
+        private static final int DIRECTION_ROW = 0;
+        private static final int DIRECTION_COLUMN = 1;
+        private static final int POSITION_TOP = 0;
+        private static final int POSITION_BOTTOM = 1;
+        private static final int POSITION_LEFT = 2;
+        private static final int POSITION_RIGHT = 3;
+        
+        public CustomComponent() {
+            setLayout(new BorderLayout());
+        } 
+
+        public void addButtons(JButton[] buttons, int positionInPanel, int direction) {
+            setDirectionLayout(direction, buttons.length);
+            JPanel buttonPanel = new JPanel();
+            buttonPanel.setLayout(new BorderLayout());
+            String alignment = getAlignment(positionInPanel);
+            for (JButton jButton : buttons) {
+                buttonPanel.add(jButton, alignment);
+            }
+        }
+
+        private void setDirectionLayout(int direction, int length) {
+            switch (direction) {
+                case DIRECTION_ROW -> setLayout(new GridLayout(1, length));
+                case DIRECTION_COLUMN -> setLayout(new GridLayout(length, 1));
+                default -> throw new IllegalArgumentException("Invalid direction");
+            }
+        }
+
+        private String getAlignment(int positionInPanel) {
+            switch (positionInPanel) {
+                case POSITION_TOP -> {
+                    return BorderLayout.NORTH;
+                }
+                case POSITION_BOTTOM-> {
+                    return BorderLayout.SOUTH;
+                }
+                case POSITION_LEFT -> {
+                    return BorderLayout.WEST;
+                }
+                case POSITION_RIGHT -> {
+                    return BorderLayout.EAST;
+                }
+                default -> throw new IllegalArgumentException("Invalid position");
+            }
+        }
     }
 
     private class LineChart extends JPanel {
