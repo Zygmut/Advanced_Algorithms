@@ -10,6 +10,9 @@ import Request.RequestCode;
 import TimeProfiler.RunnableFunction;
 import TimeProfiler.TimeProfiler;
 import TimeProfiler.TimeResult;
+import View.Section;
+import View.View;
+import java.awt.*;
 
 public class Main {
 
@@ -51,8 +54,8 @@ public class Main {
         System.out.println(a);
 
         System.out.println("interference: " + tp.getInterferenceRatio());
-
-        System.out.println("lambda: " + tp.batchTimeIt(fn, 50).mean(Duration::toNanos)*interferencedTimeRatio);
+        double interferencedTimeRatio = tp.getInterferenceRatio();
+        System.out.println("lambda: " + tp.batchTimeIt(fn, 50).mean(Duration::toNanos) * interferencedTimeRatio);
 
         long[] functionDurations = new long[50];
         for (int i = 0; i < 50; i++) {
@@ -68,8 +71,22 @@ public class Main {
 
     }
 
+    private void testView() {
+        Section panel = new Section();
+        String columnLabels[] = { "A", "B", "C", "D", "E", "F" };
+        int values[] = { 350, 690, 510, 570, 180, 504 };
+        Color colors[] = { Color.RED, Color.YELLOW, Color.BLUE, Color.ORANGE, Color.MAGENTA, Color.CYAN };
+        panel.createHistogramChart(columnLabels, values, colors);
+        View v = new View();
+        v.initConfig(null); // "config.txt"
+        v.addSection(panel);
+        v.start();
+    }
+
     public static void main(String[] args) throws Exception {
         // Mesurament.mesura();
-        (new Main()).master();
+        // (new Main()).master();
+        (new Main()).testView();
     }
+
 }
