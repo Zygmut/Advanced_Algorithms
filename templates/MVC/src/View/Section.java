@@ -1,6 +1,7 @@
 package View;
 
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.border.EmptyBorder;
 
 import java.util.List;
@@ -93,9 +94,29 @@ public class Section {
         this.panel = customComponent;
     }
 
+    /**
+     * Adds a label to the section. The Object Section will convert into a JPanel
+     * with the button/s in the direction and position specified.
+     * 
+     * @param labels          The labels to add
+     * @param positionInPanel The position of the buttons in the panel
+     * @param direction       The direction of the buttons in the panel
+     */
+    public void addLabels(JLabel[] labels, int positionInPanel, int direction) {
+        CustomComponent customComponent = new CustomComponent();
+        customComponent.addLabels(labels, positionInPanel, direction);
+        this.panel = customComponent;
+    }
+
+    public void addProgressBar(JProgressBar[] progressBars, int positionInPanel, int direction) {
+        CustomComponent customComponent = new CustomComponent();
+        customComponent.addProgressBar(progressBars, positionInPanel, direction);
+        this.panel = customComponent;
+    }
+
     private void checkIfArraysAreValid(String[] columnLabels, int[] values, Color[] colors) {
         if (columnLabels.length != values.length || columnLabels.length != colors.length) {
-            throw new IllegalArgumentException("The arrays must have the same length");
+            throw new IllegalArgumentException("The arrays must have the same length, one or more parameters are not the same length");
         }
     }
 
@@ -115,13 +136,33 @@ public class Section {
             setLayout(new BorderLayout());
         } 
 
-        public void addButtons(JButton[] buttons, int positionInPanel, int direction) {
+        private void addButtons(JButton[] buttons, int positionInPanel, int direction) {
             setDirectionLayout(direction, buttons.length);
             JPanel buttonPanel = new JPanel();
             buttonPanel.setLayout(new BorderLayout());
             String alignment = getAlignment(positionInPanel);
             for (JButton jButton : buttons) {
                 buttonPanel.add(jButton, alignment);
+            }
+        }
+
+        private void addLabels(JLabel[] labels, int positionInPanel, int direction) {
+            setDirectionLayout(direction, labels.length);
+            JPanel labelPanel = new JPanel();
+            labelPanel.setLayout(new BorderLayout());
+            String alignment = getAlignment(positionInPanel);
+            for (JLabel jLabel : labels) {
+                labelPanel.add(jLabel, alignment);
+            }
+        }
+
+        private void addProgressBar(JProgressBar[] progressBars, int positionInPanel, int direction) {
+            setDirectionLayout(direction, progressBars.length);
+            JPanel progressBarPanel = new JPanel();
+            progressBarPanel.setLayout(new BorderLayout());
+            String alignment = getAlignment(positionInPanel);
+            for (JProgressBar jProgressBar : progressBars) {
+                progressBarPanel.add(jProgressBar, alignment);
             }
         }
 

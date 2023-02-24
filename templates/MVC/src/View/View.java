@@ -69,6 +69,8 @@ public class View implements Notify {
      * Indicates if the view is initialized.
      */
     private boolean isInitialized = false;
+    private boolean isRestarted = false;
+    private String pathToConfig;
 
     public View(MVC mvc) {
         this.hub = mvc;
@@ -88,6 +90,7 @@ public class View implements Notify {
     public void initConfig(String path) {
         this.isInitialized = true;
         config = new ConfigLoader(path);
+        this.pathToConfig = path;
         try {
             for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
                 if (config.lookAndFeel.equals(info.getName())) {
@@ -125,16 +128,24 @@ public class View implements Notify {
         if (!this.isInitialized) {
             this.initConfig(null);
         }
+        if (this.isRestarted) {
+            this.initConfig(this.pathToConfig);
+            this.isRestarted = false;
+        }
         frame.setVisible(config.windowOnLoadVisible);
     }
 
     /**
      * Allows to set the layout of the container of the view.
-     * 
+     *
      * @param layoutManager The layout manager of the container.
      */
     public void setContainerLayout(LayoutManager layoutManager) {
         container.setLayout(layoutManager);
+    }
+
+    public void saveChart(){
+        // TODO: save chart
     }
 
     /**
@@ -192,6 +203,7 @@ public class View implements Notify {
                     break;
                 case KeyEvent.VK_R:
                     reStart();
+                    isRestarted = true;
                     break;
                 case KeyEvent.VK_S:
                     stop();
@@ -326,7 +338,7 @@ public class View implements Notify {
                 }
                 reader.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new RuntimeException("Error loading the configuration file\n The file was not found", e);
             }
         }
 

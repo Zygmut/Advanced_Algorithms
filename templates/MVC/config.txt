@@ -2,12 +2,12 @@ width: 500
 height: 500
 x: 0
 y: 0
-title: "My view"
+title: "My "
 lookAndFeel: "Nimbus"
 windowOnCenter: true
 windowResizable: true
 windowCloseOperation: "EXIT_ON_CLOSE"
 windowIcon: "icon.png"
-windowWidthCenter: true 
+windowWidthCenter: true
 windowOnLoadVisible: true
 bgColor: "black"
