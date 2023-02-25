@@ -28,6 +28,14 @@ public class MVC implements Notify{
     public void notifyRequest(Request request) {
         switch(request.code){
             case None:
+            case Set_BatchSize:
+            case All_methods:
+            case Escalar_Product:
+            case Mode_O_n:
+            case Mode_O_nlogn:
+                this.model.notifyRequest(request);
+
+                break;
             default:
                 break;
         }
