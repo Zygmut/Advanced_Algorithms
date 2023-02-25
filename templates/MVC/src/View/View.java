@@ -4,11 +4,17 @@ import Master.MVC;
 import Request.Notify;
 import Request.Request;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import javax.imageio.ImageIO;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import java.awt.HeadlessException;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -16,6 +22,7 @@ import java.awt.Container;
 import java.awt.LayoutManager;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 
 /**
  * The view of the MVC pattern. It's the class that manages the view of the
@@ -69,8 +76,18 @@ public class View implements Notify {
      * Indicates if the view is initialized.
      */
     private boolean isInitialized = false;
+    /**
+     * Indicates if the view is restarted.
+     */
     private boolean isRestarted = false;
-    private String pathToConfig;
+    /**
+     * The path of the configuration file.
+     */
+    private String pathToConfig = null;
+    /**
+     * Copy of the frame of the view for allowing to get the config back.
+     */
+    private Container copyContainer = null;
 
     public View(MVC mvc) {
         this.hub = mvc;
@@ -100,7 +117,7 @@ public class View implements Notify {
             }
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException
                 | UnsupportedLookAndFeelException ex) {
-            ex.printStackTrace();
+            throw new RuntimeException(ex);
         }
         frame = new JFrame(config.title);
         container = frame.getContentPane();
@@ -126,7 +143,7 @@ public class View implements Notify {
      */
     public void start() {
         if (!this.isInitialized) {
-            this.initConfig(null);
+            throw new IllegalStateException("The view is not initialized.");
         }
         if (this.isRestarted) {
             this.initConfig(this.pathToConfig);
@@ -144,8 +161,48 @@ public class View implements Notify {
         container.setLayout(layoutManager);
     }
 
-    public void saveChart(){
-        // TODO: save chart
+    /**
+     * Allows to save the chart of the view to an image. Allowed formats: png. To
+     * save an image it's necessary to override a file with the allowed format
+     * extensions.
+     */
+    public void saveChart() {
+        File file = selectFile();
+        if (file == null) {
+            return;
+        }
+        try {
+            BufferedImage image = new BufferedImage(this.container.getWidth(),
+                    this.container.getHeight(), BufferedImage.TYPE_INT_RGB);
+            Graphics2D temp = image.createGraphics();
+            this.container.print(temp);
+            temp.dispose();
+            ImageIO.write(image, "png", file);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Allows to select a file.
+     * 
+     * @return The file selected.
+     */
+    private File selectFile() {
+        JFileChooser windowChooser = new JFileChooser();
+        try {
+            int state = windowChooser.showOpenDialog(windowChooser);
+            File path = new File(System.getProperty("user.dir"));
+            // Añadimos el directorio
+            windowChooser.setCurrentDirectory(path);
+            return state == JFileChooser.APPROVE_OPTION
+                    ? windowChooser.getSelectedFile()
+                    : null;
+        } catch (HeadlessException error) {
+            throw new RuntimeException(error);
+        } catch (Exception error) {
+            throw new RuntimeException(error);
+        }
     }
 
     /**
@@ -153,8 +210,11 @@ public class View implements Notify {
      * to restart the program.
      */
     public void reStart() {
+        this.isRestarted = true;
+        this.saveActualContentContainer();
         this.stop();
         this.start();
+        this.reloadContentContainer();
     }
 
     /**
@@ -162,6 +222,27 @@ public class View implements Notify {
      */
     public void stop() {
         frame.dispose();
+    }
+
+    /**
+     * Allows to reload the content of the container of the view.
+     */
+    private void reloadContentContainer() {
+        Component[] components = this.copyContainer.getComponents();
+        for (Component component : components) {
+            this.container.add(component);
+        }
+    }
+
+    /**
+     * Allows to save the content of the container of the view.
+     */
+    private void saveActualContentContainer() {
+        Component[] components = this.container.getComponents();
+        this.copyContainer = new Container();
+        for (Component component : components) {
+            this.copyContainer.add(component);
+        }
     }
 
     /**
@@ -203,7 +284,6 @@ public class View implements Notify {
                     break;
                 case KeyEvent.VK_R:
                     reStart();
-                    isRestarted = true;
                     break;
                 case KeyEvent.VK_S:
                     stop();
@@ -211,6 +291,9 @@ public class View implements Notify {
                 case KeyEvent.VK_V:
                     config.windowOnLoadVisible = !config.windowOnLoadVisible;
                     frame.setVisible(config.windowOnLoadVisible);
+                    break;
+                case KeyEvent.VK_G:
+                    saveChart();
                     break;
                 default:
                     break;
@@ -338,7 +421,7 @@ public class View implements Notify {
                 }
                 reader.close();
             } catch (IOException e) {
-                throw new RuntimeException("Error loading the configuration file\n The file was not found", e);
+                throw new RuntimeException("Error loading the configuration file.\nThe file was not found", e);
             }
         }
 

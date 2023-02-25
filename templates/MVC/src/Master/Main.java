@@ -68,7 +68,8 @@ public class Main {
         int[][] data = {{20, 40, 60, 80, 150}, {10, 30, 50, 70, 90}, {5, 25, 45, 65, 85}};
         panel.createLineChart(shh, data, colors, columnLabels);
         View v = new View();
-        v.initConfig(".\\MVC\\config.txt"); // "config.txt"
+        //v.initConfig(".\\MVC\\config.txt"); // "config.txt"
+        v.initConfig("config.txt"); // "config.txt"
         v.addSection(panel);
         v.start();
     }
