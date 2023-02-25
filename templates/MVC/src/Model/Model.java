@@ -14,7 +14,7 @@ public class Model implements Notify {
 
     @Override
     public void notifyRequest(Request request) {
-        this.hub.handleRequest(request);
+        this.hub.notifyRequest(request);
     }
 
 }
