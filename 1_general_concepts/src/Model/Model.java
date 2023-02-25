@@ -29,7 +29,7 @@ public class Model implements Notify {
 
     public Model(MVC mvc) {
         this.hub = mvc;
-        this.iteration = 1;
+        this.iteration = 1000;
         this.batchSize = 50;
         this.escalarTimes = new ArrayList<>();
         this.modeNTimes = new ArrayList<>();
@@ -57,7 +57,7 @@ public class Model implements Notify {
         if (vec1.length != vec2.length) {
             return null;
         }
-        System.out.println("Escalar: " + Arrays.toString(vec1));
+        // System.out.println("Escalar: " + Arrays.toString(vec1));
 
         return Optional.of(
                 Arrays.stream(vec1)
@@ -69,7 +69,7 @@ public class Model implements Notify {
     }
 
     private <T extends Number> long modeN(T[] data) {
-        System.out.println("ModeN: " + Arrays.toString(data));
+        // System.out.println("ModeN: " + Arrays.toString(data));
         return Arrays.stream(data)
                 .collect(Collectors.toMap(key -> key, value -> 1, Integer::sum))
                 .entrySet()
@@ -81,7 +81,7 @@ public class Model implements Notify {
     }
 
     private <T extends Number> long modeNLogN(T[] data) {
-        System.out.println("ModeNLogN: " + Arrays.toString(data));
+        // System.out.println("ModeNLogN: " + Arrays.toString(data));
         return Arrays.stream(data)
                 .sorted()
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
@@ -150,7 +150,7 @@ public class Model implements Notify {
             case Mode_O_n:
             case Mode_O_nlogn:
                 // Seguramente habrá que cambiar esto, pero no se como iría con lo threads.
-                this.resetIterations();
+                // this.resetIterations();
 
                 this.calculateFor(request.code);
                 this.nextIteration();
@@ -163,4 +163,27 @@ public class Model implements Notify {
 
     }
 
+    public int getIteration() {
+        return iteration;
+    }
+
+    public int getBatchSize() {
+        return batchSize;
+    }
+
+    public ArrayList<Duration> getEscalarTimes() {
+        return escalarTimes;
+    }
+
+    public ArrayList<Duration> getModeNTimes() {
+        return modeNTimes;
+    }
+
+    public ArrayList<Duration> getModeNlognTimes() {
+        return modeNlognTimes;
+    }
+
+    public Integer[] getData() {
+        return data;
+    }
 }
