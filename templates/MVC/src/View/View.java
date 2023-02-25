@@ -34,7 +34,7 @@ import java.awt.Component;
  * </blockquote>
  *
  * Example:
- * 
+ *
  * <pre>
  * {@code
  * View view = new View(); // or View view = new View(mvc);
@@ -45,10 +45,10 @@ import java.awt.Component;
  * view.start(); // Start the view
  * }
  * </pre>
- * 
+ *
  * Also, this class allows hot reloading the window. For more information, see
  * the KeyActionManager class.
- * 
+ *
  * @see View#initConfig(String path)
  * @see View#start()
  * @see View#KeyActionManager
@@ -93,15 +93,11 @@ public class View implements Notify {
         this.hub = mvc;
     }
 
-    public View() {
-        this.hub = null;
-    }
-
     /**
      * Allows to initialize the view. It loads the configuration of the view and
      * creates the frame of the view. It's important to call this method before any
      * other method of the view.
-     * 
+     *
      * @param path The path of the configuration file.
      */
     public void initConfig(String path) {
@@ -138,7 +134,7 @@ public class View implements Notify {
     /**
      * Allows to view the Frame. Basically it makes the frame visible. It's
      * important to initialize the view before calling this method.
-     * 
+     *
      * @see View#initConfig(String path)
      */
     public void start() {
@@ -185,7 +181,7 @@ public class View implements Notify {
 
     /**
      * Allows to select a file.
-     * 
+     *
      * @return The file selected.
      */
     private File selectFile() {
@@ -247,7 +243,7 @@ public class View implements Notify {
 
     /**
      * Allows to add a panel to the container of the view.
-     * 
+     *
      * @param section The section to add to the view.
      */
     public void addSection(Section section) {
@@ -358,14 +354,14 @@ public class View implements Notify {
         /**
          * Allows to load the configuration from the configuration file. The file
          * structure is:
-         * 
+         *
          * <pre>
          * Use # to comment the line
          * parameter: value
          * </pre>
-         * 
+         *
          * Example:
-         * 
+         *
          * <pre>
          * {@code
          * bgColor: "white"

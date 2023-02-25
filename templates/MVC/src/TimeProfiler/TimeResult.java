@@ -139,7 +139,8 @@ public class TimeResult {
 
     /**
      * Given a function that converts a Duration object to a long, returns the
-     * mode. If no mode was found returns the max value. i.e:
+     * mode. If no mode was found returns the max value. It's time complexity
+     * is O(n) i.e:
      *
      * <pre>
      * {@code
@@ -155,15 +156,13 @@ public class TimeResult {
      * @see Duration
      */
     public long mode(ToLongFunction<? super Duration> timeStep) {
-        return timeStep.applyAsLong(Arrays.stream(this.data)
-                .collect(Collectors.groupingBy(Duration::getNano))
-                .entrySet()
-                .stream()
-                .max(Comparator.comparingLong(e -> e.getValue().size()))
+        Map<Long, Integer> countMap = Arrays.stream(data)
+                .map(duration -> timeStep.applyAsLong(duration))
+                .collect(Collectors.toMap(key -> key, value -> 1, Integer::sum));
+        return countMap.entrySet().stream()
+                .max(Comparator.comparingInt(Map.Entry::getValue))
                 .map(Map.Entry::getKey)
-                .map(Duration::ofNanos)
-                .orElseThrow(NoSuchElementException::new));
-
+                .orElseThrow(NoSuchElementException::new);
     }
 
     /**

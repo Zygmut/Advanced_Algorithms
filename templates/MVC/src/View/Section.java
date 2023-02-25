@@ -25,7 +25,7 @@ import javax.swing.border.EmptyBorder;
  * a histogram chart, a line chart and more. It's basically a JPanel wrapper
  * with extra functionalities that help with the development of the application.
  * Example:
- * 
+ *
  * <pre>
  * {@code
  * Section section = new Section();
@@ -50,7 +50,7 @@ public class Section {
     /**
      * Creates a histogram chart with the given column labels, values and colors.
      * The Object Section will convert into a HistogramChart Panel.
-     * 
+     *
      * @param columnLabels The labels of the columns
      * @param values       The values of the columns
      * @param colors       The colors of the columns
@@ -68,7 +68,7 @@ public class Section {
     /**
      * Creates a line chart with the given column labels, values and colors. The
      * Object Section will convert into a LineChart Panel.
-     * 
+     *
      * @param labels The labels of the columns
      * @param values The values of the columns
      * @param colors The colors of the columns
@@ -76,14 +76,14 @@ public class Section {
     public void createLineChart(String[] labels, int[][] values, Color[] colors, String[] lineNames) {
         assert labels.length == 2; // X e Y
         checkIfArraysAreValid(lineNames.length, values.length, colors.length);
-        MultiLineChart chart = new MultiLineChart(values, colors); 
+        MultiLineChart chart = new MultiLineChart(values, colors);
         this.panel = chart;
     }
 
     /**
-     * Adds a button to the section. The Object Section will convert into a JPanel 
+     * Adds a button to the section. The Object Section will convert into a JPanel
      * with the button/s in the direction and position specified.
-     * 
+     *
      * @param buttons         The buttons to add
      * @param positionInPanel The position of the buttons in the panel
      * @param direction       The direction of the buttons in the panel
@@ -97,7 +97,7 @@ public class Section {
     /**
      * Adds a label to the section. The Object Section will convert into a JPanel
      * with the button/s in the direction and position specified.
-     * 
+     *
      * @param labels          The labels to add
      * @param positionInPanel The position of the buttons in the panel
      * @param direction       The direction of the buttons in the panel
@@ -119,7 +119,7 @@ public class Section {
             if (lenghts[i] != lenghts[i + 1]) {
                 throw new IllegalArgumentException("The arrays must have the same length, one or more parameters are not the same length");
             }
-        } 
+        }
     }
 
     public JPanel getPanel() {
@@ -204,10 +204,10 @@ public class Section {
         private static final int POSITION_BOTTOM = 1;
         private static final int POSITION_LEFT = 2;
         private static final int POSITION_RIGHT = 3;
-        
+
         public CustomComponent() {
             setLayout(new BorderLayout());
-        } 
+        }
 
         private void addButtons(JButton[] buttons, int positionInPanel, int direction) {
             setDirectionLayout(direction, buttons.length);
@@ -264,7 +264,7 @@ public class Section {
                 default -> throw new IllegalArgumentException("Invalid position");
             }
         }
-    } 
+    }
 
     private class HistogramChart extends JPanel {
         private int histogramHeight = 200;
