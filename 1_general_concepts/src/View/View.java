@@ -3,6 +3,7 @@ package View;
 import Master.MVC;
 import Request.Notify;
 import Request.Request;
+import Request.RequestCode;
 import View.Section.DirectionAndPosition;
 
 import java.io.BufferedReader;
@@ -92,13 +93,59 @@ public class View implements Notify {
     private Container copyContainer = null;
 
     /**
-     * This constructor creates a view with the MVC hub
-     * 
+     * This constructor creates a view with the MVC hub without any configuration
+     *
      * @param mvc The MVC hub of the view.
      * @see MVC
      */
     public View(MVC mvc) {
         this.hub = mvc;
+        this.initConfig(null);
+        this.loadContent();
+    }
+
+    /**
+     * This constructor creates a view with the MVC hub and configures itself given
+     * a config path.
+     *
+     * @param mvc        The MVC hub of the view.
+     * @param configPath The path to its config.
+     * @see MVC
+     */
+    public View(MVC mvc, String configPath) {
+        this.hub = mvc;
+        this.initConfig(configPath);
+        this.loadContent();
+    }
+
+    /**
+     * Loads all the view content
+     */
+    private void loadContent() {
+
+        // Leyend
+        Section legendSection = new Section();
+        String leyendColumnLabels[] = { "Escalar", "Mode NLogN", "Mode N" };
+        Color leyendColors[] = {
+                Color.RED,
+                Color.YELLOW,
+                Color.BLUE,
+        };
+        legendSection.addLegend(leyendColumnLabels, leyendColors, DirectionAndPosition.DIRECTION_ROW, -1);
+        this.addSection(legendSection, DirectionAndPosition.POSITION_BOTTOM);
+
+        // Chart
+        Section chartSection = new Section();
+        String chartColumnLabels[] = { "A", "B", "C" };
+        String shh[] = { "A", "B" };
+        Color chartColors[] = {
+                Color.RED,
+                Color.YELLOW,
+                Color.BLUE,
+        };
+        int[][] data = { { 20, 40, 60, 80, 150 }, { 10, 30, 50, 70, 90 }, { 5, 25, 45, 65, 85 } };
+        chartSection.createLineChart(shh, data, chartColors, chartColumnLabels);
+        this.addSection(chartSection, DirectionAndPosition.POSITION_CENTER);
     }
 
     /**
@@ -108,7 +155,7 @@ public class View implements Notify {
      *
      * @param path The path of the configuration file.
      */
-    public void initConfig(String path) {
+    private void initConfig(String path) {
         this.isInitialized = true;
         config = new ConfigLoader(path);
         this.pathToConfig = path;
@@ -256,7 +303,7 @@ public class View implements Notify {
      *
      * @param section  The section to add to the view.
      * @param position The position of the section in the view.
-     * 
+     *
      * @see DirectionAndPosition
      */
     public void addSection(Section section, int position) {
@@ -265,7 +312,18 @@ public class View implements Notify {
 
     @Override
     public void notifyRequest(Request request) {
-        this.hub.notifyRequest(request);
+        switch (request.code) {
+            case New_data:
+                break;
+            case Load_buttons:
+                Section buttonsSection = new Section();
+                buttonsSection.addButtons(this.hub.getController().getButtons(), DirectionAndPosition.DIRECTION_ROW);
+                this.addSection(buttonsSection, DirectionAndPosition.POSITION_TOP);
+                break;
+            default:
+                this.hub.notifyRequest(new Request(RequestCode.Error, this));
+                return;
+        }
     }
 
     /**

@@ -3,6 +3,7 @@ package Master;
 import Model.Model;
 import Request.Notify;
 import Request.Request;
+import Request.RequestCode;
 import View.View;
 import Controller.Controller;
 
@@ -14,8 +15,20 @@ public class MVC implements Notify{
 
     public MVC() {
         this.model = new Model(this);
-        this.view = new View(this);
         this.controller = new Controller(this);
+        this.view = new View(this);
+
+        this.notifyRequest(new Request(RequestCode.Create_buttons, this));
+        this.view.start();
+    }
+
+    public MVC(String config_path) {
+        this.model = new Model(this);
+        this.controller = new Controller(this);
+        this.view = new View(this, config_path);
+
+        this.notifyRequest(new Request(RequestCode.Create_buttons, this));
+        this.view.start();
     }
 
     public MVC(Model model, View view, Controller controller) {
@@ -26,16 +39,21 @@ public class MVC implements Notify{
 
     @Override
     public void notifyRequest(Request request) {
+        System.out.println("MVC received a " + request);
         switch(request.code){
-            case None:
-            case Set_BatchSize:
+            case Set_batchSize:
             case All_methods:
             case Escalar_Product:
             case Mode_O_n:
             case Mode_O_nlogn:
+            case Stop_method:
                 this.model.notifyRequest(request);
-
                 break;
+            case Load_buttons:
+                this.view.notifyRequest(request);
+                break;
+            case Create_buttons:
+                this.controller.notifyRequest(request);
             default:
                 break;
         }

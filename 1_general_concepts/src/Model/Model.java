@@ -142,7 +142,7 @@ public class Model implements Notify {
     @Override
     public void notifyRequest(Request request) {
         switch (request.code) {
-            case Set_BatchSize:
+            case Set_batchSize:
                 this.batchSize = 1; // TODO: Get Value from the component
                 break;
             case All_methods:
@@ -153,11 +153,10 @@ public class Model implements Notify {
                 // this.resetIterations();
 
                 this.calculateFor(request.code);
-                this.nextIteration();
 
                 break;
             default:
-                this.hub.notifyRequest(new Request(RequestCode.Error, request.origin));
+                this.hub.notifyRequest(new Request(RequestCode.Error, this));
                 return;
         }
 
