@@ -122,6 +122,25 @@ public class Section {
         this.panel = customComponent;
     }
 
+    /**
+     * Adds a legend to the section. The Object Section will convert into a JPanel
+     * with the legend in the direction and position specified. The length of the 
+     * labels and colors arrays must be the same. If the iconSize is -1, the icon 
+     * size will be the default (10).
+     *
+     * @param labels          The labels of the legend
+     * @param colors          The colors of the legend
+     * @param positionInPanel The position of the legend in the panel
+     * @param direction       The direction of the legend in the panel
+     * @param iconSize        The size of the icon in the legend
+     */
+    public void addLegend(String[] labels, Color[] colors, int direction, int iconSize) {
+        checkIfArraysAreValid(labels.length, colors.length);
+        Legend legend = new Legend();
+        legend.addLegend(labels, colors, direction, iconSize);
+        this.panel = legend;
+    }
+
     private void checkIfArraysAreValid(int... lengths) {
         for (int i = 0; i < lengths.length - 1; i++) {
             if (lengths[i] != lengths[i + 1]) {
@@ -132,6 +151,37 @@ public class Section {
 
     public JPanel getPanel() {
         return this.panel;
+    }
+
+    private class Legend extends JPanel {
+
+        public Legend() {
+            super();
+        }
+
+        public void addLegend(String[] labels, Color[] colors, int direction, int iconSize) {
+            checkIconSize(iconSize);
+            setLayout(DirectionAndPosition.setDirectionLayout(direction, labels.length));
+            for (int i = 0; i < labels.length; i++) {
+                JLabel label = new JLabel(labels[i]);
+                if (iconSize != -1) {
+                    label.setIcon(new ColorIcon(colors[i], iconSize, iconSize));
+                } else {
+                    label.setIcon(new ColorIcon(colors[i]));
+                }
+                add(label);
+            }
+        }
+
+        private void checkIconSize(int iconSize) {
+            if (iconSize == -1) {
+                // Default icon size
+                return;
+            }
+            if (iconSize < 0) {
+                throw new IllegalArgumentException("The icon size must be greater than 0");
+            }
+        }
     }
 
     public class MultiLineChart extends JPanel {
@@ -234,6 +284,14 @@ public class Section {
                 default -> throw new IllegalArgumentException("The position must be one of the following: POSITION_TOP, POSITION_BOTTOM, POSITION_LEFT, POSITION_RIGHT");
             };
         }
+
+        private static GridLayout setDirectionLayout(int direction, int length) {
+            return switch (direction) {
+                case DirectionAndPosition.DIRECTION_ROW -> new GridLayout(1, length);
+                case DirectionAndPosition.DIRECTION_COLUMN -> new GridLayout(length, 1);
+                default -> throw new IllegalArgumentException("Invalid direction");
+            };
+        }
     }
 
     private class CustomComponent extends JPanel {
@@ -244,7 +302,7 @@ public class Section {
 
         private void addButtons(JButton[] buttons, int direction) {
             JPanel buttonPanel = new JPanel();
-            buttonPanel.setLayout(setDirectionLayout(direction, buttons.length));
+            buttonPanel.setLayout(DirectionAndPosition.setDirectionLayout(direction, buttons.length));
             for (JButton jButton : buttons) {
                 buttonPanel.add(jButton);
             }
@@ -253,7 +311,7 @@ public class Section {
 
         private void addLabels(JLabel[] labels, int direction) {
             JPanel labelPanel = new JPanel();
-            labelPanel.setLayout(setDirectionLayout(direction, labels.length));
+            labelPanel.setLayout(DirectionAndPosition.setDirectionLayout(direction, labels.length));
             for (JLabel jLabel : labels) {
                 labelPanel.add(jLabel);
             }
@@ -262,20 +320,13 @@ public class Section {
 
         private void addProgressBar(JProgressBar[] progressBars, int direction) {
             JPanel progressBarPanel = new JPanel();
-            progressBarPanel.setLayout(setDirectionLayout(direction, progressBars.length));
+            progressBarPanel.setLayout(DirectionAndPosition.setDirectionLayout(direction, progressBars.length));
             for (JProgressBar jProgressBar : progressBars) {
                 progressBarPanel.add(jProgressBar);
             }
             add(progressBarPanel);
         }
 
-        private GridLayout setDirectionLayout(int direction, int length) {
-            return switch (direction) {
-                case DirectionAndPosition.DIRECTION_ROW -> new GridLayout(1, length);
-                case DirectionAndPosition.DIRECTION_COLUMN -> new GridLayout(length, 1);
-                default -> throw new IllegalArgumentException("Invalid direction");
-            };
-        }
     }
 
     private class HistogramChart extends JPanel {
@@ -326,7 +377,7 @@ public class Section {
                 label.setVerticalTextPosition(JLabel.TOP);
                 label.setVerticalAlignment(JLabel.BOTTOM);
                 int barHeight = (bar.getValue() * histogramHeight) / maxValue;
-                Icon icon = new ColorIcon(bar.getColor(), barWidth, barHeight);
+                Icon icon = new ColorIcon(bar.getColor(), barWidth, barHeight, 3);
                 label.setIcon(icon);
                 barPanel.add(label);
 
@@ -338,11 +389,15 @@ public class Section {
     }
 
     private class ColorIcon implements Icon {
-        private int shadow = 3;
-
+    
         private Color color;
-        private int width;
-        private int height;
+        private int width = 10;
+        private int height = 10;
+        private int shadow = 0;
+    
+        public ColorIcon(Color color) {
+            this.color = color;
+        }
 
         public ColorIcon(Color color, int width, int height) {
             this.color = color;
@@ -350,19 +405,34 @@ public class Section {
             this.height = height;
         }
 
+        public ColorIcon(Color color, int width, int height, int shadow) {
+            this.color = color;
+            this.width = width;
+            this.height = height;
+            this.shadow = shadow;
+        }
+    
+        @Override
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            if (shadow > 0) {
+                g.setColor(color);
+                g.fillRect(x, y, width - shadow, height);
+                g.setColor(Color.GRAY);
+                g.fillRect(x + width - shadow, y + shadow, shadow, height - shadow);
+            } else {
+                g.setColor(color);
+                g.fillRect(x, y, width, height); 
+            }
+        }
+    
+        @Override
         public int getIconWidth() {
             return width;
         }
-
+ 
+        @Override
         public int getIconHeight() {
             return height;
-        }
-
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            g.setColor(color);
-            g.fillRect(x, y, width - shadow, height);
-            g.setColor(Color.GRAY);
-            g.fillRect(x + width - shadow, y + shadow, shadow, height - shadow);
         }
     }
 

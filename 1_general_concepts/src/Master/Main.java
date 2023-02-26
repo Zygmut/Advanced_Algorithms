@@ -22,7 +22,8 @@ public class Main {
 
         mvc.getView().initConfig("config.txt");
         mvc.getView().addSection(createButtonSection(), DirectionAndPosition.POSITION_TOP);
-        mvc.getView().addSection(createCharSection(), DirectionAndPosition.POSITION_CENTER);
+        mvc.getView().addSection(createChartSection(), DirectionAndPosition.POSITION_CENTER);
+        mvc.getView().addSection(createLegendSection(), DirectionAndPosition.POSITION_RIGHT);
         mvc.getView().start();
 
         mvc.notifyRequest(new Request(RequestCode.All_methods, "Main"));
@@ -36,7 +37,19 @@ public class Main {
         System.out.println("\tmode N     : " + mvc.getModel().getModeNTimes().stream().mapToLong(Duration::toNanos).mapToObj(String::valueOf).collect(Collectors.joining(", ")));
     }
 
-    private static Section createCharSection() {
+    private static Section createLegendSection() {
+        Section legendSection = new Section();
+        String columnLabels[] = { "Escalar", "Mode NLogN", "Mode N"};
+        Color colors[] = {
+                Color.RED,
+                Color.YELLOW,
+                Color.BLUE,
+        };
+        legendSection.addLegend(columnLabels, colors, DirectionAndPosition.DIRECTION_COLUMN, -1);
+        return legendSection;
+    }
+
+    private static Section createChartSection() {
         Section chartSection = new Section();
         String columnLabels[] = { "A", "B", "C"};
         String shh[] = { "A", "B"};
