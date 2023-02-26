@@ -3,6 +3,8 @@ package View;
 import Master.MVC;
 import Request.Notify;
 import Request.Request;
+import View.Section.DirectionAndPosition;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -89,6 +91,12 @@ public class View implements Notify {
      */
     private Container copyContainer = null;
 
+    /**
+     * This constructor creates a view with the MVC hub
+     * 
+     * @param mvc The MVC hub of the view.
+     * @see MVC
+     */
     public View(MVC mvc) {
         this.hub = mvc;
     }
@@ -242,12 +250,17 @@ public class View implements Notify {
     }
 
     /**
-     * Allows to add a panel to the container of the view.
+     * Allows to add a panel to the container of the view. The posible positions are
+     * from the class DirectionAndPosition, see more in the documentation of the
+     * class.
      *
-     * @param section The section to add to the view.
+     * @param section  The section to add to the view.
+     * @param position The position of the section in the view.
+     * 
+     * @see DirectionAndPosition
      */
-    public void addSection(Section section) {
-        container.add(section.getPanel());
+    public void addSection(Section section, int position) {
+        container.add(section.getPanel(), DirectionAndPosition.getPosition(position));
     }
 
     @Override
@@ -422,51 +435,32 @@ public class View implements Notify {
         }
 
         private int getWindowCloseOperation(String windowCloseOperation) {
-            switch (windowCloseOperation) {
-                case "DO_NOTHING_ON_CLOSE":
-                    return JFrame.DO_NOTHING_ON_CLOSE;
-                case "HIDE_ON_CLOSE":
-                    return JFrame.HIDE_ON_CLOSE;
-                case "DISPOSE_ON_CLOSE":
-                    return JFrame.DISPOSE_ON_CLOSE;
-                case "EXIT_ON_CLOSE":
-                    return JFrame.EXIT_ON_CLOSE;
-                default:
-                    return JFrame.EXIT_ON_CLOSE;
-            }
+            return switch (windowCloseOperation) {
+                case "DO_NOTHING_ON_CLOSE" -> JFrame.DO_NOTHING_ON_CLOSE;
+                case "HIDE_ON_CLOSE" -> JFrame.HIDE_ON_CLOSE;
+                case "DISPOSE_ON_CLOSE" -> JFrame.DISPOSE_ON_CLOSE;
+                case "EXIT_ON_CLOSE" -> JFrame.EXIT_ON_CLOSE;
+                default -> JFrame.EXIT_ON_CLOSE;
+            };
         }
 
         private Color getColor(String color) {
-            switch (color) {
-                case "BLACK":
-                    return Color.BLACK;
-                case "BLUE":
-                    return Color.BLUE;
-                case "CYAN":
-                    return Color.CYAN;
-                case "DARK_GRAY":
-                    return Color.DARK_GRAY;
-                case "GRAY":
-                    return Color.GRAY;
-                case "GREEN":
-                    return Color.GREEN;
-                case "LIGHT_GRAY":
-                    return Color.LIGHT_GRAY;
-                case "MAGENTA":
-                    return Color.MAGENTA;
-                case "ORANGE":
-                    return Color.ORANGE;
-                case "PINK":
-                    return Color.PINK;
-                case "RED":
-                    return Color.RED;
-                case "WHITE":
-                    return Color.WHITE;
-                case "YELLOW":
-                    return Color.YELLOW;
-                default:
-                    return Color.WHITE;
-            }
+            return switch (color) {
+                case "BLACK" -> Color.BLACK;
+                case "BLUE" -> Color.BLUE;
+                case "CYAN" -> Color.CYAN;
+                case "DARK_GRAY" -> Color.DARK_GRAY;
+                case "GRAY" -> Color.GRAY;
+                case "GREEN" -> Color.GREEN;
+                case "LIGHT_GRAY" -> Color.LIGHT_GRAY;
+                case "MAGENTA" -> Color.MAGENTA;
+                case "ORANGE" -> Color.ORANGE;
+                case "PINK" -> Color.PINK;
+                case "RED" -> Color.RED;
+                case "WHITE" -> Color.WHITE;
+                case "YELLOW" -> Color.YELLOW;
+                default -> Color.WHITE;
+            };
         }
     }
 }

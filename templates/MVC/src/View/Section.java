@@ -88,9 +88,9 @@ public class Section {
      * @param positionInPanel The position of the buttons in the panel
      * @param direction       The direction of the buttons in the panel
      */
-    public void addButtons(JButton[] buttons, int positionInPanel, int direction) {
+    public void addButtons(JButton[] buttons, int direction) {
         CustomComponent customComponent = new CustomComponent();
-        customComponent.addButtons(buttons, positionInPanel, direction);
+        customComponent.addButtons(buttons, direction);
         this.panel = customComponent;
     }
 
@@ -102,21 +102,29 @@ public class Section {
      * @param positionInPanel The position of the buttons in the panel
      * @param direction       The direction of the buttons in the panel
      */
-    public void addLabels(JLabel[] labels, int positionInPanel, int direction) {
+    public void addLabels(JLabel[] labels, int direction) {
         CustomComponent customComponent = new CustomComponent();
-        customComponent.addLabels(labels, positionInPanel, direction);
+        customComponent.addLabels(labels, direction);
         this.panel = customComponent;
     }
 
-    public void addProgressBar(JProgressBar[] progressBars, int positionInPanel, int direction) {
+    /**
+     * Adds a progress bar to the section. The Object Section will convert into a
+     * JPanel with the button/s in the direction and position specified.
+     *
+     * @param progressBars    The progress bars to add
+     * @param positionInPanel The position of the buttons in the panel
+     * @param direction       The direction of the buttons in the panel
+     */
+    public void addProgressBar(JProgressBar[] progressBars, int direction) {
         CustomComponent customComponent = new CustomComponent();
-        customComponent.addProgressBar(progressBars, positionInPanel, direction);
+        customComponent.addProgressBar(progressBars, direction);
         this.panel = customComponent;
     }
 
-    private void checkIfArraysAreValid(int... lenghts) {
-        for (int i = 0; i < lenghts.length - 1; i++) {
-            if (lenghts[i] != lenghts[i + 1]) {
+    private void checkIfArraysAreValid(int... lengths) {
+        for (int i = 0; i < lengths.length - 1; i++) {
+            if (lengths[i] != lengths[i + 1]) {
                 throw new IllegalArgumentException("The arrays must have the same length, one or more parameters are not the same length");
             }
         }
@@ -197,72 +205,76 @@ public class Section {
         }
     }
 
-    private class CustomComponent extends JPanel {
-        private static final int DIRECTION_ROW = 0;
-        private static final int DIRECTION_COLUMN = 1;
-        private static final int POSITION_TOP = 0;
-        private static final int POSITION_BOTTOM = 1;
-        private static final int POSITION_LEFT = 2;
-        private static final int POSITION_RIGHT = 3;
+    /**
+     * This class represents the possible direction and position values of the
+     * components in the view and section.
+     */
+    public class DirectionAndPosition {
+        public static final int DIRECTION_ROW = 0;
+        public static final int DIRECTION_COLUMN = 1;
+        public static final int POSITION_TOP = 0;
+        public static final int POSITION_BOTTOM = 1;
+        public static final int POSITION_LEFT = 2;
+        public static final int POSITION_RIGHT = 3;
+        public static final int POSITION_CENTER = 4;
 
+        /**
+         * Returns the direction of the components in the panel.
+         * 
+         * @param position The position of the components in the panel
+         * @return The direction of the components in the panel
+         */
+        public static String getPosition(int position) {
+            return switch (position) {
+                case POSITION_TOP -> BorderLayout.NORTH;
+                case POSITION_BOTTOM -> BorderLayout.SOUTH;
+                case POSITION_LEFT -> BorderLayout.WEST;
+                case POSITION_RIGHT -> BorderLayout.EAST;
+                case POSITION_CENTER -> BorderLayout.CENTER;
+                default -> throw new IllegalArgumentException("The position must be one of the following: POSITION_TOP, POSITION_BOTTOM, POSITION_LEFT, POSITION_RIGHT");
+            };
+        }
+    }
+
+    private class CustomComponent extends JPanel {
+        
         public CustomComponent() {
             setLayout(new BorderLayout());
         }
 
-        private void addButtons(JButton[] buttons, int positionInPanel, int direction) {
-            setDirectionLayout(direction, buttons.length);
+        private void addButtons(JButton[] buttons, int direction) {
             JPanel buttonPanel = new JPanel();
-            buttonPanel.setLayout(new BorderLayout());
-            String alignment = getAlignment(positionInPanel);
+            buttonPanel.setLayout(setDirectionLayout(direction, buttons.length));
             for (JButton jButton : buttons) {
-                buttonPanel.add(jButton, alignment);
+                buttonPanel.add(jButton);
             }
+            add(buttonPanel);
         }
 
-        private void addLabels(JLabel[] labels, int positionInPanel, int direction) {
-            setDirectionLayout(direction, labels.length);
+        private void addLabels(JLabel[] labels, int direction) {
             JPanel labelPanel = new JPanel();
-            labelPanel.setLayout(new BorderLayout());
-            String alignment = getAlignment(positionInPanel);
+            labelPanel.setLayout(setDirectionLayout(direction, labels.length));
             for (JLabel jLabel : labels) {
-                labelPanel.add(jLabel, alignment);
+                labelPanel.add(jLabel);
             }
+            add(labelPanel);
         }
 
-        private void addProgressBar(JProgressBar[] progressBars, int positionInPanel, int direction) {
-            setDirectionLayout(direction, progressBars.length);
+        private void addProgressBar(JProgressBar[] progressBars, int direction) {
             JPanel progressBarPanel = new JPanel();
-            progressBarPanel.setLayout(new BorderLayout());
-            String alignment = getAlignment(positionInPanel);
+            progressBarPanel.setLayout(setDirectionLayout(direction, progressBars.length));
             for (JProgressBar jProgressBar : progressBars) {
-                progressBarPanel.add(jProgressBar, alignment);
+                progressBarPanel.add(jProgressBar);
             }
+            add(progressBarPanel);
         }
 
-        private void setDirectionLayout(int direction, int length) {
-            switch (direction) {
-                case DIRECTION_ROW -> setLayout(new GridLayout(1, length));
-                case DIRECTION_COLUMN -> setLayout(new GridLayout(length, 1));
+        private GridLayout setDirectionLayout(int direction, int length) {
+            return switch (direction) {
+                case DirectionAndPosition.DIRECTION_ROW -> new GridLayout(1, length);
+                case DirectionAndPosition.DIRECTION_COLUMN -> new GridLayout(length, 1);
                 default -> throw new IllegalArgumentException("Invalid direction");
-            }
-        }
-
-        private String getAlignment(int positionInPanel) {
-            switch (positionInPanel) {
-                case POSITION_TOP -> {
-                    return BorderLayout.NORTH;
-                }
-                case POSITION_BOTTOM-> {
-                    return BorderLayout.SOUTH;
-                }
-                case POSITION_LEFT -> {
-                    return BorderLayout.WEST;
-                }
-                case POSITION_RIGHT -> {
-                    return BorderLayout.EAST;
-                }
-                default -> throw new IllegalArgumentException("Invalid position");
-            }
+            };
         }
     }
 
