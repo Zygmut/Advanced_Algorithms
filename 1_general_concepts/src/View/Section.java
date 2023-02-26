@@ -73,7 +73,7 @@ public class Section {
      * @param values The values of the columns
      * @param colors The colors of the columns
      */
-    public void createLineChart(String[] labels, int[][] values, Color[] colors, String[] lineNames) {
+    public void createLineChart(String[] labels, long[][] values, Color[] colors, String[] lineNames) {
         assert labels.length == 2; // X e Y
         checkIfArraysAreValid(lineNames.length, values.length, colors.length);
         MultiLineChart chart = new MultiLineChart(values, colors);
@@ -186,13 +186,14 @@ public class Section {
 
     public class MultiLineChart extends JPanel {
 
-        private int[][] data;
+        private long[][] data;
         private Color[] colors;
         private int rows;
         private int columns;
         private int padding = 25;
 
-        public MultiLineChart(int[][] data, Color[] colors) {
+        public MultiLineChart(long[][] data, Color[] colors) {
+            super();
             this.data = data;
             this.colors = colors;
             this.rows = data.length;
@@ -225,10 +226,10 @@ public class Section {
             for (int i = 0; i < rows; i++) {
                 g2d.setColor(colors[i]);
                 int x1 = padding;
-                int y1 = height - padding - data[i][0] * chartHeight / 100;
+                int y1 = height - padding - (int) data[i][0] * chartHeight / 100;
                 for (int j = 1; j < columns; j++) {
                     int x2 = padding + chartWidth * j / columns;
-                    int y2 = height - padding - data[i][j] * chartHeight / 100;
+                    int y2 = height - padding -  (int) data[i][j] * chartHeight / 100;
                     g2d.drawLine(x1, y1, x2, y2);
                     g2d.fillOval(x2 - 3, y2 - 3, 6, 6);
                     x1 = x2;

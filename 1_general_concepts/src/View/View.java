@@ -10,6 +10,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -91,6 +95,12 @@ public class View implements Notify {
      * Copy of the frame of the view for allowing to get the config back.
      */
     private Container copyContainer = null;
+    /**
+     * The index of the panels that are being added to the view.
+     */
+    private ArrayList<String> viewIndexPanels = null;
+
+    private int test = 5;
 
     /**
      * This constructor creates a view with the MVC hub without any configuration
@@ -100,6 +110,7 @@ public class View implements Notify {
      */
     public View(MVC mvc) {
         this.hub = mvc;
+        this.viewIndexPanels = new ArrayList<>();
         this.initConfig(null);
         this.loadContent();
     }
@@ -114,6 +125,7 @@ public class View implements Notify {
      */
     public View(MVC mvc, String configPath) {
         this.hub = mvc;
+        this.viewIndexPanels = new ArrayList<>();
         this.initConfig(configPath);
         this.loadContent();
     }
@@ -122,7 +134,6 @@ public class View implements Notify {
      * Loads all the view content
      */
     private void loadContent() {
-
         // Leyend
         Section legendSection = new Section();
         String leyendColumnLabels[] = { "Escalar", "Mode NLogN", "Mode N" };
@@ -131,21 +142,30 @@ public class View implements Notify {
                 Color.YELLOW,
                 Color.BLUE,
         };
-        legendSection.addLegend(leyendColumnLabels, leyendColors, DirectionAndPosition.DIRECTION_ROW, -1);
-        this.addSection(legendSection, DirectionAndPosition.POSITION_BOTTOM);
+        legendSection.addLegend(leyendColumnLabels, leyendColors, DirectionAndPosition.DIRECTION_COLUMN, -1);
+        this.addSection(legendSection, DirectionAndPosition.POSITION_RIGHT, "Legend");
+        this.addSection(this.updateChart(), DirectionAndPosition.POSITION_CENTER, "Chart");
+    }
 
-        // Chart
+    /**
+     * Creates and updates a chart view of the model data. Returns the newly created
+     * chart
+     *
+     * @return Section Newly created chart section
+     */
+    private Section updateChart() {
         Section chartSection = new Section();
         String chartColumnLabels[] = { "A", "B", "C" };
         String shh[] = { "A", "B" };
         Color chartColors[] = {
                 Color.RED,
-                Color.YELLOW,
                 Color.BLUE,
+                Color.BLACK,
         };
-        int[][] data = { { 20, 40, 60, 80, 150 }, { 10, 30, 50, 70, 90 }, { 5, 25, 45, 65, 85 } };
+        long[][] data = this.hub.getModel().getData();
+        System.out.println(Arrays.deepToString(data));
         chartSection.createLineChart(shh, data, chartColors, chartColumnLabels);
-        this.addSection(chartSection, DirectionAndPosition.POSITION_CENTER);
+        return chartSection;
     }
 
     /**
@@ -235,6 +255,51 @@ public class View implements Notify {
     }
 
     /**
+     * Allows to repaint an specific component of the view.
+     *
+     * @param component The component to repaint.
+     */
+    public void repaintComponent(String component) {
+        int index = this.viewIndexPanels.indexOf(component);
+        if (index == -1) {
+            throw new IllegalArgumentException("The component does not exist.");
+        }
+        try {
+            this.container.getComponent(index).repaint();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Allows to repaint all the view.
+     */
+    public void repaintAllComponents() {
+        for (Component component : this.container.getComponents()) {
+            component.repaint();
+        }
+    }
+
+    /**
+     * Allows to delete an specific component of the view.
+     *
+     * @param component The component to delete.
+     */
+    public void deleteComponent(String component) {
+        int index = this.viewIndexPanels.indexOf(component);
+        if (index == -1) {
+            throw new IllegalArgumentException("The component does not exist.");
+        }
+        this.viewIndexPanels.remove(component);
+
+        try {
+            this.container.remove(index);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
      * Allows to select a file.
      *
      * @return The file selected.
@@ -306,19 +371,38 @@ public class View implements Notify {
      *
      * @see DirectionAndPosition
      */
-    public void addSection(Section section, int position) {
+    public void addSection(Section section, int position, String name) {
+        this.viewIndexPanels.add(name);
         container.add(section.getPanel(), DirectionAndPosition.getPosition(position));
+    }
+
+    /**
+     * Allows to update a panel from the container of the view. The posible
+     * positions are from the class DirectionAndPosition, see more in the
+     * documentation of the class.
+     *
+     * @param oldSection The section to add to the view.
+     * @param newSection The section to add to the view.
+     * @param position   The position of the section in the view.
+     *
+     * @see DirectionAndPosition
+     */
+    public void updateSection(Section newSection, String sectionName, int position) {
+        this.deleteComponent(sectionName);
+        this.addSection(newSection, position, sectionName);
+        frame.validate();
     }
 
     @Override
     public void notifyRequest(Request request) {
         switch (request.code) {
             case New_data:
+                this.updateSection(this.updateChart(), "Chart", DirectionAndPosition.POSITION_CENTER);
                 break;
             case Load_buttons:
                 Section buttonsSection = new Section();
                 buttonsSection.addButtons(this.hub.getController().getButtons(), DirectionAndPosition.DIRECTION_ROW);
-                this.addSection(buttonsSection, DirectionAndPosition.POSITION_TOP);
+                this.addSection(buttonsSection, DirectionAndPosition.POSITION_TOP, "Buttons");
                 break;
             default:
                 this.hub.notifyRequest(new Request(RequestCode.Error, this));

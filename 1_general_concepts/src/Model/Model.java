@@ -29,7 +29,7 @@ public class Model implements Notify {
 
     public Model(MVC mvc) {
         this.hub = mvc;
-        this.iteration = 1000;
+        this.iteration = 100;
         this.batchSize = 50;
         this.escalarTimes = new ArrayList<>();
         this.modeNTimes = new ArrayList<>();
@@ -155,6 +155,9 @@ public class Model implements Notify {
                 this.calculateFor(request.code);
 
                 break;
+            case Stop_method:
+                System.out.println("Model: TODO STOP");
+                break;
             default:
                 this.hub.notifyRequest(new Request(RequestCode.Error, this));
                 return;
@@ -182,7 +185,39 @@ public class Model implements Notify {
         return modeNlognTimes;
     }
 
-    public Integer[] getData() {
-        return data;
+    public long[][] getData() {
+        long[] data1 = new long[this.escalarTimes.size()];
+        long[] data2 = new long[this.modeNTimes.size()];
+        long[] data3 = new long[this.modeNlognTimes.size()];
+
+        if (this.escalarTimes.size() == 0) {
+            data1 = new long[] { 0 };
+        } else {
+            for (int i = 0; i < this.escalarTimes.size(); i++) {
+                data1[i] = this.escalarTimes.get(i).toMillis();
+            }
+        }
+
+        if (this.modeNTimes.size() == 0) {
+            data2 = new long[] { 0 };
+        } else {
+            for (int i = 0; i < this.modeNTimes.size(); i++) {
+                data2[i] = this.modeNTimes.get(i).toMillis();
+            }
+        }
+
+        if (this.modeNlognTimes.size() == 0) {
+            data3 = new long[] { 0 };
+        } else {
+            for (int i = 0; i < this.modeNlognTimes.size(); i++) {
+                data3[i] = this.modeNlognTimes.get(i).toMillis();
+            }
+        }
+
+        return new long[][] { data1, data2, data3 };
+
+        // long[] a = { {
+        // this.escalarTimes.stream().mapToLong(Duration::toMillis).toArray() }, {}, {}
+        // };
     }
 }
