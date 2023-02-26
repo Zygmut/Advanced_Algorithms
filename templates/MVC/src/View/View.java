@@ -4,6 +4,7 @@ import Master.MVC;
 import Request.Notify;
 import Request.Request;
 import View.Section.DirectionAndPosition;
+import java.util.HashMap;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -90,6 +91,14 @@ public class View implements Notify {
      * Copy of the frame of the view for allowing to get the config back.
      */
     private Container copyContainer = null;
+    /**
+     * The index of the component that is being added to the view.
+     */
+    private int actualIndexComponent = 0;
+    /**
+     * The index of the panels that are being added to the view.
+     */
+    private HashMap<Section, Integer> viewIndexPanels = null;
 
     /**
      * This constructor creates a view with the MVC hub
@@ -99,6 +108,7 @@ public class View implements Notify {
      */
     public View(MVC mvc) {
         this.hub = mvc;
+        this.viewIndexPanels = new HashMap<Section, Integer>();
     }
 
     /**
@@ -188,6 +198,47 @@ public class View implements Notify {
     }
 
     /**
+     * Allows to repaint an specific component of the view.
+     * 
+     * @param component The component to repaint.
+     */
+    public void repaintComponent(Section component) {
+        Integer index = this.viewIndexPanels.get(component);
+        if (index == null) {
+            throw new IllegalArgumentException("The component does not exist.");
+        }
+        try {
+            this.container.getComponent(index).repaint();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Allows to repaint all the view.
+     */
+    public void repaintAll() {
+        this.container.repaint();
+    }
+
+    /**
+     * Allows to delete an specific component of the view.
+     * 
+     * @param component The component to delete.
+     */
+    public void deleteComponent(Section component) {
+        Integer index = this.viewIndexPanels.get(component);
+        if (index == null) {
+            throw new IllegalArgumentException("The component does not exist.");
+        }
+        try {
+            this.container.remove(index);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
      * Allows to select a file.
      *
      * @return The file selected.
@@ -260,6 +311,7 @@ public class View implements Notify {
      * @see DirectionAndPosition
      */
     public void addSection(Section section, int position) {
+        this.viewIndexPanels.put(section, this.actualIndexComponent++);
         container.add(section.getPanel(), DirectionAndPosition.getPosition(position));
     }
 

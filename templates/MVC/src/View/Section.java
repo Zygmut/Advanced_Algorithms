@@ -141,6 +141,10 @@ public class Section {
         this.panel = legend;
     }
 
+    public void createSectionOnSection() {
+        // TODO: Implement        
+    }
+
     private void checkIfArraysAreValid(int... lengths) {
         for (int i = 0; i < lengths.length - 1; i++) {
             if (lengths[i] != lengths[i + 1]) {
