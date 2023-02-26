@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.function.Function;
+import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 
 import Master.MVC;
@@ -24,6 +25,7 @@ public class Model implements Notify {
     private ArrayList<Duration> escalarTimes;
     private ArrayList<Duration> modeNTimes;
     private ArrayList<Duration> modeNlognTimes;
+    private ToLongFunction<? super Duration> timeStep;
     private Random rng;
     private Integer[] data;
 
@@ -35,6 +37,7 @@ public class Model implements Notify {
         this.modeNTimes = new ArrayList<>();
         this.modeNlognTimes = new ArrayList<>();
         this.rng = new Random();
+        this.timeStep = Duration::toMillis;
     }
 
     private void resetIterations() {
@@ -186,38 +189,19 @@ public class Model implements Notify {
     }
 
     public long[][] getData() {
-        long[] data1 = new long[this.escalarTimes.size()];
-        long[] data2 = new long[this.modeNTimes.size()];
-        long[] data3 = new long[this.modeNlognTimes.size()];
+        long[] data1 = this.escalarTimes.stream().mapToLong(this.timeStep).toArray();
+        long[] data2 = this.modeNTimes.stream().mapToLong(this.timeStep).toArray();
+        long[] data3 = this.modeNlognTimes.stream().mapToLong(this.timeStep).toArray();
 
         if (this.escalarTimes.size() == 0) {
             data1 = new long[] { 0 };
-        } else {
-            for (int i = 0; i < this.escalarTimes.size(); i++) {
-                data1[i] = this.escalarTimes.get(i).toMillis();
-            }
         }
-
         if (this.modeNTimes.size() == 0) {
             data2 = new long[] { 0 };
-        } else {
-            for (int i = 0; i < this.modeNTimes.size(); i++) {
-                data2[i] = this.modeNTimes.get(i).toMillis();
-            }
         }
-
         if (this.modeNlognTimes.size() == 0) {
             data3 = new long[] { 0 };
-        } else {
-            for (int i = 0; i < this.modeNlognTimes.size(); i++) {
-                data3[i] = this.modeNlognTimes.get(i).toMillis();
-            }
         }
-
         return new long[][] { data1, data2, data3 };
-
-        // long[] a = { {
-        // this.escalarTimes.stream().mapToLong(Duration::toMillis).toArray() }, {}, {}
-        // };
     }
 }
