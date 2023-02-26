@@ -145,6 +145,17 @@ public class Section {
         // TODO: Implement        
     }
 
+    /**
+     * Creates a free section. The Object Section will convert into a JPanel with 
+     * the free section. Basically, allows the user to transform a JPanel into a
+     * Section.
+     *
+     * @param panel The panel to add
+     */
+    public void createFreeSection(JPanel panel) {
+        this.panel = panel;
+    }
+
     private void checkIfArraysAreValid(int... lengths) {
         for (int i = 0; i < lengths.length - 1; i++) {
             if (lengths[i] != lengths[i + 1]) {

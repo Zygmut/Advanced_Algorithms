@@ -3,9 +3,9 @@ package View;
 import Master.MVC;
 import Request.Notify;
 import Request.Request;
+import Request.RequestCode;
 import View.Section.DirectionAndPosition;
-import java.util.HashMap;
-
+import java.util.ArrayList;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -92,23 +92,34 @@ public class View implements Notify {
      */
     private Container copyContainer = null;
     /**
-     * The index of the component that is being added to the view.
-     */
-    private int actualIndexComponent = 0;
-    /**
      * The index of the panels that are being added to the view.
      */
-    private HashMap<Section, Integer> viewIndexPanels = null;
+    private ArrayList<String> viewIndexPanels = null;
 
     /**
-     * This constructor creates a view with the MVC hub
-     * 
+     * This constructor creates a view with the MVC hub without any configuration
+     *
      * @param mvc The MVC hub of the view.
      * @see MVC
      */
     public View(MVC mvc) {
         this.hub = mvc;
-        this.viewIndexPanels = new HashMap<Section, Integer>();
+        this.viewIndexPanels = new ArrayList<>();
+        this.initConfig(null);
+    }
+
+    /**
+     * This constructor creates a view with the MVC hub and configures itself given
+     * a config path.
+     *
+     * @param mvc        The MVC hub of the view.
+     * @param configPath The path to its config.
+     * @see MVC
+     */
+    public View(MVC mvc, String configPath) {
+        this.hub = mvc;
+        this.viewIndexPanels = new ArrayList<>();
+        this.initConfig(configPath);
     }
 
     /**
@@ -199,12 +210,12 @@ public class View implements Notify {
 
     /**
      * Allows to repaint an specific component of the view.
-     * 
+     *
      * @param component The component to repaint.
      */
-    public void repaintComponent(Section component) {
-        Integer index = this.viewIndexPanels.get(component);
-        if (index == null) {
+    public void repaintComponent(String component) {
+        int index = this.viewIndexPanels.indexOf(component);
+        if (index == -1) {
             throw new IllegalArgumentException("The component does not exist.");
         }
         try {
@@ -217,20 +228,24 @@ public class View implements Notify {
     /**
      * Allows to repaint all the view.
      */
-    public void repaintAll() {
-        this.container.repaint();
+    public void repaintAllComponents() {
+        for (Component component : this.container.getComponents()) {
+            component.repaint();
+        }
     }
 
     /**
      * Allows to delete an specific component of the view.
-     * 
+     *
      * @param component The component to delete.
      */
-    public void deleteComponent(Section component) {
-        Integer index = this.viewIndexPanels.get(component);
-        if (index == null) {
+    public void deleteComponent(String component) {
+        int index = this.viewIndexPanels.indexOf(component);
+        if (index == -1) {
             throw new IllegalArgumentException("The component does not exist.");
         }
+        this.viewIndexPanels.remove(component);
+
         try {
             this.container.remove(index);
         } catch (Exception e) {
@@ -307,17 +322,36 @@ public class View implements Notify {
      *
      * @param section  The section to add to the view.
      * @param position The position of the section in the view.
-     * 
+     *
      * @see DirectionAndPosition
      */
-    public void addSection(Section section, int position) {
-        this.viewIndexPanels.put(section, this.actualIndexComponent++);
+    public void addSection(Section section, int position, String name) {
+        this.viewIndexPanels.add(name);
         container.add(section.getPanel(), DirectionAndPosition.getPosition(position));
+    }
+
+    /**
+     * Allows to update a panel from the container of the view. The posible
+     * positions are from the class DirectionAndPosition, see more in the
+     * documentation of the class.
+     *
+     * @param oldSection The section to add to the view.
+     * @param newSection The section to add to the view.
+     * @param position   The position of the section in the view.
+     *
+     * @see DirectionAndPosition
+     */
+    public void updateSection(Section newSection, String sectionName, int position) {
+        this.deleteComponent(sectionName);
+        this.addSection(newSection, position, sectionName);
+        frame.validate();
     }
 
     @Override
     public void notifyRequest(Request request) {
-        this.hub.notifyRequest(request);
+        switch (request.code) {
+            default -> this.hub.notifyRequest(new Request(RequestCode.Error, this));
+        }
     }
 
     /**
