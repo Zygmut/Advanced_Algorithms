@@ -6,14 +6,11 @@ import Request.Request;
 import Request.RequestCode;
 import View.Section.DirectionAndPosition;
 
+import java.util.ArrayList;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -100,8 +97,6 @@ public class View implements Notify {
      */
     private ArrayList<String> viewIndexPanels = null;
 
-    private int test = 5;
-
     /**
      * This constructor creates a view with the MVC hub without any configuration
      *
@@ -163,7 +158,6 @@ public class View implements Notify {
                 Color.BLACK,
         };
         long[][] data = this.hub.getModel().getData();
-        System.out.println(Arrays.deepToString(data));
         chartSection.createLineChart(shh, data, chartColors, chartColumnLabels);
         return chartSection;
     }
