@@ -2,6 +2,8 @@ package View;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.io.IOException;
+import java.net.URL;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.BorderLayout;
@@ -12,6 +14,7 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
@@ -41,10 +44,28 @@ import javax.swing.border.EmptyBorder;
  */
 public class Section {
 
+    /**
+     * The panel that will be returned by the getPanel() method if the component 
+     * does not render HTML.
+     */
     private JPanel panel;
+    /**
+     * The component that will be returned by the getComponent() method if the 
+     * component renders HTML.
+     */
+    private Component component;
+    /**
+     * Tells if the component renders HTML or not.
+     */
+    private boolean isHTML = false;
 
+
+    /**
+     * Creates a new Section object.
+     */
     public Section() {
         this.panel = new JPanel();
+        this.component = null; 
     }
 
     /**
@@ -141,8 +162,50 @@ public class Section {
         this.panel = legend;
     }
 
-    public void createSectionOnSection() {
-        // TODO: Implement        
+    /**
+     * This method allows to add a custom component to the section. The Object will 
+     * be converted into a JPanel.
+     * 
+     * @param panel The custom component to add
+     */
+    public void createSectionOnSection(JPanel panel) {
+        // TODO: Implement
+    }
+
+    /**
+     * Creates a Section from a HTML String. The Object Section will convert into 
+     * a Component. Some CSS inlines properties are supported.
+     * 
+     * @param html The HTML String
+     */
+    public void createSectionFromHTML(String html) {
+        JEditorPane editorPane = new JEditorPane();
+        editorPane.setEditable(false);
+        editorPane.setContentType("text/html");
+        editorPane.setText(html);
+        this.component = editorPane;
+        this.isHTML = true;
+    }
+
+    /**
+     * Creates a Section from a HTML File. The Object Section will convert into a
+     * Component. For loading the HTML file, the URL must be valid. If the URL is
+     * local, the URL must be like this: "file://path/to/file.html". The content of
+     * the html file can support som CSS properties.
+     * 
+     * @param url The URL of the HTML file
+     */
+    public void createSectionFromHTMLFile(URL url) {
+        JEditorPane editorPane = new JEditorPane();
+        editorPane.setEditable(false);
+        editorPane.setContentType("text/html");
+        try {
+            editorPane.setPage(url);
+        } catch (IOException ex) {
+            throw new IllegalArgumentException("The URL is not valid");
+        }
+        this.component = editorPane;
+        this.isHTML = true;
     }
 
     /**
@@ -156,6 +219,12 @@ public class Section {
         this.panel = panel;
     }
 
+    /**
+     * This method checks if the arrays have the same length. If not, it throws an
+     * IllegalArgumentException.
+     * 
+     * @param lengths The lengths of the arrays
+     */
     private void checkIfArraysAreValid(int... lengths) {
         for (int i = 0; i < lengths.length - 1; i++) {
             if (lengths[i] != lengths[i + 1]) {
@@ -164,8 +233,31 @@ public class Section {
         }
     }
 
+    /**
+     * Returns the panel of the section.
+     * 
+     * @return The panel of the section
+     */
     public JPanel getPanel() {
         return this.panel;
+    }
+
+    /**
+     * Returns true if the section is a HTML section.
+     * 
+     * @return True if the section is a HTML section
+     */
+    public boolean isHTML() {
+        return this.isHTML;
+    }
+
+    /**
+     * Returns the component of the section.
+     * 
+     * @return The component of the section
+     */
+    public Component getComponent() {
+        return this.component;
     }
 
     private class Legend extends JPanel {
@@ -199,6 +291,7 @@ public class Section {
         }
     }
 
+    // TODO: Fix scaling
     public class MultiLineChart extends JPanel {
 
         private int[][] data;
@@ -208,6 +301,7 @@ public class Section {
         private int padding = 25;
 
         public MultiLineChart(int[][] data, Color[] colors) {
+            super();
             this.data = data;
             this.colors = colors;
             this.rows = data.length;
@@ -312,6 +406,7 @@ public class Section {
     private class CustomComponent extends JPanel {
         
         public CustomComponent() {
+            super();
             setLayout(new BorderLayout());
         }
 
@@ -355,6 +450,7 @@ public class Section {
         private List<Bar> bars = new ArrayList<Bar>();
 
         public HistogramChart() {
+            super();
             setBorder(new EmptyBorder(10, 10, 10, 10));
             setLayout(new BorderLayout());
 

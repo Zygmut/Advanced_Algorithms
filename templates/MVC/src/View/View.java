@@ -157,6 +157,7 @@ public class View implements Notify {
             frame.setLocationRelativeTo(null);
         }
         frame.setDefaultCloseOperation(config.windowCloseOperation);
+        // TODO: Fix bug with focus on the frame when there's a button.
         frame.addKeyListener(new KeyActionManager());
     }
 
@@ -327,7 +328,8 @@ public class View implements Notify {
      */
     public void addSection(Section section, int position, String name) {
         this.viewIndexPanels.add(name);
-        container.add(section.getPanel(), DirectionAndPosition.getPosition(position));
+        container.add(section.isHTML() ? section.getComponent() : section.getPanel(),
+                DirectionAndPosition.getPosition(position));
     }
 
     /**
