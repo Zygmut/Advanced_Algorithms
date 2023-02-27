@@ -12,8 +12,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import java.awt.HeadlessException;
@@ -123,6 +125,7 @@ public class View implements Notify {
         this.viewIndexPanels = new ArrayList<>();
         this.initConfig(configPath);
         this.loadContent();
+        this.menuSeconds();
     }
 
     /**
@@ -140,6 +143,28 @@ public class View implements Notify {
         legendSection.addLegend(leyendColumnLabels, leyendColors, DirectionAndPosition.DIRECTION_COLUMN, -1);
         this.addSection(legendSection, DirectionAndPosition.POSITION_RIGHT, "Legend");
         this.addSection(this.updateChart(), DirectionAndPosition.POSITION_CENTER, "Chart");
+        this.addSection(this.menuSeconds(), DirectionAndPosition.POSITION_BOTTOM, "Menu");
+    }
+
+    private Section menuSeconds() {
+        String[] opcionesTiempo = { "Nanoseconds", "Miliseconds", "Seconds" };
+        JComboBox<String> menuTiempo = new JComboBox<String>(opcionesTiempo);
+        menuTiempo.addActionListener(e -> {
+            JComboBox<String> cb = (JComboBox<String>) e.getSource();
+            String selected = (String) cb.getSelectedItem();
+            if (selected.equals("Nanoseconds")) {
+                System.out.println("Nanoseconds");
+            } else if (selected.equals("Miliseconds")) {
+                System.out.println("Miliseconds");
+            } else if (selected.equals("Seconds")) {
+                System.out.println("Seconds");
+            }
+        });
+        JPanel panel = new JPanel();
+        panel.add(menuTiempo);
+        Section section = new Section();
+        section.createSectionOnSection(panel);
+        return section;
     }
 
     /**
