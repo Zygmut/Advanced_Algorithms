@@ -164,12 +164,13 @@ public class Section {
 
     /**
      * This method allows to add a custom component to the section. The Object will 
-     * be converted into a JPanel.
+     * be converted into a JPanel. Basically, this method can convert a JPanel or 
+     * similars to a Section.
      * 
      * @param panel The custom component to add
      */
     public void createSectionOnSection(JPanel panel) {
-        // TODO: Implement
+        this.panel = panel;
     }
 
     /**
