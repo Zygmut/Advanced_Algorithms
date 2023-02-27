@@ -367,7 +367,8 @@ public class View implements Notify {
      */
     public void addSection(Section section, int position, String name) {
         this.viewIndexPanels.add(name);
-        container.add(section.getPanel(), DirectionAndPosition.getPosition(position));
+        container.add(section.isHTML() ? section.getComponent() : section.getPanel(),
+                DirectionAndPosition.getPosition(position));
     }
 
     /**
