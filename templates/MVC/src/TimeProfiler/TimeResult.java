@@ -39,7 +39,8 @@ public class TimeResult {
      */
     public long sum(ToLongFunction<? super Duration> timeStep) {
         return Arrays.stream(this.data)
-                .mapToLong(timeStep).sum();
+                .mapToLong(timeStep)
+                .sum();
     }
 
     /**
