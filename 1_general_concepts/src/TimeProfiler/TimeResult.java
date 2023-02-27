@@ -156,11 +156,10 @@ public class TimeResult {
      * @see Duration
      */
     public long mode(ToLongFunction<? super Duration> timeStep) {
-        return Arrays.stream(data)
+        Map<Long, Integer> countMap = Arrays.stream(data)
                 .map(duration -> timeStep.applyAsLong(duration))
-                .collect(Collectors.toMap(key -> key, value -> 1, Integer::sum))
-                .entrySet()
-                .stream()
+                .collect(Collectors.toMap(key -> key, value -> 1, Integer::sum));
+        return countMap.entrySet().stream()
                 .max(Comparator.comparingInt(Map.Entry::getValue))
                 .map(Map.Entry::getKey)
                 .orElseThrow(NoSuchElementException::new);
