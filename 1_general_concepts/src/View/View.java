@@ -166,8 +166,12 @@ public class View implements Notify {
             }
         });
         JPanel panel = new JPanel();
-        SpinnerListModel model = new SpinnerListModel(new String[] { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" });
+        String[] options = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" };
+        SpinnerListModel model = new SpinnerListModel(options);
         JSpinner spinner = new JSpinner(model);
+        
+        Object valorActual = spinner.getValue();
+        System.out.println(valorActual.toString());
         panel.add(spinner);
         panel.add(menuTiempo);
         Section section = new Section();
