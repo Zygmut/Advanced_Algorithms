@@ -16,6 +16,8 @@ import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerListModel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import java.awt.HeadlessException;
@@ -125,7 +127,6 @@ public class View implements Notify {
         this.viewIndexPanels = new ArrayList<>();
         this.initConfig(configPath);
         this.loadContent();
-        this.menuSeconds();
     }
 
     /**
@@ -143,29 +144,37 @@ public class View implements Notify {
         legendSection.addLegend(leyendColumnLabels, leyendColors, DirectionAndPosition.DIRECTION_COLUMN, -1);
         this.addSection(legendSection, DirectionAndPosition.POSITION_RIGHT, "Legend");
         this.addSection(this.updateChart(), DirectionAndPosition.POSITION_CENTER, "Chart");
-        this.addSection(this.menuSeconds(), DirectionAndPosition.POSITION_BOTTOM, "Menu");
+        this.addSection(this.menuSecondsAndBatch(), DirectionAndPosition.POSITION_BOTTOM, "Menu");
     }
 
-    private Section menuSeconds() {
+    private Section menuSecondsAndBatch() {
         String[] opcionesTiempo = { "Nanoseconds", "Miliseconds", "Seconds" };
         JComboBox<String> menuTiempo = new JComboBox<String>(opcionesTiempo);
         menuTiempo.addActionListener(e -> {
             JComboBox<String> cb = (JComboBox<String>) e.getSource();
             String selected = (String) cb.getSelectedItem();
-            if (selected.equals("Nanoseconds")) {
-                System.out.println("Nanoseconds");
-            } else if (selected.equals("Miliseconds")) {
-                System.out.println("Miliseconds");
-            } else if (selected.equals("Seconds")) {
-                System.out.println("Seconds");
+            switch (selected) { //
+                case "Nanoseconds":
+                    System.out.println("Nanoseconds");
+                    break;
+                case "Miliseconds":
+                    System.out.println("Miliseconds");
+                    break;
+                case "Seconds":
+                    System.out.println("Seconds");
+                    break;
             }
         });
         JPanel panel = new JPanel();
+        SpinnerListModel model = new SpinnerListModel(new String[] { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" });
+        JSpinner spinner = new JSpinner(model);
+        panel.add(spinner);
         panel.add(menuTiempo);
         Section section = new Section();
         section.createSectionOnSection(panel);
         return section;
     }
+
 
     /**
      * Creates and updates a chart view of the model data. Returns the newly created
