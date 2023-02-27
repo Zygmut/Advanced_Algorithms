@@ -4,14 +4,11 @@ import java.util.List;
 import java.util.ArrayList;
 import java.io.IOException;
 import java.net.URL;
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.Component;
 import java.awt.Graphics;
-import java.awt.Dimension;
-import java.awt.Graphics2D;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
@@ -22,6 +19,12 @@ import javax.swing.border.MatteBorder;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.border.EmptyBorder;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 
 /**
  * This class represents a section of the application. It can be used to create
@@ -90,15 +93,26 @@ public class Section {
      * Creates a line chart with the given column labels, values and colors. The
      * Object Section will convert into a LineChart Panel.
      *
-     * @param labels The labels of the columns
-     * @param values The values of the columns
-     * @param colors The colors of the columns
+     * @param labels    The labels of the columns
+     * @param values    The values of the columns
+     * @param colors    The colors of the columns
+     * @param lineNames The names of the lines
+     * @param title     The title of the chart
      */
-    public void createLineChart(String[] labels, int[][] values, Color[] colors, String[] lineNames) {
+    public void createLineChart(String[] labels, long[][] values, Color[] colors, String[] lineNames, String title) {
         assert labels.length == 2; // X e Y
-        checkIfArraysAreValid(lineNames.length, values.length, colors.length);
-        MultiLineChart chart = new MultiLineChart(values, colors);
-        this.panel = chart;
+        MultiLineChart chart;
+        if (colors == null) {
+            checkIfArraysAreValid(lineNames.length, values.length);
+            chart = new MultiLineChart(lineNames, labels[0], labels[1], title);
+        } else {
+            checkIfArraysAreValid(lineNames.length, values.length, colors.length);
+            chart = new MultiLineChart(lineNames, labels[0], labels[1], title);
+            // TODO: Allow to set colors
+            //chart = new MultiLineChart(lineNames, labels[0], labels[1], title, colors);
+        }
+        chart.addLineChart(values);
+        this.panel = chart.createChartPanel();
     }
 
     /**
@@ -292,76 +306,59 @@ public class Section {
         }
     }
 
-    // TODO: Fix scaling
-    public class MultiLineChart extends JPanel {
+    public class MultiLineChart {
+        private String[] labels;
+        private String xLabels;
+        private String yLabels;
+        private String title;
+        private JFreeChart chart;
 
-        private int[][] data;
-        private Color[] colors;
-        private int rows;
-        private int columns;
-        private int padding = 25;
-
-        public MultiLineChart(int[][] data, Color[] colors) {
+        public MultiLineChart(String[] labels, String xLabels, String yLabels, String title) {
             super();
-            this.data = data;
-            this.colors = colors;
-            this.rows = data.length;
-            this.columns = data[0].length;
-            setPreferredSize(new Dimension(400, 300));
+            this.labels = labels;
+            this.xLabels = xLabels;
+            this.yLabels = yLabels;
+            this.title = title;
         }
 
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            Graphics2D g2d = (Graphics2D) g;
+        private JPanel createChartPanel() {
+            return new ChartPanel(this.chart);
+        }
 
-            int width = getWidth();
-            int height = getHeight();
-            int chartWidth = width - 2 * padding;
-            int chartHeight = height - 2 * padding;
+        private void addLineChart(long[][] data) {
+            XYDataset dataset = createDataSets(data);
+            this.chart = ChartFactory.createXYLineChart(this.title, 
+                this.xLabels, this.yLabels, dataset);
+        }
 
-            // draw grid lines
-            g2d.setColor(Color.LIGHT_GRAY);
-            for (int i = 1; i < columns; i++) {
-                int x = padding + chartWidth * i / columns;
-                g2d.drawLine(x, padding, x, padding + chartHeight);
-            }
-            for (int i = 1; i < rows; i++) {
-                int y = padding + chartHeight * i / rows;
-                g2d.drawLine(padding, y, padding + chartWidth, y);
-            }
-
-            // draw lines and circles
-            for (int i = 0; i < rows; i++) {
-                g2d.setColor(colors[i]);
-                int x1 = padding;
-                int y1 = height - padding - data[i][0] * chartHeight / 100;
-                for (int j = 1; j < columns; j++) {
-                    int x2 = padding + chartWidth * j / columns;
-                    int y2 = height - padding - data[i][j] * chartHeight / 100;
-                    g2d.drawLine(x1, y1, x2, y2);
-                    g2d.fillOval(x2 - 3, y2 - 3, 6, 6);
-                    x1 = x2;
-                    y1 = y2;
+        private XYDataset createDataSets(long[][] data) {
+            XYSeriesCollection dataset = new XYSeriesCollection();
+            for (int i = 0; i < data.length; i++) {
+                XYSeries series = new XYSeries(labels[i]);
+                for (int j = 0; j < data[i].length; j++) {
+                    series.add(j, data[i][j]);
                 }
+                dataset.addSeries(series);
             }
+            return dataset;
+        }
 
-            // draw x and y axis
-            g2d.setColor(Color.BLACK);
-            g2d.setStroke(new BasicStroke(2));
-            g2d.drawLine(padding, height - padding, width - padding, height - padding);
-            g2d.drawLine(padding, padding, padding, height - padding);
+        private void addLineChart(double[][] data) {
+            XYDataset dataset = createDataSets(data);
+            chart = ChartFactory.createXYLineChart(this.title, 
+                this.xLabels, this.yLabels, dataset);
+        }
 
-            // draw numbers for x and y axis
-            g2d.setStroke(new BasicStroke(1));
-            for (int i = 0; i <= columns; i++) {
-                int x = padding + chartWidth * i / columns;
-                g2d.drawString(Integer.toString(i * 10), x - 5, height - padding + 15);
+        private XYDataset createDataSets(double[][] data) {
+            XYSeriesCollection dataset = new XYSeriesCollection();
+            for (int i = 0; i < data.length; i++) {
+                XYSeries series = new XYSeries(labels[i]);
+                for (int j = 0; j < data[i].length; j++) {
+                    series.add(j, data[i][j]);
+                }
+                dataset.addSeries(series);
             }
-            for (int i = 0; i <= rows; i++) {
-                int y = padding + chartHeight * i / rows;
-                g2d.drawString(Integer.toString(100 - i * 10), 5, y + 5);
-            }
+            return dataset;
         }
     }
 
