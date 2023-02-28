@@ -7,6 +7,7 @@ import Request.RequestCode;
 import View.Section.DirectionAndPosition;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -17,7 +18,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
-import javax.swing.SpinnerListModel;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import java.awt.HeadlessException;
@@ -101,6 +102,15 @@ public class View implements Notify {
      */
     private ArrayList<String> viewIndexPanels = null;
 
+    // PROVISIONAL
+    private enum TimeRepresentation {
+        SECONDS, MILLISECONDS, NANOSECONDS
+    }
+
+    private TimeRepresentation timeRepresentation = TimeRepresentation.MILLISECONDS;
+
+    private int batch = 0;
+
     /**
      * This constructor creates a view with the MVC hub without any configuration
      *
@@ -142,36 +152,41 @@ public class View implements Notify {
                 Color.BLUE,
         };
         legendSection.addLegend(leyendColumnLabels, leyendColors, DirectionAndPosition.DIRECTION_COLUMN, -1);
-        this.addSection(legendSection, DirectionAndPosition.POSITION_RIGHT, "Legend");
         this.addSection(this.updateChart(), DirectionAndPosition.POSITION_CENTER, "Chart");
         this.addSection(this.menuSecondsAndBatch(), DirectionAndPosition.POSITION_BOTTOM, "Menu");
     }
 
+    /**
+     * Creates the menu for the seconds and the batch size.
+     * 
+     * @return Section The menu section.
+     */
     private Section menuSecondsAndBatch() {
         String[] opcionesTiempo = { "Nanoseconds", "Miliseconds", "Seconds" };
-        JComboBox<String> menuTiempo = new JComboBox<String>(opcionesTiempo);
+        JComboBox<String> menuTiempo = new JComboBox<>(opcionesTiempo);
         menuTiempo.addActionListener(e -> {
-            JComboBox<String> cb = (JComboBox<String>) e.getSource();
-            String selected = (String) cb.getSelectedItem();
-            switch (selected) { //
-                case "Nanoseconds":
-                    System.out.println("Nanoseconds");
-                    break;
-                case "Miliseconds":
-                    System.out.println("Miliseconds");
-                    break;
-                case "Seconds":
-                    System.out.println("Seconds");
-                    break;
+            String selected = String.valueOf(menuTiempo.getSelectedItem());
+            switch (selected) {
+                case "Nanoseconds" -> {
+                    this.timeRepresentation = TimeRepresentation.NANOSECONDS;
+                }
+                case "Miliseconds" -> {
+                    this.timeRepresentation = TimeRepresentation.MILLISECONDS;
+                }
+                case "Seconds" -> {
+                    this.timeRepresentation = TimeRepresentation.SECONDS;
+                }
+                default -> {
+                    this.timeRepresentation = TimeRepresentation.MILLISECONDS;
+                }
             }
         });
         JPanel panel = new JPanel();
-        String[] options = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" };
-        SpinnerListModel model = new SpinnerListModel(options);
+        SpinnerNumberModel model = new SpinnerNumberModel(20, 0, 500, 5);
         JSpinner spinner = new JSpinner(model);
-        
-        Object valorActual = spinner.getValue();
-        System.out.println(valorActual.toString());
+        spinner.addChangeListener(e -> {
+            this.batch = (int) spinner.getValue();
+        });
         panel.add(spinner);
         panel.add(menuTiempo);
         Section section = new Section();
@@ -179,25 +194,47 @@ public class View implements Notify {
         return section;
     }
 
-
     /**
      * Creates and updates a chart view of the model data. Returns the newly created
-     * chart
+     * chart.
      *
-     * @return Section Newly created chart section
+     * @return Section The updated chart Section.
      */
     private Section updateChart() {
-        Section chartSection = new Section();
-        String chartColumnLabels[] = { "A", "B", "C" };
-        String shh[] = { "A", "B" };
+        String[] labels = { "X", "Y" };
+        String chartColumnLabels[] = { "Escalar", "Mode LogN", "Mode N" };
         Color chartColors[] = {
                 Color.RED,
                 Color.BLUE,
                 Color.BLACK,
         };
+        Section chartSection = new Section();
         long[][] data = this.hub.getModel().getData();
-        chartSection.createLineChart(shh, data, chartColors, chartColumnLabels);
+        System.out.println(Arrays.deepToString(data));
+        chartSection.createLineChart(labels, this.transformDataRepresentation(data),
+                chartColors, chartColumnLabels, "");
         return chartSection;
+    }
+
+    // PROVISIONAL
+    private long[][] transformDataRepresentation(long[][] data) {
+        int biggestLength = 0;
+        for (long[] datum : data) {
+            if (datum.length > biggestLength) {
+                biggestLength = datum.length;
+            }
+        }
+        long[][] transformedData = new long[data.length][biggestLength];
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < data[i].length; j++) {
+                switch (this.timeRepresentation) {
+                    case SECONDS -> transformedData[i][j] = data[i][j] / 1000000000;
+                    case MILLISECONDS -> transformedData[i][j] = data[i][j] / 1000000;
+                    case NANOSECONDS -> transformedData[i][j] = data[i][j];
+                }
+            }
+        }
+        return transformedData;
     }
 
     /**
