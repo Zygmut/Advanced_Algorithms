@@ -19,7 +19,6 @@ public class MVC implements Notify {
         this.controller = new Controller(this);
         this.view = new View(this);
 
-        this.notifyRequest(new Request(RequestCode.Create_buttons, this));
         EventQueue.invokeLater(() -> {
             this.view.start();
         });
@@ -30,7 +29,6 @@ public class MVC implements Notify {
         this.controller = new Controller(this);
         this.view = new View(this, config_path);
 
-        this.notifyRequest(new Request(RequestCode.Create_buttons, this));
         EventQueue.invokeLater(() -> {
             this.view.start();
         });
@@ -41,7 +39,6 @@ public class MVC implements Notify {
         this.view = view;
         this.controller = controller;
 
-        this.notifyRequest(new Request(RequestCode.Create_buttons, this));
         EventQueue.invokeLater(() -> {
             this.view.start();
         });
@@ -51,24 +48,26 @@ public class MVC implements Notify {
     public void notifyRequest(Request request) {
         System.out.println("MVC received a " + request);
         switch (request.code) {
-            case Set_batchSize:
             case All_methods:
             case Escalar_Product:
             case Mode_O_n:
             case Mode_O_nlogn:
-            case Stop_method:
+            case Resume_execution:
+            case Pause_execution:
+                this.controller.notifyRequest(request);
+                break;
+            case New_data:
                 this.model.notifyRequest(request);
                 break;
-            case Load_buttons:
-            case New_data:
+            case Show_data:
                 this.view.notifyRequest(request);
                 break;
-            case Create_buttons:
-                this.controller.notifyRequest(request);
+            case Set_batchSize:
+                System.out.println("MVC: TODO");
+                break;
             default:
                 break;
         }
-
     }
 
     public Model getModel() {

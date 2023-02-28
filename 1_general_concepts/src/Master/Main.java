@@ -9,7 +9,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         // Mesurament.mesura();
-        mvc = new MVC(".\\1_general_concepts\\config.txt");
+        mvc = new MVC("config.txt");
 
         // mvc.notifyRequest(new Request(RequestCode.All_methods, "Main"));
 

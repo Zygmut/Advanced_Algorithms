@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -102,15 +103,6 @@ public class View implements Notify {
      */
     private ArrayList<String> viewIndexPanels = null;
 
-    // PROVISIONAL
-    private enum TimeRepresentation {
-        SECONDS, MILLISECONDS, NANOSECONDS
-    }
-
-    private TimeRepresentation timeRepresentation = TimeRepresentation.MILLISECONDS;
-
-    private int batch = 0;
-
     /**
      * This constructor creates a view with the MVC hub without any configuration
      *
@@ -143,22 +135,59 @@ public class View implements Notify {
      * Loads all the view content
      */
     private void loadContent() {
-        // Leyend
-        Section legendSection = new Section();
-        String leyendColumnLabels[] = { "Escalar", "Mode NLogN", "Mode N" };
-        Color leyendColors[] = {
-                Color.RED,
-                Color.YELLOW,
-                Color.BLUE,
-        };
-        legendSection.addLegend(leyendColumnLabels, leyendColors, DirectionAndPosition.DIRECTION_COLUMN, -1);
+        this.addSection(this.createButtons(), DirectionAndPosition.POSITION_TOP, "Buttons");
         this.addSection(this.updateChart(), DirectionAndPosition.POSITION_CENTER, "Chart");
         this.addSection(this.menuSecondsAndBatch(), DirectionAndPosition.POSITION_BOTTOM, "Menu");
     }
 
+    private Section createButtons() {
+        Section buttonSection = new Section();
+        JButton[] buttons = new JButton[5];
+        buttons[0] = new JButton("Escalar");
+        buttons[0].addActionListener(e -> {
+            this.hub.notifyRequest(new Request(RequestCode.Reset_data, this));
+            this.hub.notifyRequest(new Request(RequestCode.Escalar_Product, this));
+            buttons[4].setText("Pause");
+        });
+        buttons[1] = new JButton("Mode NLogN");
+        buttons[1].addActionListener(e -> {
+            this.hub.notifyRequest(new Request(RequestCode.Reset_data, this));
+            this.hub.notifyRequest(new Request(RequestCode.Mode_O_nlogn, this));
+            buttons[4].setText("Pause");
+        });
+        buttons[2] = new JButton("Mode N");
+        buttons[2].addActionListener(e -> {
+            this.hub.notifyRequest(new Request(RequestCode.Reset_data, this));
+            this.hub.notifyRequest(new Request(RequestCode.Mode_O_n, this));
+            buttons[4].setText("Pause");
+        });
+        buttons[3] = new JButton("All");
+        buttons[3].addActionListener(e -> {
+            this.hub.notifyRequest(new Request(RequestCode.Reset_data, this));
+            this.hub.notifyRequest(new Request(RequestCode.All_methods, this));
+            buttons[4].setText("Pause");
+        });
+        buttons[4] = new JButton("Pause");
+        buttons[4].addActionListener(e -> {
+            String btnText = buttons[4].getText();
+            String newBtnText = btnText.equals("Pause") ? "Resume" : "Pause";
+            buttons[4].setText(newBtnText);
+            RequestCode code;
+            if (btnText.equals("Pause")) {
+                code = RequestCode.Pause_execution;
+            } else {
+                code = RequestCode.Resume_execution;
+            }
+            this.hub.notifyRequest(new Request(code, this));
+        });
+
+        buttonSection.addButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
+        return buttonSection;
+    }
+
     /**
      * Creates the menu for the seconds and the batch size.
-     * 
+     *
      * @return Section The menu section.
      */
     private Section menuSecondsAndBatch() {
@@ -168,16 +197,16 @@ public class View implements Notify {
             String selected = String.valueOf(menuTiempo.getSelectedItem());
             switch (selected) {
                 case "Nanoseconds" -> {
-                    this.timeRepresentation = TimeRepresentation.NANOSECONDS;
+                    // TODO: Implementar
                 }
                 case "Miliseconds" -> {
-                    this.timeRepresentation = TimeRepresentation.MILLISECONDS;
+                    // TODO: Implementar
                 }
                 case "Seconds" -> {
-                    this.timeRepresentation = TimeRepresentation.SECONDS;
+                    // TODO: Implementar
                 }
                 default -> {
-                    this.timeRepresentation = TimeRepresentation.MILLISECONDS;
+                    // TODO: Implementar
                 }
             }
         });
@@ -185,7 +214,7 @@ public class View implements Notify {
         SpinnerNumberModel model = new SpinnerNumberModel(20, 0, 500, 5);
         JSpinner spinner = new JSpinner(model);
         spinner.addChangeListener(e -> {
-            this.batch = (int) spinner.getValue();
+            // TODO: Implementar
         });
         panel.add(spinner);
         panel.add(menuTiempo);
@@ -201,7 +230,10 @@ public class View implements Notify {
      * @return Section The updated chart Section.
      */
     private Section updateChart() {
-        String[] labels = { "X", "Y" };
+        // TODO: Cambiar el nombre dependiendo del tiempo
+        // TODO: Cambiar la leyenda para que salga la linea con un punto
+        // TODO: Mostrar en la grafica los datos con puntos
+        String[] labels = { "Iteración", "Tiempo" };
         String chartColumnLabels[] = { "Escalar", "Mode LogN", "Mode N" };
         Color chartColors[] = {
                 Color.RED,
@@ -210,31 +242,22 @@ public class View implements Notify {
         };
         Section chartSection = new Section();
         long[][] data = this.hub.getModel().getData();
-        System.out.println(Arrays.deepToString(data));
-        chartSection.createLineChart(labels, this.transformDataRepresentation(data),
-                chartColors, chartColumnLabels, "");
+        // Tiempo (ns) por Iteración ns ms s min h d y
+        chartSection.createLineChart(labels, data, chartColors, chartColumnLabels, 
+                String.format("Tiempo (%s) por Iteración", abreviateTime("Miliseconds")));
         return chartSection;
     }
 
-    // PROVISIONAL
-    private long[][] transformDataRepresentation(long[][] data) {
-        int biggestLength = 0;
-        for (long[] datum : data) {
-            if (datum.length > biggestLength) {
-                biggestLength = datum.length;
-            }
-        }
-        long[][] transformedData = new long[data.length][biggestLength];
-        for (int i = 0; i < data.length; i++) {
-            for (int j = 0; j < data[i].length; j++) {
-                switch (this.timeRepresentation) {
-                    case SECONDS -> transformedData[i][j] = data[i][j] / 1000000000;
-                    case MILLISECONDS -> transformedData[i][j] = data[i][j] / 1000000;
-                    case NANOSECONDS -> transformedData[i][j] = data[i][j];
-                }
-            }
-        }
-        return transformedData;
+    private String abreviateTime(String time) {
+        return switch(time) {
+            case "Nanoseconds" -> "ns";
+            case "Miliseconds" -> "ms";
+            case "Seconds" -> "s";
+            case "Minutes" -> "min";
+            case "Hours" -> "h";
+            case "Days" -> "d";
+            default -> throw new IllegalStateException("Unexpected value: " + time);
+       };
     }
 
     /**
@@ -466,13 +489,8 @@ public class View implements Notify {
     @Override
     public void notifyRequest(Request request) {
         switch (request.code) {
-            case New_data:
+            case Show_data:
                 this.updateSection(this.updateChart(), "Chart", DirectionAndPosition.POSITION_CENTER);
-                break;
-            case Load_buttons:
-                Section buttonsSection = new Section();
-                buttonsSection.addButtons(this.hub.getController().getButtons(), DirectionAndPosition.DIRECTION_ROW);
-                this.addSection(buttonsSection, DirectionAndPosition.POSITION_TOP, "Buttons");
                 break;
             default:
                 this.hub.notifyRequest(new Request(RequestCode.Error, this));

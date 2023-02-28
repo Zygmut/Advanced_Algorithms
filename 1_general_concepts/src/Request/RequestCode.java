@@ -3,13 +3,14 @@ package Request;
 public enum RequestCode {
     None,
     Error,
-    Stop_method,
-    Create_buttons,
-    Load_buttons,
     Set_batchSize,
     New_data,
+    Show_data,
     All_methods,
     Escalar_Product,
     Mode_O_n,
-    Mode_O_nlogn
+    Mode_O_nlogn,
+    Reset_data,
+    Pause_execution,
+    Resume_execution,
 }
