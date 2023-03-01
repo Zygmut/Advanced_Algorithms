@@ -17,6 +17,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
@@ -102,6 +103,10 @@ public class View implements Notify {
      * The index of the panels that are being added to the view.
      */
     private ArrayList<String> viewIndexPanels = null;
+    /**
+     * Label that shows the actual iteration the algorithms.
+     */
+    private JLabel actualRelativeIteration = null;
 
     /**
      * This constructor creates a view with the MVC hub without any configuration
@@ -216,8 +221,12 @@ public class View implements Notify {
         spinner.addChangeListener(e -> {
             // TODO: Implementar
         });
+        // TODO: Hacer una iteración relativa a la iteración actual, es decir, que
+        // siempre sea de 1 en 1
+        this.actualRelativeIteration = new JLabel("Iteración: " + this.hub.getModel().getIteration());
         panel.add(spinner);
         panel.add(menuTiempo);
+        panel.add(this.actualRelativeIteration);
         Section section = new Section();
         section.createSectionOnSection(panel);
         return section;
@@ -243,13 +252,13 @@ public class View implements Notify {
         Section chartSection = new Section();
         long[][] data = this.hub.getModel().getData();
         // Tiempo (ns) por Iteración ns ms s min h d y
-        chartSection.createLineChart(labels, data, chartColors, chartColumnLabels, 
+        chartSection.createLineChart(labels, data, chartColors, chartColumnLabels,
                 String.format("Tiempo (%s) por Iteración", abreviateTime("Miliseconds")));
         return chartSection;
     }
 
     private String abreviateTime(String time) {
-        return switch(time) {
+        return switch (time) {
             case "Nanoseconds" -> "ns";
             case "Miliseconds" -> "ms";
             case "Seconds" -> "s";
@@ -257,7 +266,7 @@ public class View implements Notify {
             case "Hours" -> "h";
             case "Days" -> "d";
             default -> throw new IllegalStateException("Unexpected value: " + time);
-       };
+        };
     }
 
     /**
@@ -490,6 +499,7 @@ public class View implements Notify {
     public void notifyRequest(Request request) {
         switch (request.code) {
             case Show_data:
+                this.actualRelativeIteration.setText("Iteration: " + this.hub.getModel().getIteration());
                 this.updateSection(this.updateChart(), "Chart", DirectionAndPosition.POSITION_CENTER);
                 break;
             default:
