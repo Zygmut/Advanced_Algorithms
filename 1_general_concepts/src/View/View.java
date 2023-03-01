@@ -108,6 +108,8 @@ public class View implements Notify {
      */
     private JLabel actualRelativeIteration = null;
 
+    private String tiempoSeleccionado = "Nanoseconds";
+
     /**
      * This constructor creates a view with the MVC hub without any configuration
      *
@@ -203,15 +205,18 @@ public class View implements Notify {
             switch (selected) {
                 case "Nanoseconds" -> {
                     // TODO: Implementar
+                    tiempoSeleccionado = selected;
                 }
                 case "Miliseconds" -> {
                     // TODO: Implementar
+                    tiempoSeleccionado = selected;
                 }
                 case "Seconds" -> {
                     // TODO: Implementar
+                    tiempoSeleccionado = selected;
                 }
                 default -> {
-                    // TODO: Implementar
+                    
                 }
             }
         });
@@ -250,10 +255,24 @@ public class View implements Notify {
                 Color.BLACK,
         };
         Section chartSection = new Section();
+
         long[][] data = this.hub.getModel().getData();
+        if (tiempoSeleccionado == "Miliseconds") {
+            for (int i = 0; i < data.length; i++) {
+                for (int j = 0; j < data[i].length; j++) {
+                    data[i][j] = (long) data[i][j] / 1000000;
+                }
+            }
+        } else if (tiempoSeleccionado == "Seconds") {
+            for (int i = 0; i < data.length; i++) {
+                for (int j = 0; j < data[i].length; j++) {
+                    data[i][j] = (long) data[i][j] / 1000000000;
+                }
+            }
+        }
         // Tiempo (ns) por Iteración ns ms s min h d y
         chartSection.createLineChart(labels, data, chartColors, chartColumnLabels,
-                String.format("Tiempo (%s) por Iteración", abreviateTime("Miliseconds")));
+                String.format("Tiempo (%s) por Iteración", abreviateTime(tiempoSeleccionado)));
         return chartSection;
     }
 
