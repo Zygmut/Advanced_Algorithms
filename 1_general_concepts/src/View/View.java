@@ -115,6 +115,10 @@ public class View implements Notify {
      * The actual iteration step of the algorithms.
      */
     private int iterationStep;
+    /**
+     * The actual batch size of the algorithms.
+     */
+    private int batchSize;
 
     /**
      * This constructor creates a view with the MVC hub without any configuration
@@ -128,6 +132,7 @@ public class View implements Notify {
         this.isRestarted = false;
         this.isInitialized = false;
         this.iterationStep = this.hub.getModel().getIterationStep();
+        this.batchSize = this.hub.getModel().getBatchSize();
         this.viewIndexPanels = new ArrayList<>();
         this.initConfig(null);
         this.loadContent();
@@ -147,6 +152,7 @@ public class View implements Notify {
         this.isRestarted = false;
         this.isInitialized = false;
         this.iterationStep = this.hub.getModel().getIterationStep();
+        this.batchSize = this.hub.getModel().getBatchSize();
         this.viewIndexPanels = new ArrayList<>();
         this.initConfig(configPath);
         this.loadContent();
@@ -247,16 +253,15 @@ public class View implements Notify {
 
         JPanel panel = new JPanel();
         SpinnerNumberModel model = new SpinnerNumberModel(20, 1, 500, 1);
-        JSpinner spinner = new JSpinner(model);
-        spinner.addChangeListener(e -> {
-            // TODO: Implementar
+        JSpinner batchSpinner = new JSpinner(model);
+        batchSpinner.addChangeListener(e -> {
+            this.batchSize = (int) batchSpinner.getValue();
+            this.hub.notifyRequest(new Request(RequestCode.Reset_data, this));
         });
 
         SpinnerNumberModel iterationModel = new SpinnerNumberModel(this.hub.getModel().getIterationStep(), 1, 1000, 1);
         JSpinner spIteration = new JSpinner(iterationModel);
         spIteration.addChangeListener(e -> {
-            // notificar el cambio de iteracion
-            // el controller debe parar su ejecución y resetearla.
             this.iterationStep = (int) spIteration.getValue();
             this.hub.notifyRequest(new Request(RequestCode.Reset_data, this));
         });
@@ -264,7 +269,7 @@ public class View implements Notify {
         String labelText = String.format("Iteración: %d x ", this.hub.getModel().getIteration());
         this.actualRelativeIteration = new JLabel(labelText);
         panel.add(batchLabel);
-        panel.add(spinner);
+        panel.add(batchSpinner);
         panel.add(timeLabel);
         panel.add(timeMenu);
         panel.add(this.actualRelativeIteration);
@@ -281,6 +286,15 @@ public class View implements Notify {
      */
     public int getIterationStep() {
         return this.iterationStep;
+    }
+
+    /**
+     * Returns the batch size
+     *
+     * @return int The batch size
+     */
+    public int getBatchSize() {
+        return this.batchSize;
     }
 
     /**
@@ -303,7 +317,7 @@ public class View implements Notify {
         Section chartSection = new Section();
 
         long[][] data = this.hub.getModel().getData();
-        if (this.selectedTime == "Miliseconds") { 
+        if (this.selectedTime == "Miliseconds") {
             for (int i = 0; i < data.length; i++) {
                 for (int j = 0; j < data[i].length; j++) {
                     data[i][j] = data[i][j] / 1000000;

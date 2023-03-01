@@ -50,9 +50,6 @@ public class Model implements Notify {
     @Override
     public void notifyRequest(Request request) {
         switch (request.code) {
-            case Set_batchSize:
-                this.batchSize = 1; // TODO: Get Value from the component
-                break;
             case New_data:
                 this.collectData();
                 break;
@@ -60,6 +57,7 @@ public class Model implements Notify {
                 this.resetData();
                 this.resetIterations();
                 this.iterationStep = this.hub.getView().getIterationStep();
+                this.batchSize = this.hub.getView().getBatchSize();
                 this.hub.notifyRequest(new Request(RequestCode.Show_data, this));
                 break;
             default:

@@ -140,8 +140,18 @@ public class Controller implements Notify {
         this.stop = false;
         while (!this.stop) {
             this.calculateFor(this.currentExecution);
+            if (this.stop) {
+                return;
+            }
             try {
-                Thread.sleep(1000);
+                // Try to lower the rate of unwanted thread executions
+                for (int i = 0; i < 10; i++) {
+                    Thread.sleep(100);
+                    if (this.stop) {
+                        return;
+                    }
+
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
