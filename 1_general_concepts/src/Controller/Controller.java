@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.function.Function;
+import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 
 import Master.MVC;
@@ -23,6 +24,7 @@ public class Controller implements Notify {
     private Duration[] lastData;
     private boolean stop;
     private RequestCode currentExecution;
+    private ToLongFunction<? super Duration> timeStep;
 
     public Controller(MVC mvc) {
         this.hub = mvc;
@@ -31,13 +33,10 @@ public class Controller implements Notify {
         this.stop = false;
     }
 
-
     private <T extends Number> Optional<double[]> declarativeEscalarProduct(T[] vec1, T[] vec2) {
         if (vec1.length != vec2.length) {
             return null;
         }
-        // System.out.println("Escalar: " + Arrays.toString(vec1));
-
         return Optional.of(
                 Arrays.stream(vec1)
                         .mapToDouble(Number::doubleValue)
@@ -48,7 +47,6 @@ public class Controller implements Notify {
     }
 
     private <T extends Number> long modeN(T[] data) {
-        // System.out.println("ModeN: " + Arrays.toString(data));
         return Arrays.stream(data)
                 .collect(Collectors.toMap(key -> key, value -> 1, Integer::sum))
                 .entrySet()
@@ -60,7 +58,6 @@ public class Controller implements Notify {
     }
 
     private <T extends Number> long modeNLogN(T[] data) {
-        // System.out.println("ModeNLogN: " + Arrays.toString(data));
         return Arrays.stream(data)
                 .sorted()
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
@@ -74,14 +71,14 @@ public class Controller implements Notify {
 
     private Integer[] generateData(int bottomBoundary, int highBoundary) {
         return rng.ints(bottomBoundary, highBoundary)
-                .limit(this.hub.getModel().getIteration())
+                .limit(this.hub.getModel().getIterationStep())
                 .boxed()
                 .toArray(Integer[]::new);
     }
 
     private Integer[] generateData() {
         return rng.ints(1, 100)
-                .limit(this.hub.getModel().getIteration())
+                .limit(this.hub.getModel().getIterationStep())
                 .boxed()
                 .toArray(Integer[]::new);
     }
@@ -134,7 +131,9 @@ public class Controller implements Notify {
 
         }
 
-        this.hub.notifyRequest(new Request(RequestCode.New_data, this));
+        if (!this.stop) {
+            this.hub.notifyRequest(new Request(RequestCode.New_data, this));
+        }
     }
 
     private void run() {
@@ -164,6 +163,7 @@ public class Controller implements Notify {
                 Thread.startVirtualThread(this::run);
                 break;
             case Pause_execution:
+            case Reset_data:
                 this.stop = true;
                 break;
             default:

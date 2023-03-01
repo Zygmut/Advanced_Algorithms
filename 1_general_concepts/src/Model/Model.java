@@ -12,17 +12,18 @@ import Request.RequestCode;
 public class Model implements Notify {
 
     private MVC hub;
+    private int iterationStep;
     private int iteration;
     private int batchSize;
     private ArrayList<Duration> escalarTimes;
     private ArrayList<Duration> modeNTimes;
     private ArrayList<Duration> modeNlognTimes;
     private ToLongFunction<? super Duration> timeStep;
-    private Integer[] data;
 
     public Model(MVC mvc) {
         this.hub = mvc;
-        this.iteration = 5000;
+        this.iterationStep = 1000;
+        this.iteration = 0;
         this.batchSize = 1;
         this.escalarTimes = new ArrayList<>();
         this.modeNTimes = new ArrayList<>();
@@ -30,13 +31,20 @@ public class Model implements Notify {
         this.timeStep = Duration::toNanos;
     }
 
+    private void resetData(){
+        this.escalarTimes = new ArrayList<>();
+        this.modeNTimes = new ArrayList<>();
+        this.modeNlognTimes = new ArrayList<>();
+    }
+
     private void resetIterations() {
-        this.iteration = 1;
+        this.iteration = 0;
+        this.iterationStep = 1;
     }
 
     private void nextIteration() {
-        this.iteration += 1000;
-        System.out.println("iteration: " + this.iteration);
+        this.iterationStep += 1000;
+        this.iteration++;
     }
 
     @Override
@@ -47,6 +55,12 @@ public class Model implements Notify {
                 break;
             case New_data:
                 this.collectData();
+                break;
+            case Reset_data:
+                this.resetData();
+                this.resetIterations();
+                this.iterationStep = this.hub.getView().getIterationStep();
+                this.hub.notifyRequest(new Request(RequestCode.Show_data, this));
                 break;
             default:
                 this.hub.notifyRequest(new Request(RequestCode.Error, this));
@@ -69,6 +83,10 @@ public class Model implements Notify {
 
     public int getBatchSize() {
         return batchSize;
+    }
+
+    public int getIterationStep() {
+        return iterationStep;
     }
 
     public ArrayList<Duration> getEscalarTimes() {
@@ -99,4 +117,5 @@ public class Model implements Notify {
         }
         return new long[][] { data1, data2, data3 };
     }
+
 }

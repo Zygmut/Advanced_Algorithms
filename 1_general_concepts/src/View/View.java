@@ -86,29 +86,35 @@ public class View implements Notify {
     /**
      * Indicates if the view is initialized.
      */
-    private boolean isInitialized = false;
+    private boolean isInitialized;
     /**
      * Indicates if the view is restarted.
      */
-    private boolean isRestarted = false;
+    private boolean isRestarted;
     /**
      * The path of the configuration file.
      */
-    private String pathToConfig = null;
+    private String pathToConfig;
     /**
      * Copy of the frame of the view for allowing to get the config back.
      */
-    private Container copyContainer = null;
+    private Container copyContainer;
     /**
      * The index of the panels that are being added to the view.
      */
-    private ArrayList<String> viewIndexPanels = null;
+    private ArrayList<String> viewIndexPanels;
     /**
      * Label that shows the actual iteration the algorithms.
      */
-    private JLabel actualRelativeIteration = null;
-
-    private String tiempoSeleccionado = "Nanoseconds";
+    private JLabel actualRelativeIteration;
+    /**
+     * Time selected by the user.
+     */
+    private String selectedTime;
+    /**
+     * The actual iteration step of the algorithms.
+     */
+    private int iterationStep;
 
     /**
      * This constructor creates a view with the MVC hub without any configuration
@@ -118,6 +124,10 @@ public class View implements Notify {
      */
     public View(MVC mvc) {
         this.hub = mvc;
+        this.selectedTime = "Nanosegundos";
+        this.isRestarted = false;
+        this.isInitialized = false;
+        this.iterationStep = this.hub.getModel().getIterationStep();
         this.viewIndexPanels = new ArrayList<>();
         this.initConfig(null);
         this.loadContent();
@@ -133,6 +143,10 @@ public class View implements Notify {
      */
     public View(MVC mvc, String configPath) {
         this.hub = mvc;
+        this.selectedTime = "Nanosegundos";
+        this.isRestarted = false;
+        this.isInitialized = false;
+        this.iterationStep = this.hub.getModel().getIterationStep();
         this.viewIndexPanels = new ArrayList<>();
         this.initConfig(configPath);
         this.loadContent();
@@ -144,7 +158,7 @@ public class View implements Notify {
     private void loadContent() {
         this.addSection(this.createButtons(), DirectionAndPosition.POSITION_TOP, "Buttons");
         this.addSection(this.updateChart(), DirectionAndPosition.POSITION_CENTER, "Chart");
-        this.addSection(this.menuSecondsAndBatch(), DirectionAndPosition.POSITION_BOTTOM, "Menu");
+        this.addSection(this.footer(), DirectionAndPosition.POSITION_BOTTOM, "Menu");
     }
 
     private Section createButtons() {
@@ -154,33 +168,33 @@ public class View implements Notify {
         buttons[0].addActionListener(e -> {
             this.hub.notifyRequest(new Request(RequestCode.Reset_data, this));
             this.hub.notifyRequest(new Request(RequestCode.Escalar_Product, this));
-            buttons[4].setText("Pause");
+            buttons[4].setText("Pausar");
         });
-        buttons[1] = new JButton("Mode NLogN");
+        buttons[1] = new JButton("Moda NLogN");
         buttons[1].addActionListener(e -> {
             this.hub.notifyRequest(new Request(RequestCode.Reset_data, this));
             this.hub.notifyRequest(new Request(RequestCode.Mode_O_nlogn, this));
-            buttons[4].setText("Pause");
+            buttons[4].setText("Pausar");
         });
-        buttons[2] = new JButton("Mode N");
+        buttons[2] = new JButton("Moda N");
         buttons[2].addActionListener(e -> {
             this.hub.notifyRequest(new Request(RequestCode.Reset_data, this));
             this.hub.notifyRequest(new Request(RequestCode.Mode_O_n, this));
-            buttons[4].setText("Pause");
+            buttons[4].setText("Pausar");
         });
-        buttons[3] = new JButton("All");
+        buttons[3] = new JButton("Todos");
         buttons[3].addActionListener(e -> {
             this.hub.notifyRequest(new Request(RequestCode.Reset_data, this));
             this.hub.notifyRequest(new Request(RequestCode.All_methods, this));
-            buttons[4].setText("Pause");
+            buttons[4].setText("Pausar");
         });
-        buttons[4] = new JButton("Pause");
+        buttons[4] = new JButton("Pausar");
         buttons[4].addActionListener(e -> {
             String btnText = buttons[4].getText();
-            String newBtnText = btnText.equals("Pause") ? "Resume" : "Pause";
+            String newBtnText = btnText.equals("Pausar") ? "Reanudar" : "Pausar";
             buttons[4].setText(newBtnText);
             RequestCode code;
-            if (btnText.equals("Pause")) {
+            if (btnText.equals("Pausar")) {
                 code = RequestCode.Pause_execution;
             } else {
                 code = RequestCode.Resume_execution;
@@ -197,44 +211,76 @@ public class View implements Notify {
      *
      * @return Section The menu section.
      */
-    private Section menuSecondsAndBatch() {
-        String[] opcionesTiempo = { "Nanoseconds", "Miliseconds", "Seconds" };
-        JComboBox<String> menuTiempo = new JComboBox<>(opcionesTiempo);
-        menuTiempo.addActionListener(e -> {
-            String selected = String.valueOf(menuTiempo.getSelectedItem());
+    private Section footer() {
+        String[] timeOptions = { "Nanosegundos", "Milisegundos", "Segundos", "Minutos", "Horas", "Días" };
+        JComboBox<String> timeMenu = new JComboBox<>(timeOptions);
+        timeMenu.addActionListener(e -> {
+            String selected = String.valueOf(timeMenu.getSelectedItem());
+            this.selectedTime = selected;
             switch (selected) {
-                case "Nanoseconds" -> {
+                case "Nanosegundos" -> {
                     // TODO: Implementar
-                    tiempoSeleccionado = selected;
                 }
-                case "Miliseconds" -> {
+                case "Milisegundos" -> {
                     // TODO: Implementar
-                    tiempoSeleccionado = selected;
                 }
-                case "Seconds" -> {
+                case "Segundos" -> {
                     // TODO: Implementar
-                    tiempoSeleccionado = selected;
+                }
+                case "Minutos" -> {
+                    // TODO: Implementar
+                }
+                case "Horas" -> {
+                    // TODO: Implementar
+                }
+                case "Días" -> {
+                    // TODO: Implementar
                 }
                 default -> {
-                    
+                    // Do nothing
                 }
             }
         });
+
+        JLabel batchLabel = new JLabel("Tamaño del lote: ");
+        JLabel timeLabel = new JLabel("Representación: ");
+
         JPanel panel = new JPanel();
-        SpinnerNumberModel model = new SpinnerNumberModel(20, 0, 500, 5);
+        SpinnerNumberModel model = new SpinnerNumberModel(20, 1, 500, 1);
         JSpinner spinner = new JSpinner(model);
         spinner.addChangeListener(e -> {
             // TODO: Implementar
         });
-        // TODO: Hacer una iteración relativa a la iteración actual, es decir, que
-        // siempre sea de 1 en 1
-        this.actualRelativeIteration = new JLabel("Iteración: " + this.hub.getModel().getIteration());
+
+        SpinnerNumberModel iterationModel = new SpinnerNumberModel(this.hub.getModel().getIterationStep(), 1, 1000, 1);
+        JSpinner spIteration = new JSpinner(iterationModel);
+        spIteration.addChangeListener(e -> {
+            // notificar el cambio de iteracion
+            // el controller debe parar su ejecución y resetearla.
+            this.iterationStep = (int) spIteration.getValue();
+            this.hub.notifyRequest(new Request(RequestCode.Reset_data, this));
+        });
+
+        String labelText = String.format("Iteración: %d x ", this.hub.getModel().getIteration());
+        this.actualRelativeIteration = new JLabel(labelText);
+        panel.add(batchLabel);
         panel.add(spinner);
-        panel.add(menuTiempo);
+        panel.add(timeLabel);
+        panel.add(timeMenu);
         panel.add(this.actualRelativeIteration);
+        panel.add(spIteration);
         Section section = new Section();
         section.createSectionOnSection(panel);
         return section;
+    }
+
+    /**
+     * Returns the iteration step.
+     *
+     * @return int The iteration step.
+     */
+    public int getIterationStep() {
+        return this.iterationStep;
     }
 
     /**
@@ -248,7 +294,7 @@ public class View implements Notify {
         // TODO: Cambiar la leyenda para que salga la linea con un punto
         // TODO: Mostrar en la grafica los datos con puntos
         String[] labels = { "Iteración", "Tiempo" };
-        String chartColumnLabels[] = { "Escalar", "Mode LogN", "Mode N" };
+        String chartColumnLabels[] = { "Escalar", "Moda LogN", "Moda N" };
         Color chartColors[] = {
                 Color.RED,
                 Color.BLUE,
@@ -257,33 +303,33 @@ public class View implements Notify {
         Section chartSection = new Section();
 
         long[][] data = this.hub.getModel().getData();
-        if (tiempoSeleccionado == "Miliseconds") {
+        if (this.selectedTime == "Miliseconds") { 
             for (int i = 0; i < data.length; i++) {
                 for (int j = 0; j < data[i].length; j++) {
-                    data[i][j] = (long) data[i][j] / 1000000;
+                    data[i][j] = data[i][j] / 1000000;
                 }
             }
-        } else if (tiempoSeleccionado == "Seconds") {
+        } else if (this.selectedTime == "Seconds") {
             for (int i = 0; i < data.length; i++) {
                 for (int j = 0; j < data[i].length; j++) {
-                    data[i][j] = (long) data[i][j] / 1000000000;
+                    data[i][j] = data[i][j] / 1000000000;
                 }
             }
         }
         // Tiempo (ns) por Iteración ns ms s min h d y
         chartSection.createLineChart(labels, data, chartColors, chartColumnLabels,
-                String.format("Tiempo (%s) por Iteración", abreviateTime(tiempoSeleccionado)));
+                String.format("Tiempo (%s) por Iteración", abreviateTime(this.selectedTime)));
         return chartSection;
     }
 
     private String abreviateTime(String time) {
         return switch (time) {
-            case "Nanoseconds" -> "ns";
-            case "Miliseconds" -> "ms";
-            case "Seconds" -> "s";
-            case "Minutes" -> "min";
-            case "Hours" -> "h";
-            case "Days" -> "d";
+            case "Nanosegundos" -> "ns";
+            case "Milisegundos" -> "ms";
+            case "Segundos" -> "s";
+            case "Minutos" -> "min";
+            case "Horas" -> "h";
+            case "Días" -> "d";
             default -> throw new IllegalStateException("Unexpected value: " + time);
         };
     }
@@ -518,7 +564,8 @@ public class View implements Notify {
     public void notifyRequest(Request request) {
         switch (request.code) {
             case Show_data:
-                this.actualRelativeIteration.setText("Iteration: " + this.hub.getModel().getIteration());
+                String labelText = String.format("Iteración: %d x ", this.hub.getModel().getIteration());
+                this.actualRelativeIteration.setText(labelText);
                 this.updateSection(this.updateChart(), "Chart", DirectionAndPosition.POSITION_CENTER);
                 break;
             default:

@@ -3,7 +3,6 @@ package Master;
 import Model.Model;
 import Request.Notify;
 import Request.Request;
-import Request.RequestCode;
 import View.View;
 import Controller.Controller;
 import java.awt.EventQueue;
@@ -61,6 +60,10 @@ public class MVC implements Notify {
                 break;
             case Show_data:
                 this.view.notifyRequest(request);
+                break;
+            case Reset_data:
+                this.controller.notifyRequest(request);
+                this.model.notifyRequest(request);
                 break;
             case Set_batchSize:
                 System.out.println("MVC: TODO");
