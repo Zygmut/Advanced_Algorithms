@@ -7,7 +7,6 @@ import Request.RequestCode;
 import View.Section.DirectionAndPosition;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -252,7 +251,7 @@ public class View implements Notify {
         JLabel timeLabel = new JLabel("Representación: ");
 
         JPanel panel = new JPanel();
-        SpinnerNumberModel model = new SpinnerNumberModel(20, 1, 500, 1);
+        SpinnerNumberModel model = new SpinnerNumberModel(this.hub.getModel().getBatchSize(), 1, 500, 1);
         JSpinner batchSpinner = new JSpinner(model);
         batchSpinner.addChangeListener(e -> {
             this.batchSize = (int) batchSpinner.getValue();
@@ -330,6 +329,7 @@ public class View implements Notify {
                 }
             }
         }
+
         // Tiempo (ns) por Iteración ns ms s min h d y
         chartSection.createLineChart(labels, data, chartColors, chartColumnLabels,
                 String.format("Tiempo (%s) por Iteración", abreviateTime(this.selectedTime)));
