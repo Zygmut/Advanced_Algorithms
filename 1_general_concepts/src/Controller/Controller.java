@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.function.Function;
-import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 
 import Master.MVC;
@@ -24,7 +23,6 @@ public class Controller implements Notify {
     private Duration[] lastData;
     private boolean stop;
     private RequestCode currentExecution;
-    private ToLongFunction<? super Duration> timeStep;
 
     public Controller(MVC mvc) {
         this.hub = mvc;
@@ -71,20 +69,14 @@ public class Controller implements Notify {
 
     private Integer[] generateData(int bottomBoundary, int highBoundary) {
         return rng.ints(bottomBoundary, highBoundary)
-                .limit(this.hub.getModel().getIterationStep())
+                .limit(this.hub.getModel().getIterationStepAcumulator())
                 .boxed()
                 .toArray(Integer[]::new);
     }
 
-    private Integer[] generateData() {
-        return rng.ints(1, 100)
-                .limit(this.hub.getModel().getIterationStep())
-                .boxed()
-                .toArray(Integer[]::new);
-    }
 
     private void calculateFor(RequestCode request) {
-        Integer[] data = this.generateData();
+        Integer[] data = this.generateData(1, 100);
         switch (request) {
             case Mode_O_n:
                 this.lastData[0] = Duration.ZERO;
