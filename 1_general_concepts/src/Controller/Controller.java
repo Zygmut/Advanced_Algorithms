@@ -144,11 +144,12 @@ public class Controller implements Notify {
             }
             try {
                 // Try to lower the rate of unwanted thread executions
-                Thread.sleep(1);
-                if (this.stop) {
-                    return;
+                for (int i = 0; i < 5; i++) {
+                    Thread.sleep(1);
+                    if (this.stop) {
+                        return;
+                    }
                 }
-
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
