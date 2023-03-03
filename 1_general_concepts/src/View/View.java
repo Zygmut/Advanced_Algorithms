@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
@@ -122,7 +123,11 @@ public class View implements Notify {
     /**
      * The progress bar of the view.
      */
-    private JProgressBar progressBar;
+    private JProgressBar[] progressBarList;
+    /**
+     * The number of progress bars in the view.
+     */
+    private final int PROGRESS_OPTIONS = 3;
 
     /**
      * This constructor creates a view with the MVC hub without any configuration
@@ -138,7 +143,7 @@ public class View implements Notify {
         this.iterationStep = this.hub.getModel().getIterationStep();
         this.batchSize = this.hub.getModel().getBatchSize();
         this.viewIndexPanels = new ArrayList<>();
-        this.progressBar = new JProgressBar();
+        this.createProgressBar();
         this.initConfig(null);
         this.loadContent();
     }
@@ -159,7 +164,7 @@ public class View implements Notify {
         this.iterationStep = this.hub.getModel().getIterationStep();
         this.batchSize = this.hub.getModel().getBatchSize();
         this.viewIndexPanels = new ArrayList<>();
-        this.progressBar = new JProgressBar();
+        this.createProgressBar();
         this.initConfig(configPath);
         this.loadContent();
     }
@@ -171,6 +176,18 @@ public class View implements Notify {
         this.addSection(this.createButtons(), DirectionAndPosition.POSITION_TOP, "Buttons");
         this.addSection(this.updateChart(), DirectionAndPosition.POSITION_CENTER, "Chart");
         this.addSection(this.footer(), DirectionAndPosition.POSITION_BOTTOM, "Menu");
+    }
+
+    private void createProgressBar() {
+        this.progressBarList = new JProgressBar[PROGRESS_OPTIONS];
+        JProgressBar progressBar;
+        for (int i = 0; i < PROGRESS_OPTIONS; i++) {
+            progressBar = new JProgressBar();
+            progressBar.setStringPainted(true);
+            progressBar.setValue(0);
+            progressBar.setForeground(new Color(70, 130, 180));
+            this.progressBarList[i] = progressBar;
+        }
     }
 
     private Section createButtons() {
@@ -283,15 +300,14 @@ public class View implements Notify {
         centralPanel.add(spIteration);
 
         JPanel feedBackPanel = new JPanel();
-        this.progressBar.setStringPainted(true);
-        this.progressBar.setValue(0);
-        this.progressBar.setForeground(new Color(70, 130, 180));
-        feedBackPanel.add(progressBar);
+        feedBackPanel.add(this.progressBarList[0]);
+        feedBackPanel.add(this.progressBarList[1]);
+        feedBackPanel.add(this.progressBarList[2]);
 
         JPanel panel = new JPanel();
-        panel.setLayout(new BorderLayout());
-        panel.add(centralPanel, BorderLayout.CENTER);
-        panel.add(feedBackPanel, BorderLayout.EAST);
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.add(centralPanel);
+        panel.add(feedBackPanel);
         Section section = new Section();
         section.createSectionOnSection(panel);
         return section;
@@ -582,7 +598,9 @@ public class View implements Notify {
             case Show_data:
                 // TODO: Cambiar 'this.hub.getModel().getIteration() del progressBar
                 // por algo que indique el progreso de cada algoritmo en la iteración
-                this.progressBar.setValue(this.hub.getModel().getIteration());
+                this.progressBarList[0].setValue(this.hub.getModel().getIteration());
+                this.progressBarList[1].setValue(this.hub.getModel().getIteration());
+                this.progressBarList[2].setValue(this.hub.getModel().getIteration());
                 String labelText = String.format("Iteración: %d x ", this.hub.getModel().getIteration());
                 this.actualRelativeIteration.setText(labelText);
                 this.updateSection(this.updateChart(), "Chart", DirectionAndPosition.POSITION_CENTER);
