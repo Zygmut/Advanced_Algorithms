@@ -5,7 +5,6 @@ import Request.Notify;
 import Request.Request;
 import View.View;
 import Controller.Controller;
-import java.awt.EventQueue;
 
 public class MVC implements Notify {
 
@@ -32,14 +31,11 @@ public class MVC implements Notify {
     }
 
     public void show(){
-        EventQueue.invokeLater(() -> {
             this.view.start();
-        });
     }
 
     @Override
     public void notifyRequest(Request request) {
-        System.out.println("MVC received a " + request);
         switch (request.code) {
             case All_methods:
             case Escalar_Product:
@@ -50,6 +46,12 @@ public class MVC implements Notify {
                 this.controller.notifyRequest(request);
                 break;
             case New_data:
+            case Time_To_Nanoseconds:
+            case Time_To_Milliseconds:
+            case Time_To_Seconds:
+            case Time_To_Minutes:
+            case Time_To_Hours:
+            case Time_To_Days:
                 this.model.notifyRequest(request);
                 break;
             case Show_data:
@@ -59,17 +61,9 @@ public class MVC implements Notify {
                 this.controller.notifyRequest(request);
                 this.model.notifyRequest(request);
                 break;
-            case Set_batchSize:
-                System.out.println("MVC: TODO");
-                break;
-            case Time_To_Nanoseconds:
-            case Time_To_Milliseconds:
-            case Time_To_Seconds:
-            case Time_To_Minutes:
-            case Time_To_Hours:
-            case Time_To_Days:
-                this.model.notifyRequest(request);
-                break;
+            case Error:
+                System.out.println(request);
+                System.exit(1);
             default:
                 break;
         }
