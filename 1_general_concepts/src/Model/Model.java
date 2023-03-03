@@ -13,6 +13,7 @@ public class Model implements Notify {
 
     private MVC hub;
     private int iterationStep;
+    private int iterationStepAcumulator;
     private int iteration;
     private int batchSize;
     private ArrayList<Duration> escalarTimes;
@@ -23,6 +24,7 @@ public class Model implements Notify {
     public Model(MVC mvc) {
         this.hub = mvc;
         this.iterationStep = 1000;
+        this.iterationStepAcumulator = this.iterationStep;
         this.iteration = 0;
         this.batchSize = 1;
         this.escalarTimes = new ArrayList<>();
@@ -39,11 +41,12 @@ public class Model implements Notify {
 
     private void resetIterations() {
         this.iteration = 0;
-        this.iterationStep = 1;
+        this.iterationStep = this.hub.getView().getIterationStep();
+        this.iterationStepAcumulator = this.iterationStep;
     }
 
     private void nextIteration() {
-        this.iterationStep += 1000;
+        this.iterationStepAcumulator += this.iterationStep;
         this.iteration++;
     }
 
@@ -109,6 +112,10 @@ public class Model implements Notify {
 
     public int getIterationStep() {
         return iterationStep;
+    }
+
+    public int getIterationStepAcumulator() {
+        return iterationStepAcumulator;
     }
 
     public ArrayList<Duration> getEscalarTimes() {

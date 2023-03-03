@@ -69,7 +69,7 @@ public class Controller implements Notify {
 
     private Integer[] generateData(int bottomBoundary, int highBoundary) {
         return rng.ints(bottomBoundary, highBoundary)
-                .limit(this.hub.getModel().getIterationStep())
+                .limit(this.hub.getModel().getIterationStepAcumulator())
                 .boxed()
                 .toArray(Integer[]::new);
     }
@@ -77,6 +77,7 @@ public class Controller implements Notify {
 
     private void calculateFor(RequestCode request) {
         Integer[] data = this.generateData(1, 100);
+        System.out.println(this.hub.getModel().getIterationStepAcumulator());
         switch (request) {
             case Mode_O_n:
                 this.lastData[0] = Duration.ZERO;
@@ -138,7 +139,7 @@ public class Controller implements Notify {
             try {
                 // Try to lower the rate of unwanted thread executions
                 for (int i = 0; i < 10; i++) {
-                    Thread.sleep(100);
+                    Thread.sleep(10);
                     if (this.stop) {
                         return;
                     }
