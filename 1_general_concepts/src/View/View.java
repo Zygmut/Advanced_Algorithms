@@ -224,22 +224,22 @@ public class View implements Notify {
             this.selectedTime = selected;
             switch (selected) {
                 case "Nanosegundos" -> {
-                    // TODO: Implementar
+                    this.hub.notifyRequest(new Request(RequestCode.Time_To_Nanoseconds, this));
                 }
                 case "Milisegundos" -> {
-                    // TODO: Implementar
+                    this.hub.notifyRequest(new Request(RequestCode.Time_To_Milliseconds, this));
                 }
                 case "Segundos" -> {
-                    // TODO: Implementar
+                    this.hub.notifyRequest(new Request(RequestCode.Time_To_Seconds, this));
                 }
                 case "Minutos" -> {
-                    // TODO: Implementar
+                    this.hub.notifyRequest(new Request(RequestCode.Time_To_Minutes, this));
                 }
                 case "Horas" -> {
-                    // TODO: Implementar
+                    this.hub.notifyRequest(new Request(RequestCode.Time_To_Hours, this));
                 }
                 case "Días" -> {
-                    // TODO: Implementar
+                    this.hub.notifyRequest(new Request(RequestCode.Time_To_Days, this));
                 }
                 default -> {
                     // Do nothing
@@ -303,9 +303,6 @@ public class View implements Notify {
      * @return Section The updated chart Section.
      */
     private Section updateChart() {
-        // TODO: Cambiar el nombre dependiendo del tiempo
-        // TODO: Cambiar la leyenda para que salga la linea con un punto
-        // TODO: Mostrar en la grafica los datos con puntos
         String[] labels = { "Iteración", "Tiempo" };
         String chartColumnLabels[] = { "Escalar", "Moda LogN", "Moda N" };
         Color chartColors[] = {
@@ -316,20 +313,6 @@ public class View implements Notify {
         Section chartSection = new Section();
 
         long[][] data = this.hub.getModel().getData();
-        if (this.selectedTime == "Miliseconds") {
-            for (int i = 0; i < data.length; i++) {
-                for (int j = 0; j < data[i].length; j++) {
-                    data[i][j] = data[i][j] / 1000000;
-                }
-            }
-        } else if (this.selectedTime == "Seconds") {
-            for (int i = 0; i < data.length; i++) {
-                for (int j = 0; j < data[i].length; j++) {
-                    data[i][j] = data[i][j] / 1000000000;
-                }
-            }
-        }
-
         // Tiempo (ns) por Iteración ns ms s min h d y
         chartSection.createLineChart(labels, data, chartColors, chartColumnLabels,
                 String.format("Tiempo (%s) por Iteración", abreviateTime(this.selectedTime)));

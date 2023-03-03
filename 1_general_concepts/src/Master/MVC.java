@@ -68,6 +68,14 @@ public class MVC implements Notify {
             case Set_batchSize:
                 System.out.println("MVC: TODO");
                 break;
+            case Time_To_Nanoseconds:
+            case Time_To_Milliseconds:
+            case Time_To_Seconds:
+            case Time_To_Minutes:
+            case Time_To_Hours:
+            case Time_To_Days:
+                this.model.notifyRequest(request);
+                break;
             default:
                 break;
         }

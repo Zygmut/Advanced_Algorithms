@@ -69,7 +69,7 @@ public class Controller implements Notify {
 
     private Integer[] generateData(int bottomBoundary, int highBoundary) {
         return rng.ints(bottomBoundary, highBoundary)
-                .limit(this.hub.getModel().getIterationStepAcumulator())
+                .limit(this.hub.getModel().getIterationStep())
                 .boxed()
                 .toArray(Integer[]::new);
     }

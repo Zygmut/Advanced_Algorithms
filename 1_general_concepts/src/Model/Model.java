@@ -60,6 +60,30 @@ public class Model implements Notify {
                 this.batchSize = this.hub.getView().getBatchSize();
                 this.hub.notifyRequest(new Request(RequestCode.Show_data, this));
                 break;
+            case Time_To_Nanoseconds:
+                this.timeStep = Duration::toNanos;
+                this.hub.notifyRequest(new Request(RequestCode.Show_data, this));
+                break;
+            case Time_To_Milliseconds:
+                this.timeStep = Duration::toMillis;
+                this.hub.notifyRequest(new Request(RequestCode.Show_data, this));
+                break;
+            case Time_To_Seconds:
+                this.timeStep = Duration::toSeconds;
+                this.hub.notifyRequest(new Request(RequestCode.Show_data, this));
+                break;
+            case Time_To_Minutes:
+                this.timeStep = Duration::toMinutes;
+                this.hub.notifyRequest(new Request(RequestCode.Show_data, this));
+                break;
+            case Time_To_Hours:
+                this.timeStep = Duration::toHours;
+                this.hub.notifyRequest(new Request(RequestCode.Show_data, this));
+                break;
+            case Time_To_Days:
+                this.timeStep = Duration::toDays;
+                this.hub.notifyRequest(new Request(RequestCode.Show_data, this));
+                break;
             default:
                 this.hub.notifyRequest(new Request(RequestCode.Error, this));
                 return;
