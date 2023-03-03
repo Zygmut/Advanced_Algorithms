@@ -170,7 +170,12 @@ public class Controller implements Notify {
                 Thread.startVirtualThread(this::run);
                 break;
             case Pause_execution:
+                this.stop = true;
+                break;
             case Reset_data:
+                this.lastData[0] = Duration.ZERO;
+                this.lastData[1] = Duration.ZERO;
+                this.lastData[2] = Duration.ZERO;
                 this.stop = true;
                 break;
             default:
