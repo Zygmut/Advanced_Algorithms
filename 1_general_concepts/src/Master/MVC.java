@@ -17,27 +17,21 @@ public class MVC implements Notify {
         this.model = new Model(this);
         this.controller = new Controller(this);
         this.view = new View(this);
-
-        EventQueue.invokeLater(() -> {
-            this.view.start();
-        });
     }
 
     public MVC(String config_path) {
         this.model = new Model(this);
         this.controller = new Controller(this);
         this.view = new View(this, config_path);
-
-        EventQueue.invokeLater(() -> {
-            this.view.start();
-        });
     }
 
     public MVC(Model model, View view, Controller controller) {
         this.model = model;
         this.view = view;
         this.controller = controller;
+    }
 
+    public void show(){
         EventQueue.invokeLater(() -> {
             this.view.start();
         });
