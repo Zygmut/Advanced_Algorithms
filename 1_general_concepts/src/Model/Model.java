@@ -16,6 +16,7 @@ public class Model implements Notify {
     private int iterationStepAcumulator;
     private int iteration;
     private int batchSize;
+    private Duration timeout;
     private ArrayList<Duration> escalarTimes;
     private ArrayList<Duration> modeNTimes;
     private ArrayList<Duration> modeNlognTimes;
@@ -25,6 +26,7 @@ public class Model implements Notify {
         this.hub = mvc;
         this.iterationStep = 1000;
         this.iterationStepAcumulator = this.iterationStep;
+        this.timeout = Duration.ofSeconds(1);
         this.iteration = 0;
         this.batchSize = 1;
         this.escalarTimes = new ArrayList<>();
@@ -128,6 +130,10 @@ public class Model implements Notify {
 
     public ArrayList<Duration> getModeNlognTimes() {
         return modeNlognTimes;
+    }
+
+    public Duration getTimeout(){
+        return timeout;
     }
 
     public long[][] getData() {

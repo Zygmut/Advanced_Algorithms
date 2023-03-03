@@ -27,7 +27,7 @@ public class Controller implements Notify {
     public Controller(MVC mvc) {
         this.hub = mvc;
         this.rng = new Random();
-        this.lastData = new Duration[3];
+        this.lastData = new Duration[] { Duration.ZERO, Duration.ZERO, Duration.ZERO };
         this.stop = false;
     }
 
@@ -74,50 +74,58 @@ public class Controller implements Notify {
                 .toArray(Integer[]::new);
     }
 
+    private boolean isGreater(Duration duration1, Duration duration2) {
+        return duration1.compareTo(duration2) > 0 ? true : false;
+    }
 
     private void calculateFor(RequestCode request) {
         Integer[] data = this.generateData(1, 100);
-        System.out.println(this.hub.getModel().getIterationStepAcumulator());
+        Duration timeout = this.hub.getModel().getTimeout();
         switch (request) {
             case Mode_O_n:
                 this.lastData[0] = Duration.ZERO;
                 this.lastData[1] = Duration.ZERO;
-                this.lastData[2] = Duration.ofNanos(
-                        TimeProfiler.batchTimeIt(() -> {
+                this.lastData[2] = isGreater(lastData[2], timeout) ? timeout.plus(Duration.ofNanos(1))
+                        : Duration.ofNanos(TimeProfiler.batchTimeIt(() -> {
                             this.modeN(data);
                         }, this.hub.getModel().getBatchSize()).sum(Duration::toNanos));
                 break;
             case Mode_O_nlogn:
                 this.lastData[0] = Duration.ZERO;
-                this.lastData[1] = Duration.ofNanos(
-                        TimeProfiler.batchTimeIt(() -> {
-                            this.modeNLogN(data);
-                        }, this.hub.getModel().getBatchSize()).sum(Duration::toNanos));
+                this.lastData[1] = isGreater(lastData[1], timeout) ? timeout.plus(Duration.ofNanos(1))
+                        : Duration.ofNanos(
+                                TimeProfiler.batchTimeIt(() -> {
+                                    this.modeNLogN(data);
+                                }, this.hub.getModel().getBatchSize()).sum(Duration::toNanos));
                 this.lastData[2] = Duration.ZERO;
                 break;
             case Escalar_Product:
-                this.lastData[0] = Duration.ofNanos(
-                        TimeProfiler.batchTimeIt(() -> {
-                            this.declarativeEscalarProduct(data, data);
-                        }, this.hub.getModel().getBatchSize()).sum(Duration::toNanos));
+                this.lastData[0] = isGreater(lastData[0], timeout) ? timeout.plus(Duration.ofNanos(1))
+                        : Duration.ofNanos(
+                                TimeProfiler.batchTimeIt(() -> {
+                                    this.declarativeEscalarProduct(data, data);
+                                }, this.hub.getModel().getBatchSize()).sum(Duration::toNanos));
                 this.lastData[1] = Duration.ZERO;
                 this.lastData[2] = Duration.ZERO;
                 break;
             case All_methods:
-                this.lastData[2] = Duration.ofNanos(
-                        TimeProfiler.batchTimeIt(() -> {
-                            this.modeN(data);
-                        }, this.hub.getModel().getBatchSize()).sum(Duration::toNanos));
+                this.lastData[2] = isGreater(lastData[2], timeout) ? timeout.plus(Duration.ofNanos(1))
+                        : Duration.ofNanos(
+                                TimeProfiler.batchTimeIt(() -> {
+                                    this.modeN(data);
+                                }, this.hub.getModel().getBatchSize()).sum(Duration::toNanos));
 
-                this.lastData[1] = Duration.ofNanos(
-                        TimeProfiler.batchTimeIt(() -> {
-                            this.modeNLogN(data);
-                        }, this.hub.getModel().getBatchSize()).sum(Duration::toNanos));
+                this.lastData[1] = isGreater(lastData[1], timeout) ? timeout.plus(Duration.ofNanos(1))
+                        : Duration.ofNanos(
+                                TimeProfiler.batchTimeIt(() -> {
+                                    this.modeNLogN(data);
+                                }, this.hub.getModel().getBatchSize()).sum(Duration::toNanos));
 
-                this.lastData[0] = Duration.ofNanos(
-                        TimeProfiler.batchTimeIt(() -> {
-                            this.declarativeEscalarProduct(data, data);
-                        }, this.hub.getModel().getBatchSize()).sum(Duration::toNanos));
+                this.lastData[0] = isGreater(lastData[0], timeout) ? timeout.plus(Duration.ofNanos(1))
+                        : Duration.ofNanos(
+                                TimeProfiler.batchTimeIt(() -> {
+                                    this.declarativeEscalarProduct(data, data);
+                                }, this.hub.getModel().getBatchSize()).sum(Duration::toNanos));
                 break;
             default:
                 return;
@@ -139,7 +147,7 @@ public class Controller implements Notify {
             try {
                 // Try to lower the rate of unwanted thread executions
                 for (int i = 0; i < 10; i++) {
-                    Thread.sleep(10);
+                    Thread.sleep(1);
                     if (this.stop) {
                         return;
                     }
