@@ -7,6 +7,7 @@ import Request.RequestCode;
 import View.Section.DirectionAndPosition;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -143,7 +144,7 @@ public class View implements Notify {
         this.iterationStep = this.hub.getModel().getIterationStep();
         this.batchSize = this.hub.getModel().getBatchSize();
         this.viewIndexPanels = new ArrayList<>();
-        this.createProgressBar();
+        this.createProgressBarToTimeOut();
         this.initConfig(null);
         this.loadContent();
     }
@@ -164,7 +165,7 @@ public class View implements Notify {
         this.iterationStep = this.hub.getModel().getIterationStep();
         this.batchSize = this.hub.getModel().getBatchSize();
         this.viewIndexPanels = new ArrayList<>();
-        this.createProgressBar();
+        this.createProgressBarToTimeOut();
         this.initConfig(configPath);
         this.loadContent();
     }
@@ -178,16 +179,21 @@ public class View implements Notify {
         this.addSection(this.footer(), DirectionAndPosition.POSITION_BOTTOM, "Menu");
     }
 
-    private void createProgressBar() {
+    /**
+     * Shows the progress of the algorithm to time out.
+     */
+    private void createProgressBarToTimeOut() {
         this.progressBarList = new JProgressBar[PROGRESS_OPTIONS];
         JProgressBar progressBar;
         for (int i = 0; i < PROGRESS_OPTIONS; i++) {
             progressBar = new JProgressBar();
             progressBar.setStringPainted(true);
             progressBar.setValue(0);
-            progressBar.setForeground(new Color(70, 130, 180));
             this.progressBarList[i] = progressBar;
         }
+        this.progressBarList[0].setForeground(Color.RED);
+        this.progressBarList[1].setForeground(Color.BLUE);
+        this.progressBarList[2].setForeground(Color.GREEN);
     }
 
     private Section createButtons() {
@@ -331,6 +337,10 @@ public class View implements Notify {
         return this.batchSize;
     }
 
+    private int getProgress(long value) {
+        return (int) ((double) value /this.hub.getModel().getParsedTimeout() * 100);
+    }
+
     /**
      * Creates and updates a chart view of the model data. Returns the newly created
      * chart.
@@ -339,7 +349,7 @@ public class View implements Notify {
      */
     private Section updateChart() {
         String[] labels = { "Iteración", "Tiempo" };
-        String chartColumnLabels[] = { "Escalar", "Moda LogN", "Moda N" };
+        String chartColumnLabels[] = { "Escalar", "Moda NLogN", "Moda N" };
         Color chartColors[] = {
                 Color.RED,
                 Color.BLUE,
@@ -348,6 +358,10 @@ public class View implements Notify {
         Section chartSection = new Section();
 
         long[][] data = this.hub.getModel().getData();
+
+        this.progressBarList[0].setValue(getProgress(data[0][data[0].length - 1]));
+        this.progressBarList[1].setValue(getProgress(data[1][data[1].length - 1]));
+        this.progressBarList[2].setValue(getProgress(data[2][data[2].length - 1]));
         // Tiempo (ns) por Iteración ns ms s min h d y
         chartSection.createLineChart(labels, data, chartColors, chartColumnLabels,
                 String.format("Tiempo (%s) por Iteración", abreviateTime(this.selectedTime)));
@@ -596,11 +610,6 @@ public class View implements Notify {
     public void notifyRequest(Request request) {
         switch (request.code) {
             case Show_data:
-                // TODO: Cambiar 'this.hub.getModel().getIteration() del progressBar
-                // por algo que indique el progreso de cada algoritmo en la iteración
-                this.progressBarList[0].setValue(this.hub.getModel().getIteration());
-                this.progressBarList[1].setValue(this.hub.getModel().getIteration());
-                this.progressBarList[2].setValue(this.hub.getModel().getIteration());
                 String labelText = String.format("Iteración: %d x ", this.hub.getModel().getIteration());
                 this.actualRelativeIteration.setText(labelText);
                 this.updateSection(this.updateChart(), "Chart", DirectionAndPosition.POSITION_CENTER);

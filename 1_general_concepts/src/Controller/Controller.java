@@ -86,46 +86,44 @@ public class Controller implements Notify {
                 this.lastData[0] = Duration.ZERO;
                 this.lastData[1] = Duration.ZERO;
                 this.lastData[2] = isGreater(lastData[2], timeout) ? timeout.plus(Duration.ofNanos(1))
-                        : Duration.ofNanos(TimeProfiler.batchTimeIt(() -> {
-                            this.modeN(data);
-                        }, this.hub.getModel().getBatchSize()).sum(Duration::toNanos));
+                        : Duration.ofNanos(
+                                (long) TimeProfiler.batchTimeIt(() -> {
+                                    this.modeN(data);
+                                }, this.hub.getModel().getBatchSize()).mean(Duration::toNanos));
                 break;
             case Mode_O_nlogn:
                 this.lastData[0] = Duration.ZERO;
                 this.lastData[1] = isGreater(lastData[1], timeout) ? timeout.plus(Duration.ofNanos(1))
                         : Duration.ofNanos(
-                                TimeProfiler.batchTimeIt(() -> {
+                                (long) TimeProfiler.batchTimeIt(() -> {
                                     this.modeNLogN(data);
-                                }, this.hub.getModel().getBatchSize()).sum(Duration::toNanos));
+                                }, this.hub.getModel().getBatchSize()).mean(Duration::toNanos));
                 this.lastData[2] = Duration.ZERO;
                 break;
             case Escalar_Product:
                 this.lastData[0] = isGreater(lastData[0], timeout) ? timeout.plus(Duration.ofNanos(1))
                         : Duration.ofNanos(
-                                TimeProfiler.batchTimeIt(() -> {
+                                (long) TimeProfiler.batchTimeIt(() -> {
                                     this.declarativeEscalarProduct(data, data);
-                                }, this.hub.getModel().getBatchSize()).sum(Duration::toNanos));
+                                }, this.hub.getModel().getBatchSize()).mean(Duration::toNanos));
                 this.lastData[1] = Duration.ZERO;
                 this.lastData[2] = Duration.ZERO;
                 break;
             case All_methods:
                 this.lastData[2] = isGreater(lastData[2], timeout) ? timeout.plus(Duration.ofNanos(1))
-                        : Duration.ofNanos(
-                                TimeProfiler.batchTimeIt(() -> {
-                                    this.modeN(data);
-                                }, this.hub.getModel().getBatchSize()).sum(Duration::toNanos));
+                        : Duration.ofNanos((long) TimeProfiler.batchTimeIt(() -> {
+                            this.modeN(data);
+                        }, this.hub.getModel().getBatchSize()).mean(Duration::toNanos));
 
                 this.lastData[1] = isGreater(lastData[1], timeout) ? timeout.plus(Duration.ofNanos(1))
-                        : Duration.ofNanos(
-                                TimeProfiler.batchTimeIt(() -> {
-                                    this.modeNLogN(data);
-                                }, this.hub.getModel().getBatchSize()).sum(Duration::toNanos));
+                        : Duration.ofNanos((long) TimeProfiler.batchTimeIt(() -> {
+                            this.modeNLogN(data);
+                        }, this.hub.getModel().getBatchSize()).mean(Duration::toNanos));
 
                 this.lastData[0] = isGreater(lastData[0], timeout) ? timeout.plus(Duration.ofNanos(1))
-                        : Duration.ofNanos(
-                                TimeProfiler.batchTimeIt(() -> {
-                                    this.declarativeEscalarProduct(data, data);
-                                }, this.hub.getModel().getBatchSize()).sum(Duration::toNanos));
+                        : Duration.ofNanos((long) TimeProfiler.batchTimeIt(() -> {
+                            this.declarativeEscalarProduct(data, data);
+                        }, this.hub.getModel().getBatchSize()).mean(Duration::toNanos));
                 break;
             default:
                 return;
@@ -146,13 +144,11 @@ public class Controller implements Notify {
             }
             try {
                 // Try to lower the rate of unwanted thread executions
-                for (int i = 0; i < 10; i++) {
-                    Thread.sleep(1);
-                    if (this.stop) {
-                        return;
-                    }
-
+                Thread.sleep(1);
+                if (this.stop) {
+                    return;
                 }
+
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

@@ -26,7 +26,7 @@ public class Model implements Notify {
         this.hub = mvc;
         this.iterationStep = 1000;
         this.iterationStepAcumulator = this.iterationStep;
-        this.timeout = Duration.ofSeconds(1);
+        this.timeout = Duration.ofMillis(100);
         this.iteration = 0;
         this.batchSize = 1;
         this.escalarTimes = new ArrayList<>();
@@ -134,6 +134,10 @@ public class Model implements Notify {
 
     public Duration getTimeout(){
         return timeout;
+    }
+
+    public long getParsedTimeout(){
+        return this.timeStep.applyAsLong(this.timeout);
     }
 
     public long[][] getData() {
