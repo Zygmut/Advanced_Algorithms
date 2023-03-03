@@ -67,9 +67,9 @@ public class Controller implements Notify {
                 .longValue();
     }
 
-    private Integer[] generateData(int bottomBoundary, int highBoundary) {
+    private Integer[] generateData(int bottomBoundary, int highBoundary, int limit) {
         return rng.ints(bottomBoundary, highBoundary)
-                .limit(this.hub.getModel().getIterationStepAcumulator())
+                .limit(limit)
                 .boxed()
                 .toArray(Integer[]::new);
     }
@@ -79,7 +79,7 @@ public class Controller implements Notify {
     }
 
     private void calculateFor(RequestCode request) {
-        Integer[] data = this.generateData(1, 100);
+        Integer[] data = this.generateData(1, 100, this.hub.getModel().getIterationStepAcumulator());
         Duration timeout = this.hub.getModel().getTimeout();
         switch (request) {
             case Mode_O_n:
