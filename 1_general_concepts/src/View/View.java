@@ -18,6 +18,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.UIManager;
@@ -118,6 +119,10 @@ public class View implements Notify {
      * The actual batch size of the algorithms.
      */
     private int batchSize;
+    /**
+     * The progress bar of the view.
+     */
+    private JProgressBar progressBar;
 
     /**
      * This constructor creates a view with the MVC hub without any configuration
@@ -133,6 +138,7 @@ public class View implements Notify {
         this.iterationStep = this.hub.getModel().getIterationStep();
         this.batchSize = this.hub.getModel().getBatchSize();
         this.viewIndexPanels = new ArrayList<>();
+        this.progressBar = new JProgressBar();
         this.initConfig(null);
         this.loadContent();
     }
@@ -153,6 +159,7 @@ public class View implements Notify {
         this.iterationStep = this.hub.getModel().getIterationStep();
         this.batchSize = this.hub.getModel().getBatchSize();
         this.viewIndexPanels = new ArrayList<>();
+        this.progressBar = new JProgressBar();
         this.initConfig(configPath);
         this.loadContent();
     }
@@ -250,7 +257,6 @@ public class View implements Notify {
         JLabel batchLabel = new JLabel("Tamaño del lote: ");
         JLabel timeLabel = new JLabel("Representación: ");
 
-        JPanel panel = new JPanel();
         SpinnerNumberModel model = new SpinnerNumberModel(this.hub.getModel().getBatchSize(), 1, 500, 1);
         JSpinner batchSpinner = new JSpinner(model);
         batchSpinner.addChangeListener(e -> {
@@ -267,12 +273,25 @@ public class View implements Notify {
 
         String labelText = String.format("Iteración: %d x ", this.hub.getModel().getIteration());
         this.actualRelativeIteration = new JLabel(labelText);
-        panel.add(batchLabel);
-        panel.add(batchSpinner);
-        panel.add(timeLabel);
-        panel.add(timeMenu);
-        panel.add(this.actualRelativeIteration);
-        panel.add(spIteration);
+
+        JPanel centralPanel = new JPanel();
+        centralPanel.add(batchLabel);
+        centralPanel.add(batchSpinner);
+        centralPanel.add(timeLabel);
+        centralPanel.add(timeMenu);
+        centralPanel.add(this.actualRelativeIteration);
+        centralPanel.add(spIteration);
+
+        JPanel feedBackPanel = new JPanel();
+        this.progressBar.setStringPainted(true);
+        this.progressBar.setValue(0);
+        this.progressBar.setForeground(new Color(70, 130, 180));
+        feedBackPanel.add(progressBar);
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+        panel.add(centralPanel, BorderLayout.CENTER);
+        panel.add(feedBackPanel, BorderLayout.EAST);
         Section section = new Section();
         section.createSectionOnSection(panel);
         return section;
@@ -561,6 +580,9 @@ public class View implements Notify {
     public void notifyRequest(Request request) {
         switch (request.code) {
             case Show_data:
+                // TODO: Cambiar 'this.hub.getModel().getIteration() del progressBar
+                // por algo que indique el progreso de cada algoritmo en la iteración
+                this.progressBar.setValue(this.hub.getModel().getIteration());
                 String labelText = String.format("Iteración: %d x ", this.hub.getModel().getIteration());
                 this.actualRelativeIteration.setText(labelText);
                 this.updateSection(this.updateChart(), "Chart", DirectionAndPosition.POSITION_CENTER);
