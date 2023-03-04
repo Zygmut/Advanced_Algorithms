@@ -74,9 +74,6 @@ public class Controller implements Notify {
                 .toArray(Integer[]::new);
     }
 
-    private boolean isGreater(Duration duration1, Duration duration2) {
-        return duration1.compareTo(duration2) > 0 ? true : false;
-    }
 
     private void calculateFor(RequestCode request) {
         Integer[] data = this.generateData(1, 100, this.hub.getModel().getIterationStepAcumulator());
@@ -85,7 +82,7 @@ public class Controller implements Notify {
             case Mode_O_n:
                 this.lastData[0] = Duration.ZERO;
                 this.lastData[1] = Duration.ZERO;
-                this.lastData[2] = isGreater(lastData[2], timeout) ? timeout.plus(Duration.ofNanos(1))
+                this.lastData[2] = lastData[2].compareTo(timeout) > 0 ? timeout.plus(Duration.ofNanos(1))
                         : Duration.ofNanos(
                                 (long) TimeProfiler.batchTimeIt(() -> {
                                     this.modeN(data);
@@ -93,7 +90,7 @@ public class Controller implements Notify {
                 break;
             case Mode_O_nlogn:
                 this.lastData[0] = Duration.ZERO;
-                this.lastData[1] = isGreater(lastData[1], timeout) ? timeout.plus(Duration.ofNanos(1))
+                this.lastData[1] = lastData[1].compareTo(timeout) > 0 ? timeout.plus(Duration.ofNanos(1))
                         : Duration.ofNanos(
                                 (long) TimeProfiler.batchTimeIt(() -> {
                                     this.modeNLogN(data);
@@ -101,7 +98,7 @@ public class Controller implements Notify {
                 this.lastData[2] = Duration.ZERO;
                 break;
             case Escalar_Product:
-                this.lastData[0] = isGreater(lastData[0], timeout) ? timeout.plus(Duration.ofNanos(1))
+                this.lastData[0] = lastData[0].compareTo(timeout) > 0 ? timeout.plus(Duration.ofNanos(1))
                         : Duration.ofNanos(
                                 (long) TimeProfiler.batchTimeIt(() -> {
                                     this.declarativeEscalarProduct(data, data);
@@ -110,17 +107,17 @@ public class Controller implements Notify {
                 this.lastData[2] = Duration.ZERO;
                 break;
             case All_methods:
-                this.lastData[2] = isGreater(lastData[2], timeout) ? timeout.plus(Duration.ofNanos(1))
+                this.lastData[2] = lastData[2].compareTo(timeout) > 0 ? timeout.plus(Duration.ofNanos(1))
                         : Duration.ofNanos((long) TimeProfiler.batchTimeIt(() -> {
                             this.modeN(data);
                         }, this.hub.getModel().getBatchSize()).mean(Duration::toNanos));
 
-                this.lastData[1] = isGreater(lastData[1], timeout) ? timeout.plus(Duration.ofNanos(1))
+                this.lastData[1] = lastData[1].compareTo(timeout) > 0 ? timeout.plus(Duration.ofNanos(1))
                         : Duration.ofNanos((long) TimeProfiler.batchTimeIt(() -> {
                             this.modeNLogN(data);
                         }, this.hub.getModel().getBatchSize()).mean(Duration::toNanos));
 
-                this.lastData[0] = isGreater(lastData[0], timeout) ? timeout.plus(Duration.ofNanos(1))
+                this.lastData[0] = lastData[0].compareTo(timeout) > 0 ? timeout.plus(Duration.ofNanos(1))
                         : Duration.ofNanos((long) TimeProfiler.batchTimeIt(() -> {
                             this.declarativeEscalarProduct(data, data);
                         }, this.hub.getModel().getBatchSize()).mean(Duration::toNanos));
