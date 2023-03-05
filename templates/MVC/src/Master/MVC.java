@@ -1,11 +1,12 @@
 package Master;
 
 import Model.Model;
+import Request.Notify;
 import Request.Request;
 import View.View;
 import Controller.Controller;
 
-public class MVC {
+public class MVC implements Notify {
 
     private Model model;
     private View view;
@@ -23,7 +24,8 @@ public class MVC {
         this.controller = controller;
     }
 
-    public void handleRequest(Request request) {
+    @Override
+    public void notifyRequest(Request request) {
         switch(request.code){
             case None:
             default:
