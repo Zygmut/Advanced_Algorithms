@@ -36,9 +36,9 @@ public class Model implements Notify {
     }
 
     private void resetData(){
-        this.escalarTimes = new ArrayList<>();
-        this.modeNTimes = new ArrayList<>();
-        this.modeNlognTimes = new ArrayList<>();
+        this.escalarTimes.clear();
+        this.modeNTimes.clear();
+        this.modeNlognTimes.clear();
     }
 
     private void resetIterations() {
