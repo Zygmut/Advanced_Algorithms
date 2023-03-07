@@ -97,9 +97,16 @@ public class Model implements Notify {
 
     private void collectData() {
         Duration[] lastData = this.hub.getController().getLastData();
-        this.escalarTimes.add(lastData[0]);
-        this.modeNlognTimes.add(lastData[1]);
-        this.modeNTimes.add(lastData[2]);
+
+        if (!this.hub.getController().isEscalarOverTimeOut() && !this.hub.getController().isInitEscalar()){
+            this.escalarTimes.add(lastData[0]);
+        }
+        if (!this.hub.getController().isModeNOverTimeOut() && !this.hub.getController().isInitModeN()){
+            this.modeNTimes.add(lastData[2]);
+        }
+        if (!this.hub.getController().isModeNLogNOverTimeOut() && !this.hub.getController().isInitModeNLogN()){
+            this.modeNlognTimes.add(lastData[1]);
+        }
         this.nextIteration();
         this.hub.notifyRequest(new Request(RequestCode.Show_data, this));
     }
