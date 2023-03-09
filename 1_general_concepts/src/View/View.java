@@ -313,8 +313,14 @@ public class View implements Notify {
         this.progressBarList[0].setValue(getProgress(data[0][data[0].length - 1]));
         this.progressBarList[1].setValue(getProgress(data[1][data[1].length - 1]));
         this.progressBarList[2].setValue(getProgress(data[2][data[2].length - 1]));
-        // Tiempo (ns) por Iteración ns ms s min h d y
-        chartSection.createLineChart(labels, data, chartColors, chartColumnLabels,
+
+        if (data[0].length == 1 && data[1].length == 1 && data[2].length == 1){
+            data[0] = new long[]{};
+            data[1] = new long[]{};
+            data[2] = new long[]{};
+        }
+
+        chartSection.createLineChart(labels, data , chartColors, chartColumnLabels,
                 String.format("Tiempo (%s) por Iteración", abreviateTime(this.selectedTime)));
         return chartSection;
     }

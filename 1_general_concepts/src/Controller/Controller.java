@@ -9,7 +9,6 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import Master.MVC;
 import Request.Notify;
@@ -77,6 +76,7 @@ public class Controller implements Notify {
                 .longValue();
     }
 
+    @SuppressWarnings("unused")
     private <T extends Number> long imperativeModeNLogN(T[] data) {
         Arrays.sort(data);
 
@@ -99,6 +99,7 @@ public class Controller implements Notify {
         return currentFrequency > maxFrequency ? prev : currentMode;
     }
 
+    @SuppressWarnings("unused")
     private <T extends Number> long imperativeModeN(T[] data) {
         Map<Long, Integer> frequencyMap = new HashMap<>();
 
@@ -120,6 +121,7 @@ public class Controller implements Notify {
         return currentMode;
     }
 
+    @SuppressWarnings("unused")
     private <T extends Number> Optional<double[]> imperativeEscalarProduct(T[] vec1, T[] vec2) {
         if (vec1.length != vec2.length) {
             return null;
@@ -154,8 +156,6 @@ public class Controller implements Notify {
         Duration timeout = this.hub.getModel().getTimeout();
         switch (request) {
             case Mode_O_n:
-                // this.lastData[0] = Duration.ZERO;
-                // this.lastData[1] = Duration.ZERO;
                 this.isEscalarOverTimeOut = true;
                 this.isModeNLogNOverTimeOut = true;
                 this.isInitModeNLogN = true;
@@ -171,7 +171,6 @@ public class Controller implements Notify {
                 }
                 break;
             case Mode_O_nlogn:
-                // this.lastData[0] = Duration.ZERO;
                 this.isEscalarOverTimeOut = true;
                 this.isModeNOverTimeOut = true;
                 isInitModeN = true;
@@ -185,7 +184,6 @@ public class Controller implements Notify {
                 } else {
                     this.isModeNLogNOverTimeOut = true;
                 }
-                // this.lastData[2] = Duration.ZERO;
                 break;
             case Escalar_Product:
                 this.isModeNLogNOverTimeOut = true;
@@ -201,8 +199,6 @@ public class Controller implements Notify {
                 } else {
                     this.isEscalarOverTimeOut = true;
                 }
-                // this.lastData[1] = Duration.ZERO;
-                // this.lastData[2] = Duration.ZERO;
                 break;
             case All_methods:
                 if (this.lastData[2].compareTo(timeout) < 0) {
