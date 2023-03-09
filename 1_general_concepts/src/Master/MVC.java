@@ -30,8 +30,8 @@ public class MVC implements Notify {
         this.controller = controller;
     }
 
-    public void show(){
-            this.view.start();
+    public void show() {
+        this.view.getWindow().start();
     }
 
     @Override
