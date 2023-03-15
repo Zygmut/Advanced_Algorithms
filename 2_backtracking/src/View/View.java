@@ -2,7 +2,10 @@ package View;
 
 import java.awt.Color;
 
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
 
 import Master.MVC;
 import Request.Notify;
@@ -22,6 +25,8 @@ public class View implements Notify {
      * The window of the view.
      */
     private Window window;
+
+    private int sizeTable;
 
     /**
      * This constructor creates a view with the MVC hub without any configuration
@@ -128,10 +133,24 @@ public class View implements Notify {
         // TODO: Implement this method.
         Section footer = new Section();
         JPanel footerContent = new JPanel();
+        JLabel tableSize = new JLabel("Tamaño del tablero: ");
+        //Falta pasar por parámetro el tamaño del tablero inicial y el tamaño del tablero cuando se cambie
+        SpinnerNumberModel size = new SpinnerNumberModel(8, 8, 20, 1);
+        JSpinner tableSizeSpinner = new JSpinner(size);
+        tableSizeSpinner.addChangeListener(e -> {
+            this.sizeTable = (int) tableSizeSpinner.getValue();
+            this.hub.notifyRequest(new Request(RequestCode.ChangedTableSize, this));
+        });
+        footerContent.add(tableSize);
+        footerContent.add(tableSizeSpinner);
         footerContent.setBackground(Color.YELLOW);
         footer.createFreeSection(footerContent);
         return footer;
     }
+
+
+
+    
 
     /**
      * Returns the window of the view.

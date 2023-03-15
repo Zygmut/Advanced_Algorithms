@@ -2,5 +2,6 @@ package Request;
 
 public enum RequestCode {
     None,
-    Error
+    Error,
+    ChangedTableSize
 }
