@@ -1,41 +1,17 @@
 package View;
 
+import java.awt.Color;
+
+import javax.swing.JPanel;
+
 import Master.MVC;
 import Request.Notify;
 import Request.Request;
 import Request.RequestCode;
+import betterSwing.DirectionAndPosition;
+import betterSwing.Section;
 import betterSwing.Window;
 
-/**
- * The view of the MVC pattern. It's the class that manages the view of the
- * program and the user interface. Also, this class implements the Notify
- * interface.
- * <blockquote>
- * Considerations: It's important to initialize the view before any other
- * method of the view.
- * </blockquote>
- *
- * Example:
- *
- * <pre>
- * {@code
- * View view = new View(); // or View view = new View(mvc);
- * // If the parameter is null, the view will load the default configuration.
- * // It will search for a file named "config.txt" in the base directory of the
- * // project.
- * view.initConfig("config.txt"); // Init config
- * view.start(); // Start the view
- * }
- * </pre>
- *
- * Also, this class allows hot reloading the window. For more information, see
- * the KeyActionManager class.
- *
- * @see View#initConfig(String path)
- * @see View#start()
- * @see View#KeyActionManager
- * @see Notify
- */
 public class View implements Notify {
 
     /**
@@ -73,18 +49,6 @@ public class View implements Notify {
         this.loadContent();
     }
 
-    public Window getWindow() {
-        return this.window;
-    }
-
-    /**
-     * Loads all the view content
-     */
-    private void loadContent() {
-        // TODO: Add graphics content here
-        throw new RuntimeException("Not implemented");
-    }
-
     @Override
     public void notifyRequest(Request request) {
         switch (request.code) {
@@ -93,4 +57,89 @@ public class View implements Notify {
                 return;
         }
     }
+
+    /**
+     * Loads all the view content.
+     * 
+     * @see #headerSection()
+     * @see #mainSection()
+     * @see #sideBarSection()
+     * @see #footerSection()
+     */
+    private void loadContent() {
+        this.window.addSection(this.headerSection(), DirectionAndPosition.POSITION_TOP, "Header");
+        this.window.addSection(this.mainSection(), DirectionAndPosition.POSITION_CENTER, "MainContent");
+        this.window.addSection(this.sideBarSection(), DirectionAndPosition.POSITION_RIGHT, "SideBar");
+        this.window.addSection(this.footerSection(), DirectionAndPosition.POSITION_BOTTOM, "Footer");
+    }
+
+    /**
+     * Creates and returns the header section of the view. This section is mainly
+     * used for allowing the user to select the piece to play and the game mode.
+     * 
+     * @return The header section of the view.
+     */
+    private Section headerSection() {
+        // TODO: Implement this method.
+        Section header = new Section();
+        JPanel headerContent = new JPanel();
+        headerContent.setBackground(Color.RED);
+        header.createFreeSection(headerContent);
+        return header;
+    }
+
+    /**
+     * Creates and returns the main section of the view. This section is mainly used
+     * for showing the game board.
+     * 
+     * @return The main section of the view.
+     */
+    private Section mainSection() {
+        // TODO: Implement this method.
+        Section main = new Section();
+        JPanel mainContent = new JPanel();
+        mainContent.setBackground(Color.BLUE);
+        main.createFreeSection(mainContent);
+        return main;
+    }
+
+    /**
+     * Creates and returns the side bar section of the view. This section is mainly
+     * used for showing the stats of the game.
+     * 
+     * @return The side bar section of the view.
+     */
+    private Section sideBarSection() {
+        // TODO: Implement this method.
+        Section sideBar = new Section();
+        JPanel sideBarContent = new JPanel();
+        sideBarContent.setBackground(Color.GREEN);
+        sideBar.createFreeSection(sideBarContent);
+        return sideBar;
+    }
+
+    /**
+     * Creates and returns the footer section of the view. This section is mainly
+     * used for allowing the user to navigate through different views.
+     * 
+     * @return The footer section of the view.
+     */
+    private Section footerSection() {
+        // TODO: Implement this method.
+        Section footer = new Section();
+        JPanel footerContent = new JPanel();
+        footerContent.setBackground(Color.YELLOW);
+        footer.createFreeSection(footerContent);
+        return footer;
+    }
+
+    /**
+     * Returns the window of the view.
+     * 
+     * @return The window of the view.
+     */
+    public Window getWindow() {
+        return this.window;
+    }
+
 }
