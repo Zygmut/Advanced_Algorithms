@@ -38,7 +38,8 @@ public class Tower extends ChessPiece {
                 .mapToObj((x) -> new Point(x, position.y))
                 .toArray(Point[]::new);
 
-        return Stream.of(topMovements, rightMovements, bottomMovements, leftMovements).flatMap(Arrays::stream)
+        return Stream.of(topMovements, rightMovements, bottomMovements, leftMovements)
+                .flatMap(Arrays::stream)
                 .toArray(Point[]::new);
     }
 
