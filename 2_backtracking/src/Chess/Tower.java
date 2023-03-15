@@ -16,38 +16,30 @@ public class Tower extends ChessPiece {
     @Override
     public Point[] getMovements(Dimension boardDimension, Point position) {
         // Top
-        Point[] topMovements = IntStream.rangeClosed(
-                0, position.y != 1 ? position.y - 1 : 0)
-                .boxed()
-                .map((y) -> new Point(position.x, y))
+        Point[] topMovements = IntStream.range(0, position.y)
+                .parallel()
+                .mapToObj((y) -> new Point(position.x, y))
                 .toArray(Point[]::new);
 
         // Right
-        Point[] rightMovements = IntStream.rangeClosed(
-                position.x != boardDimension.width ? position.x + 1 : boardDimension.width - 1,
-                boardDimension.width - 1)
-                .boxed()
-                .map((x) -> new Point(x, position.y))
+        Point[] rightMovements = IntStream.range(position.x + 1, boardDimension.width)
+                .parallel()
+                .mapToObj((x) -> new Point(x, position.y))
                 .toArray(Point[]::new);
 
         // Bottom
-        Point[] bottomMovements = IntStream.rangeClosed(
-                position.y != boardDimension.height ? position.y + 1 : boardDimension.height - 1,
-                boardDimension.height - 1)
-                .boxed()
-                .map((y) -> new Point(position.x, y))
+        Point[] bottomMovements = IntStream.range(position.y + 1, boardDimension.height)
+                .parallel()
+                .mapToObj(y -> new Point(position.x, y))
                 .toArray(Point[]::new);
-
         // Left
-        Point[] leftMovements = IntStream.rangeClosed(
-                0, position.x != 1 ? position.x - 1 : 0)
-                .boxed()
-                .map((x) -> new Point(x, position.y))
+        Point[] leftMovements = IntStream.range(0, position.x)
+                .parallel()
+                .mapToObj((x) -> new Point(x, position.y))
                 .toArray(Point[]::new);
 
         return Stream.of(topMovements, rightMovements, bottomMovements, leftMovements).flatMap(Arrays::stream)
                 .toArray(Point[]::new);
     }
-
 
 }

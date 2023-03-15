@@ -13,11 +13,12 @@ public class Main {
         // Mesurament.mesura();
         // new MVC("config.txt").show();
         ChessBoard board = new ChessBoard();
-        board.addPiece(new Tower(), new Point(6, 6));
-        System.out.println(board.getPieces().get(new Point(6, 6)) + " at " + new Point(6, 6));
+        Point pos = new Point(7,4);
+        board.addPiece(new Tower(), pos);
+        System.out.println(board.getPieces().get(pos) + " at " + pos);
         System.out.println(board.toString());
 
-        Arrays.stream(board.getPieces().get(new Point(6, 6)).getMovements(new Dimension(8, 8), new Point(6, 6)))
+        Arrays.stream(board.getPieces().get(pos).getMovements(new Dimension(8, 8), pos))
                 .forEach(point -> System.out.print("(" + point.x + ", " + point.y + ") "));
     }
 
