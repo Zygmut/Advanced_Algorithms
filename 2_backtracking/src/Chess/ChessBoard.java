@@ -67,7 +67,7 @@ public class ChessBoard {
         sb.append("\n");
 
         for (int y = 0; y < dimension.height; y++) {
-            sb.append(y + 1)
+            sb.append(y)
                     .append(" | ");
             for (int x = 0; x < dimension.width; x++) {
                 Point position = new Point(x, y);
@@ -88,7 +88,7 @@ public class ChessBoard {
 
         sb.append("    ");
         for (int x = 0; x < dimension.width; x++) {
-            sb.append((char) ('a' + x));
+            sb.append(x);
             sb.append("   ");
         }
         sb.append("\n");
