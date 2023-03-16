@@ -2,6 +2,7 @@ package Chess;
 
 import java.awt.Point;
 import java.awt.Dimension;
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class ChessBoard {
@@ -62,6 +63,15 @@ public class ChessBoard {
 
     public HashMap<Point, ChessPiece> getPieces() {
         return pieces;
+    }
+
+    public String getMovementStringAt(Point position) {
+        return Arrays.toString(
+            Arrays.stream(this.pieces
+                .get(position)
+                .getMovements(this, position))
+                .map(move -> "(" + move.x + ", " + move.y + ")")
+                        .toArray(String[]::new));
     }
 
     @Override

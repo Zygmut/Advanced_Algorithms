@@ -23,12 +23,7 @@ public class Main {
                 .forEach(piece -> System.out.println(
                         piece.getValue().getClass().getSimpleName()
                                 + ": "
-                                + Arrays.toString(
-                                        Arrays.stream(piece
-                                                .getValue()
-                                                .getMovements(board, piece.getKey()))
-                                                .map(move -> "(" + move.x + ", " + move.y + ")")
-                                                .toArray(String[]::new))));
+                                + board.getMovementStringAt(piece.getKey())));
 
     }
 
