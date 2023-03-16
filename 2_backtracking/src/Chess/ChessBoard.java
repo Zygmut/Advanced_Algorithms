@@ -36,8 +36,14 @@ public class ChessBoard {
     }
 
     public HashMap<Point, ChessPiece> addPiece(ChessPiece piece, Point position) {
-        if(position.x >= this.dimension.width || position.y >= this.dimension.height){
+        if (position.x < 0
+                || position.y < 0
+                || position.x >= this.dimension.width
+                || position.y >= this.dimension.height) {
             throw new IllegalArgumentException("Position is out of the chess board");
+        }
+        if(this.pieces.get(position) != null){
+            throw new IllegalArgumentException("A piece already resides in position (" + position.x + ", " + position.y + ")");
         }
         this.pieces.put(position, piece);
         return this.pieces;
