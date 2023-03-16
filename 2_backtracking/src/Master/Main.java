@@ -11,9 +11,11 @@ public class Main {
         // Mesurament.mesura();
         // new MVC("config.txt").show();
         ChessBoard board = new ChessBoard(5, 5);
-        board.addPiece(new Knight(), new Point(0, 0));
+        board.addPiece(new Knight(), new Point(3, 1));
         board.addPiece(new Knight(), new Point(0, 1));
-        board.addPiece(new Tower(), new Point(2, 2));
+        board.addPiece(new Tower(), new Point(2, 1));
+        board.addPiece(new Knight(), new Point(0, 4));
+        board.addPiece(new Queen(), new Point(4, 2));
         System.out.println(board.toString());
         board.getPieces()
                 .entrySet()
@@ -24,7 +26,7 @@ public class Main {
                                 + Arrays.toString(
                                         Arrays.stream(piece
                                                 .getValue()
-                                                .getMovements(board.getDimension(), piece.getKey()))
+                                                .getMovements(board, piece.getKey()))
                                                 .map(move -> "(" + move.x + ", " + move.y + ")")
                                                 .toArray(String[]::new))));
 
