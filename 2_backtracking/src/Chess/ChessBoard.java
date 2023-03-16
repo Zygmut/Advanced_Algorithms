@@ -35,15 +35,21 @@ public class ChessBoard {
         this.dimension = new Dimension(width, height);
     }
 
+    public boolean sanityCheck(Point position) {
+        return 0 <= position.x
+                && 0 <= position.y
+                && position.x < this.dimension.width
+                && position.y < this.dimension.height;
+    }
+
     public HashMap<Point, ChessPiece> addPiece(ChessPiece piece, Point position) {
-        if (position.x < 0
-                || position.y < 0
-                || position.x >= this.dimension.width
-                || position.y >= this.dimension.height) {
+        if (!sanityCheck(position)) {
             throw new IllegalArgumentException("Position is out of the chess board");
         }
-        if(this.pieces.get(position) != null){
-            throw new IllegalArgumentException("A piece already resides in position (" + position.x + ", " + position.y + ")");
+
+        if (this.pieces.get(position) != null) {
+            throw new IllegalArgumentException(
+                    "A piece already resides in position (" + position.x + ", " + position.y + ")");
         }
         this.pieces.put(position, piece);
         return this.pieces;
