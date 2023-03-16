@@ -1,8 +1,9 @@
 package Chess;
 
-import java.awt.Dimension;
 import java.awt.Point;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Set;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -14,28 +15,38 @@ public class Tower extends ChessPiece {
     }
 
     @Override
-    public Point[] getMovements(Dimension boardDimension, Point position) {
+    public Point[] getMovements(ChessBoard board_state, Point piece_position) {
+        Set<Point> currentPieces = board_state.getPieces().keySet();
+
         // Top
-        Point[] topMovements = IntStream.range(0, position.y)
+        Point[] topMovements = IntStream.range(0, piece_position.y)
+                .boxed()
+                .sorted(Collections.reverseOrder())
                 .parallel()
-                .mapToObj((y) -> new Point(position.x, y))
+                .map((y) -> new Point(piece_position.x, y))
+                .takeWhile(point -> !currentPieces.contains(point))
                 .toArray(Point[]::new);
 
         // Right
-        Point[] rightMovements = IntStream.range(position.x + 1, boardDimension.width)
+        Point[] rightMovements = IntStream.range(piece_position.x + 1, board_state.getDimension().width)
                 .parallel()
-                .mapToObj((x) -> new Point(x, position.y))
+                .mapToObj((x) -> new Point(x, piece_position.y))
+                .takeWhile(point -> !currentPieces.contains(point))
                 .toArray(Point[]::new);
 
         // Bottom
-        Point[] bottomMovements = IntStream.range(position.y + 1, boardDimension.height)
+        Point[] bottomMovements = IntStream.range(piece_position.y + 1, board_state.getDimension().height)
                 .parallel()
-                .mapToObj(y -> new Point(position.x, y))
+                .mapToObj(y -> new Point(piece_position.x, y))
+                .takeWhile(point -> !currentPieces.contains(point))
                 .toArray(Point[]::new);
         // Left
-        Point[] leftMovements = IntStream.range(0, position.x)
+        Point[] leftMovements = IntStream.range(0, piece_position.x)
+                .boxed()
+                .sorted(Collections.reverseOrder())
                 .parallel()
-                .mapToObj((x) -> new Point(x, position.y))
+                .map((x) -> new Point(x, piece_position.y))
+                .takeWhile(point -> !currentPieces.contains(point))
                 .toArray(Point[]::new);
 
         return Stream.of(topMovements, rightMovements, bottomMovements, leftMovements)

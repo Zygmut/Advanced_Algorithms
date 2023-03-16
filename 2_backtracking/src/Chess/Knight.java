@@ -1,7 +1,7 @@
 package Chess;
 
-import java.awt.Dimension;
 import java.awt.Point;
+import java.util.Set;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -12,14 +12,14 @@ public class Knight extends ChessPiece {
                 this.symbol = 'K';
         }
 
+
         @Override
-        public Point[] getMovements(Dimension boardDimension, Point piece_position) {
+        public Point[] getMovements(ChessBoard board_state, Point piece_position) {
+                Set<Point> currentPieces = board_state.getPieces().keySet();
                 return generatePermutations(new int[] { -1, +1 }, new int[] { -2, 2 })
                                 .map(move -> new Point(move[0] + piece_position.x, move[1] + piece_position.y))
-                                .filter(move -> 0 <= move.x
-                                                && 0 <= move.y
-                                                && move.x < boardDimension.width
-                                                && move.y < boardDimension.height)
+                                .filter(board_state::sanityCheck)
+                                .filter(point -> !currentPieces.contains(point))
                                 .toArray(Point[]::new);
         }
 
@@ -43,5 +43,7 @@ public class Knight extends ChessPiece {
                                                 new int[] { arr[0], arr[1] },
                                                 new int[] { arr[1], arr[0] }));
         }
+
+
 
 }
