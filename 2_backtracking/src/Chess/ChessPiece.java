@@ -1,12 +1,10 @@
 package Chess;
 
 import java.awt.image.BufferedImage;
-import java.awt.Point;
 
 public abstract class ChessPiece implements ChessMovement{
     protected BufferedImage image;
     protected Character symbol;
-    protected Point position;
 
     public BufferedImage getImage() {
         return image;
@@ -22,14 +20,6 @@ public abstract class ChessPiece implements ChessMovement{
 
     public void setSymbol(Character symbol) {
         this.symbol = symbol;
-    }
-
-    public Point getPosition() {
-        return position;
-    }
-
-    public void setPosition(Point position) {
-        this.position = position;
     }
 
     @Override
