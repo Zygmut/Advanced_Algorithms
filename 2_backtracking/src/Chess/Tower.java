@@ -16,7 +16,7 @@ public class Tower extends ChessPiece {
 
     @Override
     public Point[] getMovements(ChessBoard board_state, Point piece_position) {
-        Set<Point> currentPieces = board_state.getPieces().keySet();
+        Set<Point> currentPieces = board_state.getPieces().getMap().keySet();
 
         // Top
         Point[] topMovements = IntStream.range(0, piece_position.y)
