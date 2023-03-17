@@ -11,7 +11,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         // Mesurament.mesura();
         MVC mvc = new MVC("config.txt");
-        ChessBoard board = new ChessBoard(2, 2);
+        ChessBoard board = new ChessBoard(3, 3);
         mvc.getModel().setBoard(board);
 
         board.addPiece(new Queen(), new Point(0, 0));

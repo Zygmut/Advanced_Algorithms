@@ -45,6 +45,13 @@ public class Controller implements Notify {
             Set<Point> futureVisitedTowns = new HashSet<>();
             futureVisitedTowns.addAll(visitedTowns);
             futureVisitedTowns.add(movement);
+            System.out.println("[DEBUG] " +piece.getValue().getClass().getSimpleName()
+                    + ": "
+                    + futureVisitedTowns
+                            .stream()
+                            .reduce((first, second) -> second)
+                            .map(point -> "(" + point.x + ", " + point.y + ") ")
+                            .get());
 
             // add the piece with the new movement to the future kingdom queue
             futureKingdom.addPiece(piece.getValue(), movement);
@@ -52,7 +59,7 @@ public class Controller implements Notify {
             // recursivelly call
             futureKingdom = kingdomTour(futureVisitedTowns, futureKingdom);
 
-            if (futureKingdom!= null) {
+            if (futureKingdom != null) {
                 return futureKingdom;
             }
         }
@@ -66,9 +73,10 @@ public class Controller implements Notify {
         Set<Point> visited = new HashSet<>();
         visited.addAll(board.getPieces().getMap().keySet());
         board = this.kingdomTour(visited, board);
-        if(board == null){
+        if (board == null) {
             throw new NoSuchElementException("No solution found");
-        };
+        }
+        ;
         System.out.println("Solution found!");
         System.out.println(board.toString());
     }
@@ -78,7 +86,7 @@ public class Controller implements Notify {
         switch (request.code) {
             case Start:
                 this.run();
-                //Thread.startVirtualThread(this::run);
+                // Thread.startVirtualThread(this::run);
                 break;
             default:
                 throw new UnsupportedOperationException(
