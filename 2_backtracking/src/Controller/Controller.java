@@ -25,9 +25,9 @@ public class Controller implements Notify {
         this.stop = true;
     }
 
-    private boolean kingdomTour(Set<Point> visitedTowns, ChessBoard kingdom) {
+    private ChessBoard kingdomTour(Set<Point> visitedTowns, ChessBoard kingdom) {
         if (visitedTowns.size() == kingdom.size) {
-            return true;
+            return kingdom;
         }
 
         // Get the first element in the queue, removes it from it
@@ -50,29 +50,35 @@ public class Controller implements Notify {
             futureKingdom.addPiece(piece.getValue(), movement);
 
             // recursivelly call
-            if (kingdomTour(futureVisitedTowns, futureKingdom)) {
-                return true;
+            futureKingdom = kingdomTour(futureVisitedTowns, futureKingdom);
+
+            if (futureKingdom!= null) {
+                return futureKingdom;
             }
         }
 
         // Grab the tourist piece with the given turn
-        return false;
+        return null;
     }
 
     private void run() {
         ChessBoard board = this.hub.getModel().getBoard();
         Set<Point> visited = new HashSet<>();
         visited.addAll(board.getPieces().getMap().keySet());
-        if (!this.kingdomTour(visited, board)){
+        board = this.kingdomTour(visited, board);
+        if(board == null){
             throw new NoSuchElementException("No solution found");
         };
+        System.out.println("Solution found!");
+        System.out.println(board.toString());
     }
 
     @Override
     public void notifyRequest(Request request) {
         switch (request.code) {
             case Start:
-                Thread.startVirtualThread(this::run);
+                this.run();
+                //Thread.startVirtualThread(this::run);
                 break;
             default:
                 throw new UnsupportedOperationException(
