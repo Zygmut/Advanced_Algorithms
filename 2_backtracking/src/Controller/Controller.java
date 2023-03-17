@@ -28,15 +28,30 @@ public class Controller implements Notify {
             return true;
         }
 
-        // TODO: create a copy of the kingdom to not change the current value
-
-        // get the next piece, removes it from the queue
+        // Get the first element in the queue, removes it from it
         Entry<Point, ChessPiece> piece = kingdom.getPieces().next();
-        // get all the possible movements from that piece and filter to get only the ones that has not been visited
-        Point[] movements = Arrays.stream(piece.getValue().getMovements(kingdom, piece.getKey())).filter(move -> !visitedTowns.contains(move)).toArray(Point[]::new);
-        System.out.println(Arrays.deepToString(movements));
-        // Add the piece, it should change the position to the new one
-        kingdom.getPieces().add(piece.getKey(), piece.getValue());
+
+        // get all the possible movements from that piece and filter to get only the
+        // ones that has not been visited
+        Point[] movements = Arrays.stream(piece.getValue().getMovements(kingdom, piece.getKey()))
+                .filter(move -> !visitedTowns.contains(move))
+                .toArray(Point[]::new);
+
+        for (Point movement : movements) {
+            // Create a copy of the kingdom to not change the current value
+            ChessBoard futureKingdom = kingdom.clone();
+            Set<Point> futureVisitedTowns = new HashSet<>();
+            futureVisitedTowns.addAll(visitedTowns);
+            futureVisitedTowns.add(movement);
+
+            // add the piece with the new movement to the future kingdom queue
+            futureKingdom.addPiece(piece.getValue(), movement);
+
+            // recursivelly call
+            if (kingdomTour(futureVisitedTowns, futureKingdom)){
+                return true;
+            }
+        }
 
         // Grab the tourist piece with the given turn
         return false;
@@ -70,7 +85,7 @@ public class Controller implements Notify {
                 // Init algorithm
                 stop = false;
                 this.run();
-                //Thread.startVirtualThread(this::run);
+                // Thread.startVirtualThread(this::run);
             case Stop:
                 stop = true;
                 break;
