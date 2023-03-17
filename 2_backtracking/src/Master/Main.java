@@ -11,11 +11,11 @@ public class Main {
     public static void main(String[] args) throws Exception {
         // Mesurament.mesura();
         MVC mvc = new MVC("config.txt");
-        ChessBoard board = new ChessBoard(3, 3);
+        ChessBoard board = new ChessBoard(2, 2);
         mvc.getModel().setBoard(board);
 
-        board.addPiece(new Knight(), new Point(0, 0));
-        board.addPiece(new Tower(), new Point(2, 1));
+        board.addPiece(new Queen(), new Point(0, 0));
+        board.addPiece(new Tower(), new Point(1, 1));
         System.out.println(board.toString());
         board.getPieces()
                 .getMap()

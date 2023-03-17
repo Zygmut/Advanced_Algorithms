@@ -9,6 +9,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.NoSuchElementException;
+
 import Chess.ChessPiece;
 
 import Chess.ChessBoard;
@@ -48,7 +50,7 @@ public class Controller implements Notify {
             futureKingdom.addPiece(piece.getValue(), movement);
 
             // recursivelly call
-            if (kingdomTour(futureVisitedTowns, futureKingdom)){
+            if (kingdomTour(futureVisitedTowns, futureKingdom)) {
                 return true;
             }
         }
@@ -58,36 +60,19 @@ public class Controller implements Notify {
     }
 
     private void run() {
-        this.stop = false;
-        while (!this.stop) {
-            this.kingdomTour(new HashSet<Point>(), this.hub.getModel().getBoard());
-            if (this.stop) {
-                return;
-            }
-            try {
-                // Try to lower the rate of unwanted thread executions
-                for (int i = 0; i < 5; i++) {
-                    Thread.sleep(1);
-                    if (this.stop) {
-                        return;
-                    }
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
+        ChessBoard board = this.hub.getModel().getBoard();
+        Set<Point> visited = new HashSet<>();
+        visited.addAll(board.getPieces().getMap().keySet());
+        if (!this.kingdomTour(visited, board)){
+            throw new NoSuchElementException("No solution found");
+        };
     }
 
     @Override
     public void notifyRequest(Request request) {
         switch (request.code) {
             case Start:
-                // Init algorithm
-                stop = false;
-                this.run();
-                // Thread.startVirtualThread(this::run);
-            case Stop:
-                stop = true;
+                Thread.startVirtualThread(this::run);
                 break;
             default:
                 throw new UnsupportedOperationException(
