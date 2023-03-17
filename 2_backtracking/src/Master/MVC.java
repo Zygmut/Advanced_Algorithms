@@ -37,11 +37,15 @@ public class MVC implements Notify {
     @Override
     public void notifyRequest(Request request) {
         switch (request.code) {
-           case Error:
+            case Start:
+                this.controller.notifyRequest(request);
+                break;
+            case Error:
                 System.out.println(request);
                 System.exit(1);
             default:
-                break;
+                throw new UnsupportedOperationException(
+                        request + " is not implemented in " + this.getClass().getSimpleName());
         }
     }
 

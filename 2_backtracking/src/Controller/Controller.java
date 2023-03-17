@@ -4,23 +4,42 @@ import Master.MVC;
 import Request.Notify;
 import Request.Request;
 import Request.RequestCode;
-import TimeProfiler.TimeProfiler;
+import java.awt.Point;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.Arrays;
+import java.util.HashSet;
+import Chess.ChessPiece;
+
+import Chess.ChessBoard;
 
 public class Controller implements Notify {
 
     private MVC hub;
     private boolean stop;
-    private RequestCode currentExecution;
 
     public Controller(MVC mvc) {
         this.hub = mvc;
         this.stop = true;
     }
 
+    private boolean kingdomTour(Set<Point> visitedTowns, ChessBoard kingdom) {
+        if (visitedTowns.size() == kingdom.size) {
+            return true;
+        }
+        
+        Entry<Point, ChessPiece> piece = kingdom.getPieces().next();
+        Point[] movements = Arrays.stream(piece.getValue().getMovements(kingdom, piece.getKey())).filter(move -> !visitedTowns.contains(move)).toArray(Point[]::new);
+        System.out.println(Arrays.deepToString(movements));
+        kingdom.getPieces().add(piece.getKey(), piece.getValue());
+        // Grab the tourist piece with the given turn
+        return false;
+    }
+
     private void run() {
         this.stop = false;
         while (!this.stop) {
-            // TODO: Add your code here
+            this.kingdomTour(new HashSet<Point>(), this.hub.getModel().getBoard());
             if (this.stop) {
                 return;
             }
@@ -41,9 +60,17 @@ public class Controller implements Notify {
     @Override
     public void notifyRequest(Request request) {
         switch (request.code) {
+            case Start:
+                // Init algorithm
+                stop = false;
+                this.run();
+                //Thread.startVirtualThread(this::run);
+            case Stop:
+                stop = true;
+                break;
             default:
-                this.hub.notifyRequest(new Request(RequestCode.Error, this));
-                return;
+                throw new UnsupportedOperationException(
+                        request + " is not implemented in " + this.getClass().getSimpleName());
         }
     }
 

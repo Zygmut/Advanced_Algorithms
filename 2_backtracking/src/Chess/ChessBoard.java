@@ -4,23 +4,27 @@ import java.awt.Point;
 import java.awt.Dimension;
 import java.util.Arrays;
 
-public class ChessBoard {
+public class ChessBoard implements Cloneable {
 	private Dimension dimension;
-	private CircularLinkedHashMap<Point, ChessPiece> pieces;
+	private LinkedHashQueue<Point, ChessPiece> pieces;
+	public final int size;
 
 	public ChessBoard() {
 		this.dimension = new Dimension(8, 8);
-		this.pieces = new CircularLinkedHashMap<>();
+		this.size = dimension.width * dimension.height;
+		this.pieces = new LinkedHashQueue<>();
 	}
 
 	public ChessBoard(Dimension dimension) {
 		this.dimension = dimension;
-		this.pieces = new CircularLinkedHashMap<>();
+		this.size = dimension.width * dimension.height;
+		this.pieces = new LinkedHashQueue<>();
 	}
 
 	public ChessBoard(int width, int height) {
 		this.dimension = new Dimension(width, height);
-		this.pieces = new CircularLinkedHashMap<>();
+		this.size = dimension.width * dimension.height;
+		this.pieces = new LinkedHashQueue<>();
 	}
 
 	public Dimension getDimension() {
@@ -42,7 +46,7 @@ public class ChessBoard {
 				&& position.y < this.dimension.height;
 	}
 
-	public CircularLinkedHashMap<Point, ChessPiece> addPiece(ChessPiece piece, Point position) {
+	public LinkedHashQueue<Point, ChessPiece> addPiece(ChessPiece piece, Point position) {
 		if (!sanityCheck(position)) {
 			throw new IllegalArgumentException("Position is out of the chess board");
 		}
@@ -55,12 +59,12 @@ public class ChessBoard {
 		return this.pieces;
 	}
 
-	public CircularLinkedHashMap<Point, ChessPiece> removePieceAt(Point position) {
+	public LinkedHashQueue<Point, ChessPiece> removePieceAt(Point position) {
 		this.pieces.getMap().remove(position);
 		return this.pieces;
 	}
 
-	public CircularLinkedHashMap<Point, ChessPiece> getPieces() {
+	public LinkedHashQueue<Point, ChessPiece> getPieces() {
 		return pieces;
 	}
 
@@ -114,5 +118,19 @@ public class ChessBoard {
 		}
 		sb.append("\n");
 		return sb.toString();
+	}
+
+	@Override
+	public ChessBoard clone() {
+		ChessBoard copy = null;
+		try {
+			copy = (ChessBoard) super.clone();
+			copy.dimension = new Dimension(this.dimension.width, this.dimension.height);
+			copy.pieces = new LinkedHashQueue<>();
+			copy.pieces.getMap().putAll(this.pieces.getMap());
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+		}
+		return copy;
 	}
 }

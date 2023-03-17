@@ -58,8 +58,8 @@ public class View implements Notify {
     public void notifyRequest(Request request) {
         switch (request.code) {
             default:
-                this.hub.notifyRequest(new Request(RequestCode.Error, this));
-                return;
+                throw new UnsupportedOperationException(
+                        request + " is not implemented in " + this.getClass().getSimpleName());
         }
     }
 
@@ -134,7 +134,8 @@ public class View implements Notify {
         Section footer = new Section();
         JPanel footerContent = new JPanel();
         JLabel tableSize = new JLabel("Tamaño del tablero: ");
-        //Falta pasar por parámetro el tamaño del tablero inicial y el tamaño del tablero cuando se cambie
+        // Falta pasar por parámetro el tamaño del tablero inicial y el tamaño del
+        // tablero cuando se cambie
         SpinnerNumberModel size = new SpinnerNumberModel(8, 8, 20, 1);
         JSpinner tableSizeSpinner = new JSpinner(size);
         tableSizeSpinner.addChangeListener(e -> {
@@ -147,10 +148,6 @@ public class View implements Notify {
         footer.createFreeSection(footerContent);
         return footer;
     }
-
-
-
-    
 
     /**
      * Returns the window of the view.

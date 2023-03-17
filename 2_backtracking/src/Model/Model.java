@@ -1,5 +1,6 @@
 package Model;
 
+import Chess.ChessBoard;
 import Master.MVC;
 import Request.Notify;
 import Request.Request;
@@ -8,6 +9,7 @@ import Request.RequestCode;
 public class Model implements Notify {
 
     private MVC hub;
+    private ChessBoard board;
 
     public Model(MVC mvc) {
         this.hub = mvc;
@@ -17,13 +19,17 @@ public class Model implements Notify {
     public void notifyRequest(Request request) {
         switch (request.code) {
             default:
-                this.hub.notifyRequest(new Request(RequestCode.Error, this));
-                return;
+                throw new UnsupportedOperationException(
+                        request + " is not implemented in " + this.getClass().getSimpleName());
         }
     }
 
-    public long[][] getData() {
-        throw new RuntimeException("Not implemented");
+    public ChessBoard getBoard() {
+        return board;
+    }
+
+    public void setBoard(ChessBoard board) {
+        this.board = board;
     }
 
 }
