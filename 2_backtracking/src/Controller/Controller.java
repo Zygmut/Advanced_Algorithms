@@ -27,11 +27,17 @@ public class Controller implements Notify {
         if (visitedTowns.size() == kingdom.size) {
             return true;
         }
-        
+
+        // TODO: create a copy of the kingdom to not change the current value
+
+        // get the next piece, removes it from the queue
         Entry<Point, ChessPiece> piece = kingdom.getPieces().next();
+        // get all the possible movements from that piece and filter to get only the ones that has not been visited
         Point[] movements = Arrays.stream(piece.getValue().getMovements(kingdom, piece.getKey())).filter(move -> !visitedTowns.contains(move)).toArray(Point[]::new);
         System.out.println(Arrays.deepToString(movements));
+        // Add the piece, it should change the position to the new one
         kingdom.getPieces().add(piece.getKey(), piece.getValue());
+
         // Grab the tourist piece with the given turn
         return false;
     }
