@@ -17,6 +17,14 @@ public class Main {
         board.addPiece(new Knight(), new Point(0, 0));
         board.addPiece(new Tower(), new Point(2, 1));
         System.out.println(board.toString());
+        board.getPieces()
+                .getMap()
+                .entrySet()
+                .stream()
+                .forEach(piece -> System.out.println(
+                        piece.getValue().getClass().getSimpleName()
+                                + ": "
+                                + board.getMovementStringAt(piece.getKey())));
         mvc.notifyRequest(new Request(RequestCode.Start, "main"));
 
     }
