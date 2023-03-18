@@ -15,7 +15,7 @@ public class Knight extends ChessPiece {
 
         @Override
         public Point[] getMovements(ChessBoard board_state, Point piece_position) {
-                Set<Point> currentPieces = board_state.getPieces().getMap().keySet();
+                Set<Point> currentPieces = board_state.getPieces().keySet();
                 return generatePermutations(new int[] { -1, +1 }, new int[] { -2, 2 })
                                 .map(move -> new Point(move[0] + piece_position.x, move[1] + piece_position.y))
                                 .filter(board_state::sanityCheck)

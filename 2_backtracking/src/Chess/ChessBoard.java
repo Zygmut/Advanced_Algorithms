@@ -57,16 +57,16 @@ public class ChessBoard implements Cloneable {
 			throw new IllegalArgumentException("Position is out of the chess board");
 		}
 
-		if (this.pieces.getMap().get(position) != null) {
+		if (this.pieces.get(position) != null) {
 			throw new IllegalArgumentException(
 					"A piece already resides in position (" + position.x + ", " + position.y + ")");
 		}
-		this.pieces.getMap().put(position, piece);
+		this.pieces.put(position, piece);
 		return this.pieces;
 	}
 
 	public LinkedHashQueue<Point, ChessPiece> removePieceAt(Point position) {
-		this.pieces.getMap().remove(position);
+		this.pieces.remove(position);
 		return this.pieces;
 	}
 
@@ -76,7 +76,6 @@ public class ChessBoard implements Cloneable {
 
 	public String getMovementStringAt(Point position) {
 		return Arrays.toString(Arrays.stream(this.pieces
-				.getMap()
 				.get(position)
 				.getMovements(this, position))
 				.map(move -> "(" + move.x + ", " + move.y + ")")
@@ -102,7 +101,7 @@ public class ChessBoard implements Cloneable {
 					.append(" | ");
 			for (int x = 0; x < dimension.width; x++) {
 				Point position = new Point(x, y);
-				ChessPiece piece = pieces.getMap().get(position);
+				ChessPiece piece = pieces.get(position);
 				if (piece == null) {
 					sb.append(" ");
 				} else {
@@ -133,7 +132,7 @@ public class ChessBoard implements Cloneable {
 			copy = (ChessBoard) super.clone();
 			copy.dimension = new Dimension(this.dimension.width, this.dimension.height);
 			copy.pieces = new LinkedHashQueue<>();
-			copy.pieces.getMap().putAll(this.pieces.getMap());
+			copy.pieces.putAll(this.pieces);
 		} catch (CloneNotSupportedException e) {
 			e.printStackTrace();
 		}

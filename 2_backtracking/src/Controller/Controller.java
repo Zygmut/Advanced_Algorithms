@@ -45,40 +45,39 @@ public class Controller implements Notify {
             Set<Point> futureVisitedTowns = new HashSet<>();
             futureVisitedTowns.addAll(visitedTowns);
             futureVisitedTowns.add(movement);
-            System.out.println("[DEBUG] " +piece.getValue().getClass().getSimpleName()
-                    + ": "
-                    + futureVisitedTowns
-                            .stream()
-                            .reduce((first, second) -> second)
-                            .map(point -> "(" + point.x + ", " + point.y + ") ")
-                            .get());
+
+            //System.out.println("[DEBUG] "
+            //        + piece.getValue().getClass().getSimpleName()
+            //        + ": "
+            //        + "(" + movement.x + ", " + movement.y + ")");
 
             // add the piece with the new movement to the future kingdom queue
             futureKingdom.addPiece(piece.getValue(), movement);
+
+            //String str = futureKingdom.toString();
 
             // recursivelly call
             futureKingdom = kingdomTour(futureVisitedTowns, futureKingdom);
 
             if (futureKingdom != null) {
+                //System.out.println(str);
                 return futureKingdom;
             }
         }
 
-        // Grab the tourist piece with the given turn
         return null;
     }
 
     private void run() {
         ChessBoard board = this.hub.getModel().getBoard();
         Set<Point> visited = new HashSet<>();
-        visited.addAll(board.getPieces().getMap().keySet());
+        visited.addAll(board.getPieces().keySet());
         board = this.kingdomTour(visited, board);
         if (board == null) {
             throw new NoSuchElementException("No solution found");
         }
-        ;
         System.out.println("Solution found!");
-        System.out.println(board.toString());
+        System.out.println(board);
     }
 
     @Override
