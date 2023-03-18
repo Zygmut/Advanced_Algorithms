@@ -4,23 +4,33 @@ import java.awt.Point;
 import java.awt.Dimension;
 import java.util.Arrays;
 
-public class ChessBoard {
+public class Board implements Cloneable {
 	private Dimension dimension;
-	private CircularLinkedHashMap<Point, ChessPiece> pieces;
+	private LinkedHashQueue<Point, Piece> pieces;
+	public final int size;
 
-	public ChessBoard() {
+	public Board() {
 		this.dimension = new Dimension(8, 8);
-		this.pieces = new CircularLinkedHashMap<>();
+		this.size = dimension.width * dimension.height;
+		this.pieces = new LinkedHashQueue<>();
 	}
 
-	public ChessBoard(Dimension dimension) {
+	public Board(Dimension dimension) {
 		this.dimension = dimension;
-		this.pieces = new CircularLinkedHashMap<>();
+		this.size = dimension.width * dimension.height;
+		this.pieces = new LinkedHashQueue<>();
 	}
 
-	public ChessBoard(int width, int height) {
+	public Board(int width, int height) {
 		this.dimension = new Dimension(width, height);
-		this.pieces = new CircularLinkedHashMap<>();
+		this.size = dimension.width * dimension.height;
+		this.pieces = new LinkedHashQueue<>();
+	}
+
+	public Board(int n) {
+		this.dimension = new Dimension(n, n);
+		this.size = n * n;
+		this.pieces = new LinkedHashQueue<>();
 	}
 
 	public Dimension getDimension() {
@@ -42,31 +52,30 @@ public class ChessBoard {
 				&& position.y < this.dimension.height;
 	}
 
-	public CircularLinkedHashMap<Point, ChessPiece> addPiece(ChessPiece piece, Point position) {
+	public LinkedHashQueue<Point, Piece> addPiece(Piece piece, Point position) {
 		if (!sanityCheck(position)) {
 			throw new IllegalArgumentException("Position is out of the chess board");
 		}
 
-		if (this.pieces.getMap().get(position) != null) {
+		if (this.pieces.get(position) != null) {
 			throw new IllegalArgumentException(
 					"A piece already resides in position (" + position.x + ", " + position.y + ")");
 		}
-		this.pieces.getMap().put(position, piece);
+		this.pieces.put(position, piece);
 		return this.pieces;
 	}
 
-	public CircularLinkedHashMap<Point, ChessPiece> removePieceAt(Point position) {
-		this.pieces.getMap().remove(position);
+	public LinkedHashQueue<Point, Piece> removePieceAt(Point position) {
+		this.pieces.remove(position);
 		return this.pieces;
 	}
 
-	public CircularLinkedHashMap<Point, ChessPiece> getPieces() {
+	public LinkedHashQueue<Point, Piece> getPieces() {
 		return pieces;
 	}
 
 	public String getMovementStringAt(Point position) {
 		return Arrays.toString(Arrays.stream(this.pieces
-				.getMap()
 				.get(position)
 				.getMovements(this, position))
 				.map(move -> "(" + move.x + ", " + move.y + ")")
@@ -88,11 +97,10 @@ public class ChessBoard {
 		sb.append("\n");
 
 		for (int y = 0; y < dimension.height; y++) {
-			sb.append(y)
-					.append(" | ");
+			sb.append(y).append(" | ");
 			for (int x = 0; x < dimension.width; x++) {
 				Point position = new Point(x, y);
-				ChessPiece piece = pieces.getMap().get(position);
+				Piece piece = pieces.get(position);
 				if (piece == null) {
 					sb.append(" ");
 				} else {
@@ -114,5 +122,19 @@ public class ChessBoard {
 		}
 		sb.append("\n");
 		return sb.toString();
+	}
+
+	@Override
+	public Board clone() {
+		Board copy = null;
+		try {
+			copy = (Board) super.clone();
+			copy.dimension = new Dimension(this.dimension.width, this.dimension.height);
+			copy.pieces = new LinkedHashQueue<>();
+			copy.pieces.putAll(this.pieces);
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+		}
+		return copy;
 	}
 }

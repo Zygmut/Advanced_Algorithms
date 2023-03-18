@@ -2,17 +2,19 @@ package Chess;
 
 import java.awt.Point;
 
-public class Knight extends Piece {
+// https://chesscraft.ca/design?id=2ATC
+public class Castle extends Piece {
 
-    public Knight() {
+    public Castle() {
         super();
-        this.symbol = 'K';
+        this.symbol = 'C';
     }
 
     @Override
     public Point[] getMovements(Board board_state, Point piece_position) {
         return Movements.jumpPermutation(piece_position, board_state,
-                new int[] { -1, 1 },
-                new int[] { -2, 2 });
+                new int[] { 2, -2 },
+                new int[] { 0, 1, -1 });
     }
+
 }

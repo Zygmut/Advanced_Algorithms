@@ -2,7 +2,7 @@ package Chess;
 
 import java.awt.image.BufferedImage;
 
-public abstract class ChessPiece implements ChessMovement{
+public abstract class Piece implements ChessMovable{
     protected BufferedImage image;
     protected Character symbol;
 
