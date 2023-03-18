@@ -12,15 +12,15 @@ public class Main {
     public static void main(String[] args) throws Exception {
         // Mesurament.mesura();
         MVC mvc = new MVC("config.txt");
-        ChessBoard board = new ChessBoard(8);
+        Board board = new Board(5);
         mvc.getModel().setBoard(board);
 
         // Point queenpos = new Point(0, 0);
         // board.addPiece(new Queen(), queenpos);
         // board.addPiece(new Tower(), new Point(1, 1));
-        board.addPiece(new Tower(), new Point(0,0));
+        board.addPiece(new Knight(), new Point(0, 0));
         // Arrays.stream(board.getPieces().get(queenpos).getMovements(board, queenpos))
-        // .forEach(pos -> board.addPiece(new Mark(), pos));
+        //         .forEach(pos -> board.addPiece(new Mark(), pos));
 
         board.getPieces()
                 .entrySet()

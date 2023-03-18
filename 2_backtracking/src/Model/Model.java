@@ -1,6 +1,6 @@
 package Model;
 
-import Chess.ChessBoard;
+import Chess.Board;
 import Master.MVC;
 import Request.Notify;
 import Request.Request;
@@ -9,7 +9,7 @@ import Request.RequestCode;
 public class Model implements Notify {
 
     private MVC hub;
-    private ChessBoard board;
+    private Board board;
 
     public Model(MVC mvc) {
         this.hub = mvc;
@@ -24,11 +24,11 @@ public class Model implements Notify {
         }
     }
 
-    public ChessBoard getBoard() {
+    public Board getBoard() {
         return board;
     }
 
-    public void setBoard(ChessBoard board) {
+    public void setBoard(Board board) {
         this.board = board;
     }
 
