@@ -27,6 +27,12 @@ public class ChessBoard implements Cloneable {
 		this.pieces = new LinkedHashQueue<>();
 	}
 
+	public ChessBoard(int n) {
+		this.dimension = new Dimension(n,n);
+		this.size = n * n;
+		this.pieces = new LinkedHashQueue<>();
+	}
+
 	public Dimension getDimension() {
 		return dimension;
 	}
