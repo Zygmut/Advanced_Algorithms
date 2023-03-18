@@ -28,7 +28,7 @@ public class Board implements Cloneable {
 	}
 
 	public Board(int n) {
-		this.dimension = new Dimension(n,n);
+		this.dimension = new Dimension(n, n);
 		this.size = n * n;
 		this.pieces = new LinkedHashQueue<>();
 	}
@@ -97,8 +97,7 @@ public class Board implements Cloneable {
 		sb.append("\n");
 
 		for (int y = 0; y < dimension.height; y++) {
-			sb.append(y)
-					.append(" | ");
+			sb.append(y).append(" | ");
 			for (int x = 0; x < dimension.width; x++) {
 				Point position = new Point(x, y);
 				Piece piece = pieces.get(position);

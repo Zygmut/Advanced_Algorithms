@@ -15,12 +15,13 @@ public class Main {
         Board board = new Board(5);
         mvc.getModel().setBoard(board);
 
-        // Point queenpos = new Point(0, 0);
+        Point pos = new Point(2, 2);
         // board.addPiece(new Queen(), queenpos);
         // board.addPiece(new Tower(), new Point(1, 1));
-        board.addPiece(new Knight(), new Point(0, 0));
-        // Arrays.stream(board.getPieces().get(queenpos).getMovements(board, queenpos))
-        //         .forEach(pos -> board.addPiece(new Mark(), pos));
+        board.addPiece(Pieces.CASTLE, pos);
+
+        Arrays.stream(board.getPieces().get(pos).getMovements(board, pos))
+        .forEach(position -> board.addPiece(new Mark(), position));
 
         board.getPieces()
                 .entrySet()
