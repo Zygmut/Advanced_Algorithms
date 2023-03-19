@@ -5,6 +5,7 @@ import Request.Notify;
 import Request.Request;
 import Request.RequestCode;
 import java.awt.Point;
+import java.time.Duration;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Arrays;
@@ -12,8 +13,9 @@ import java.util.HashSet;
 import java.util.NoSuchElementException;
 
 import Chess.Piece;
-
+import Chess.Pieces;
 import Chess.Board;
+import Chess.Mark;
 
 public class Controller implements Notify {
 
@@ -23,58 +25,67 @@ public class Controller implements Notify {
         this.hub = mvc;
     }
 
-    private Board kingdomTour(Set<Point> visitedTowns, Board kingdom) {
-        if (visitedTowns.size() == kingdom.size) {
-            return kingdom;
+    public int countTrue(boolean[][] visitedTowns) {
+        int count = 0;
+        for (boolean[] col : visitedTowns) {
+            for (boolean value : col) {
+                if (value) {
+                    count++;
+                }
+            }
         }
+        return count;
+    }
 
+    private boolean kingdomTour(boolean[][] visitedTowns, Board kingdom) {
         // Get the first element in the queue, removes it from it
         Entry<Point, Piece> piece = kingdom.getPieces().next();
+        visitedTowns[piece.getKey().x][piece.getKey().y] = true;
+
+        if (countTrue(visitedTowns) == kingdom.size) {
+            return true;
+        }
 
         // get all the possible movements from that piece and filter to get only the
         // ones that has not been visited
         Point[] movements = Arrays.stream(piece.getValue().getMovements(kingdom, piece.getKey()))
-                .filter(move -> !visitedTowns.contains(move))
+                .filter(move -> !visitedTowns[move.x][move.y])
                 .toArray(Point[]::new);
 
         for (Point movement : movements) {
-            // Create a copy of the kingdom to not change the current value
-            Board futureKingdom = kingdom.clone();
-            Set<Point> futureVisitedTowns = visitedTowns;
-            futureVisitedTowns.add(movement);
+
+            // add the piece with the new movement to the future kingdom queue
+            kingdom.addPiece(piece.getValue(), movement);
 
             // System.out.println("[DEBUG] "
             // + piece.getValue().getClass().getSimpleName()
             // + ": "
             // + "(" + movement.x + ", " + movement.y + ")");
 
-            // add the piece with the new movement to the future kingdom queue
-            futureKingdom.addPiece(piece.getValue(), movement);
-
-            String str = futureKingdom.toString();
-
+            System.out.println(kingdom);
             // recursivelly call
-            futureKingdom = kingdomTour(futureVisitedTowns, futureKingdom);
-
-            if (futureKingdom != null) {
-                System.out.println(str);
-                return futureKingdom;
+            if (kingdomTour(visitedTowns, kingdom)) {
+                return true;
             }
+
         }
 
-        return null;
+        visitedTowns[piece.getKey().x][piece.getKey().y] = false;
+
+        return false;
     }
 
     private void run() {
         Board board = this.hub.getModel().getBoard();
-        Set<Point> visited = new HashSet<>();
-        visited.addAll(board.getPieces().keySet());
-        board = this.kingdomTour(visited, board);
-        if (board == null) {
+        boolean[][] visited = new boolean[board.getDimension().height][board.getDimension().width];
+        for (boolean[] column : visited) {
+            Arrays.fill(column, false);
+        }
+        boolean solution = this.kingdomTour(visited, board);
+        if (!solution) {
             throw new NoSuchElementException("No solution found");
         }
         System.out.println("Solution found!");
-        System.out.println(board);
     }
 
     @Override

@@ -15,22 +15,14 @@ public class Main {
         Board board = new Board(5);
         mvc.getModel().setBoard(board);
 
-        Point pos = new Point(2, 2);
+        Point pos = new Point(0,0);
         // board.addPiece(new Queen(), queenpos);
         // board.addPiece(new Tower(), new Point(1, 1));
-        board.addPiece(Pieces.CASTLE, pos);
+        board.addPiece(Pieces.BISHOP, pos);
 
-        Arrays.stream(board.getPieces().get(pos).getMovements(board, pos))
-        .forEach(position -> board.addPiece(new Mark(), position));
-
-        board.getPieces()
-                .entrySet()
-                .stream()
-                .forEach(piece -> System.out.println(
-                        piece.getValue().getClass().getSimpleName()
-                                + ": "
-                                + board.getMovementStringAt(piece.getKey())));
-        System.out.println(board.toString());
+        //Arrays.stream(board.getPieces().get(pos).getMovements(board, pos))
+        //.forEach(position -> board.addPiece(new Mark(), position));
+        System.out.println(board);
 
         mvc.notifyRequest(new Request(RequestCode.Start, "main"));
 
