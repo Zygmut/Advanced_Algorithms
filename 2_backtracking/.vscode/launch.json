@@ -9,6 +9,13 @@
             "name": "Main",
             "request": "launch",
             "mainClass": "Master.Main",
+            "projectName": "2_backtracking_8684a3c8"
+        },
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "Master.Main",
             "projectName": "2_backtracking_c335a4a2"
         },
         {

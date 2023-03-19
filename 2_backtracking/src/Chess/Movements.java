@@ -106,6 +106,7 @@ public class Movements {
                         .map(j -> new int[] { nums1[i], nums2[j] }))
                 .flatMap(arr -> Stream.of(
                         new int[] { arr[0], arr[1] },
-                        new int[] { arr[1], arr[0] }));
+                        new int[] { arr[1], arr[0] }))
+                .distinct();
     }
 }

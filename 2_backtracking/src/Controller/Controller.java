@@ -40,14 +40,13 @@ public class Controller implements Notify {
         for (Point movement : movements) {
             // Create a copy of the kingdom to not change the current value
             Board futureKingdom = kingdom.clone();
-            Set<Point> futureVisitedTowns = new HashSet<>();
-            futureVisitedTowns.addAll(visitedTowns);
+            Set<Point> futureVisitedTowns = visitedTowns;
             futureVisitedTowns.add(movement);
 
-            //System.out.println("[DEBUG] "
-            //        + piece.getValue().getClass().getSimpleName()
-            //        + ": "
-            //        + "(" + movement.x + ", " + movement.y + ")");
+            // System.out.println("[DEBUG] "
+            // + piece.getValue().getClass().getSimpleName()
+            // + ": "
+            // + "(" + movement.x + ", " + movement.y + ")");
 
             // add the piece with the new movement to the future kingdom queue
             futureKingdom.addPiece(piece.getValue(), movement);
