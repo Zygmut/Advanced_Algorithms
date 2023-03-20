@@ -13,7 +13,7 @@ public class Dragon extends Piece {
     }
 
     @Override
-    public Point[] getMovements(Board board_state, Point piece_position) {
+    public Point[] getMovements(ChessBoard board_state, Point piece_position) {
         return Stream
                 .of(Movements.jumpPermutation(piece_position, board_state, new int[] { -1, 1 }, new int[] { -2, 2 }),
                         Movements.diagonalTopRight(piece_position, board_state),

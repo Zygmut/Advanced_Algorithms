@@ -7,6 +7,7 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
+import Chess.ChessBoard;
 import Master.MVC;
 import Request.Notify;
 import Request.Request;
@@ -27,6 +28,8 @@ public class View implements Notify {
     private Window window;
 
     private int sizeTable;
+
+    private Board board;
 
     /**
      * This constructor creates a view with the MVC hub without any configuration
@@ -54,9 +57,18 @@ public class View implements Notify {
         this.loadContent();
     }
 
+    private void updateBoard(ChessBoard board) {
+        this.board.setBoard(board);
+        this.board.paintComponent(this.board.getGraphics());
+        this.board.validate();
+    }
+
     @Override
     public void notifyRequest(Request request) {
         switch (request.code) {
+            case UpdateBoard:
+                this.updateBoard(this.hub.getModel().getBoard());
+                break;
             default:
                 throw new UnsupportedOperationException(
                         request + " is not implemented in " + this.getClass().getSimpleName());
@@ -102,9 +114,9 @@ public class View implements Notify {
     private Section mainSection() {
         // TODO: Implement this method.
         Section main = new Section();
-        JPanel mainContent = new JPanel();
-        mainContent.setBackground(Color.BLUE);
-        main.createFreeSection(mainContent);
+        this.board = new Board(this.hub.getModel().getBoard());
+        this.board.paintComponent( this.board.getGraphics());
+        main.createFreeSection( this.board);
         return main;
     }
 

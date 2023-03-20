@@ -4,30 +4,36 @@ import java.awt.Point;
 import java.awt.Dimension;
 import java.util.Arrays;
 
-public class Board implements Cloneable {
+public class ChessBoard implements Cloneable {
 	private Dimension dimension;
 	private LinkedHashQueue<Point, Piece> pieces;
 	public final int size;
 
-	public Board() {
+	public ChessBoard() {
 		this.dimension = new Dimension(8, 8);
 		this.size = dimension.width * dimension.height;
 		this.pieces = new LinkedHashQueue<>();
 	}
 
-	public Board(Dimension dimension) {
+	public ChessBoard(Dimension dimension) {
 		this.dimension = dimension;
 		this.size = dimension.width * dimension.height;
 		this.pieces = new LinkedHashQueue<>();
 	}
 
-	public Board(int width, int height) {
+	public ChessBoard(Dimension dimension, LinkedHashQueue<Point, Piece> pieces) {
+		this.dimension = dimension;
+		this.size = dimension.width * dimension.height;
+		this.pieces = pieces;
+	}
+
+	public ChessBoard(int width, int height) {
 		this.dimension = new Dimension(width, height);
 		this.size = dimension.width * dimension.height;
 		this.pieces = new LinkedHashQueue<>();
 	}
 
-	public Board(int n) {
+	public ChessBoard(int n) {
 		this.dimension = new Dimension(n, n);
 		this.size = n * n;
 		this.pieces = new LinkedHashQueue<>();
@@ -176,10 +182,10 @@ public class Board implements Cloneable {
 	}
 
 	@Override
-	public Board clone() {
-		Board copy = null;
+	public ChessBoard clone() {
+		ChessBoard copy = null;
 		try {
-			copy = (Board) super.clone();
+			copy = (ChessBoard) super.clone();
 			copy.dimension = new Dimension(this.dimension.width, this.dimension.height);
 			copy.pieces = new LinkedHashQueue<>();
 			copy.pieces.putAll(this.pieces);
@@ -187,5 +193,9 @@ public class Board implements Cloneable {
 			e.printStackTrace();
 		}
 		return copy;
+	}
+
+	public void setPieces(LinkedHashQueue<Point, Piece> pieces) {
+		this.pieces = pieces;
 	}
 }

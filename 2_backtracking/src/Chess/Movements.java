@@ -7,7 +7,7 @@ import java.util.stream.Stream;
 
 public class Movements {
 
-    public static Point[] straightTop(Point piece_position, Board board_state) {
+    public static Point[] straightTop(Point piece_position, ChessBoard board_state) {
         return IntStream.range(0, piece_position.y)
                 .boxed()
                 .sorted(Collections.reverseOrder())
@@ -17,7 +17,7 @@ public class Movements {
                 .toArray(Point[]::new);
     }
 
-    public static Point[] straightRight(Point piece_position, Board board_state) {
+    public static Point[] straightRight(Point piece_position, ChessBoard board_state) {
         return IntStream.range(piece_position.x + 1, board_state.getDimension().width)
                 .parallel()
                 .mapToObj((x) -> new Point(x, piece_position.y))
@@ -26,7 +26,7 @@ public class Movements {
 
     }
 
-    public static Point[] straightBottom(Point piece_position, Board board_state) {
+    public static Point[] straightBottom(Point piece_position, ChessBoard board_state) {
         return IntStream.range(piece_position.y + 1, board_state.getDimension().height)
                 .parallel()
                 .mapToObj(y -> new Point(piece_position.x, y))
@@ -34,7 +34,7 @@ public class Movements {
                 .toArray(Point[]::new);
     }
 
-    public static Point[] straightLeft(Point piece_position, Board board_state) {
+    public static Point[] straightLeft(Point piece_position, ChessBoard board_state) {
         return IntStream.range(0, piece_position.x)
                 .boxed()
                 .sorted(Collections.reverseOrder())
@@ -44,7 +44,7 @@ public class Movements {
                 .toArray(Point[]::new);
     }
 
-    public static Point[] diagonalTopRight(Point piece_position, Board board_state) {
+    public static Point[] diagonalTopRight(Point piece_position, ChessBoard board_state) {
         return IntStream
                 .range(1, Math.min(board_state.getDimension().width - piece_position.x,
                         piece_position.y + 1))
@@ -53,14 +53,14 @@ public class Movements {
                 .toArray(Point[]::new);
     }
 
-    public static Point[] diagonalTopLeft(Point piece_position, Board board_state) {
+    public static Point[] diagonalTopLeft(Point piece_position, ChessBoard board_state) {
         return IntStream.range(1, Math.min(piece_position.x + 1, piece_position.y + 1))
                 .mapToObj(i -> new Point(piece_position.x - i, piece_position.y - i))
                 .takeWhile(point -> !board_state.getPieces().keySet().contains(point))
                 .toArray(Point[]::new);
     }
 
-    public static Point[] diagonalBottomRight(Point piece_position, Board board_state) {
+    public static Point[] diagonalBottomRight(Point piece_position, ChessBoard board_state) {
         return IntStream
                 .range(1, Math.min(board_state.getDimension().width - piece_position.x,
                         board_state.getDimension().height - piece_position.y))
@@ -69,7 +69,7 @@ public class Movements {
                 .toArray(Point[]::new);
     }
 
-    public static Point[] diagonalBottomLeft(Point piece_position, Board board_state) {
+    public static Point[] diagonalBottomLeft(Point piece_position, ChessBoard board_state) {
         return IntStream
                 .range(1, Math.min(piece_position.x + 1,
                         board_state.getDimension().height - piece_position.y))
@@ -79,7 +79,7 @@ public class Movements {
 
     }
 
-    public static Point[] jumpPermutation(Point piece_position, Board board_state, int[] permutation1,
+    public static Point[] jumpPermutation(Point piece_position, ChessBoard board_state, int[] permutation1,
             int[] permutation2) {
         return generatePermutations(permutation1, permutation2)
                 .map(move -> new Point(move[0] + piece_position.x, move[1] + piece_position.y))

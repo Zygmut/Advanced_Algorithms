@@ -15,41 +15,41 @@ import java.util.NoSuchElementException;
 
 import Chess.Piece;
 import Chess.Pieces;
-import Chess.Board;
+import Chess.ChessBoard;
+import Chess.LinkedHashQueue;
 import Chess.Mark;
 
 public class Controller implements Notify {
 
+    private ChessBoard lastBoard;
     private MVC hub;
 
     public Controller(MVC mvc) {
         this.hub = mvc;
     }
 
-    private boolean kingdomTour(int[][] visitedTowns, Board kingdom, int iteration) {
-        if (iteration == 50) {
-            iteration = 50;
-        }
+    private boolean kingdomTour(int[][] visitedTowns, ChessBoard kingdom, int iteration) {
 
         if (iteration == kingdom.size) {
             return true;
         }
+
         // Get the first element in the queue, removes it from it
-        Entry<Point, Piece> piece = kingdom.getPieces().next();
+        Entry<Point, Piece> entry = kingdom.getPieces().peek();
 
         // get all the possible movements from that piece and filter to get only the
         // ones that has not been visited
-        Point[] movements = Arrays.stream(piece.getValue().getMovements(kingdom, piece.getKey()))
+        Point[] movements = Arrays.stream(entry.getValue().getMovements(kingdom, entry.getKey()))
                 .filter(move -> visitedTowns[move.x][move.y] == 0)
                 .toArray(Point[]::new);
-        //Arrays.stream(movements).map(elem -> "(" + elem.x + ", " + elem.y + ") ").forEach(System.out::print);
-        //System.out.print("\033\143");
 
+        // Arrays.stream(movements).map(elem -> "(" + elem.x + ", " + elem.y + ")
+        // ").forEach(System.out::print);
+        // System.out.println(iteration);
+        // System.out.print("\033\143");
         for (Point movement : movements) {
 
             // add the piece with the new movement to the future kingdom queue
-            kingdom.addPiece(piece.getValue(), movement);
-            //System.out.println(kingdom.toString(visitedTowns));
             visitedTowns[movement.x][movement.y] = iteration + 1;
 
             // System.out.println("[DEBUG] "
@@ -57,8 +57,13 @@ public class Controller implements Notify {
             // + ": "
             // + "(" + movement.x + ", " + movement.y + ")");
 
+            // System.out.println(b.toString(visitedTowns));
+            this.lastBoard = new ChessBoard(kingdom.getDimension(),
+                    kingdom.getPieces().rest().add(movement, entry.getValue()));
+            this.hub.notifyRequest(new Request(RequestCode.UpdateBoard, this));
+
             // recursivelly call
-            if (kingdomTour(visitedTowns, kingdom, iteration + 1)) {
+            if (kingdomTour(visitedTowns, this.lastBoard, iteration + 1)) {
                 return true;
             }
 
@@ -68,7 +73,7 @@ public class Controller implements Notify {
         return false;
     }
 
-    private boolean kth(Board board) {
+    private boolean kth(ChessBoard board) {
         int[][] visited = new int[board.getDimension().height][board.getDimension().width];
         for (int[] column : visited) {
             Arrays.fill(column, 0);
@@ -83,7 +88,7 @@ public class Controller implements Notify {
     }
 
     private void run() {
-        Board board = this.hub.getModel().getBoard();
+        ChessBoard board = this.hub.getModel().getBoard();
         boolean solution = this.kth(board);
         if (!solution) {
             throw new NoSuchElementException("No solution found");
@@ -95,13 +100,17 @@ public class Controller implements Notify {
     public void notifyRequest(Request request) {
         switch (request.code) {
             case Start:
-                this.run();
-                // Thread.startVirtualThread(this::run);
+                // this.run();
+                Thread.startVirtualThread(this::run);
                 break;
             default:
                 throw new UnsupportedOperationException(
                         request + " is not implemented in " + this.getClass().getSimpleName());
         }
+    }
+
+    public ChessBoard getLastBoard() {
+        return lastBoard;
     }
 
 }

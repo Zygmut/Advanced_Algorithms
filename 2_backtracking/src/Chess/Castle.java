@@ -11,7 +11,7 @@ public class Castle extends Piece {
     }
 
     @Override
-    public Point[] getMovements(Board board_state, Point piece_position) {
+    public Point[] getMovements(ChessBoard board_state, Point piece_position) {
         return Movements.jumpPermutation(piece_position, board_state,
                 new int[] { 2, -2 },
                 new int[] { 0, 1, -1 });

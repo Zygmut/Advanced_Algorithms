@@ -5,5 +5,6 @@ public enum RequestCode {
     Error,
     Start,
     Stop,
-    ChangedTableSize
+    ChangedTableSize,
+    UpdateBoard
 }

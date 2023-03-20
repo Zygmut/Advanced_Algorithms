@@ -40,6 +40,10 @@ public class MVC implements Notify {
             case Start:
                 this.controller.notifyRequest(request);
                 break;
+            case UpdateBoard:
+                this.model.notifyRequest(request);
+                this.view.notifyRequest(request);
+                break;
             case Error:
                 System.out.println(request);
                 System.exit(1);
