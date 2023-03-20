@@ -124,6 +124,57 @@ public class Board implements Cloneable {
 		return sb.toString();
 	}
 
+	public String toString(int[][] visited) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Chess board with dimension ")
+				.append(dimension.width)
+				.append("x")
+				.append(dimension.height)
+				.append(":\n");
+		sb.append("  +");
+		for (int x = 0; x < dimension.width; x++) {
+			sb.append("----+");
+		}
+		sb.append("\n");
+
+		for (int y = 0; y < dimension.height; y++) {
+			sb.append(y).append(" | ");
+			for (int x = 0; x < dimension.width; x++) {
+				Point position = new Point(x, y);
+				Piece piece = pieces.get(position);
+				if (visited[x][y] != 0) {
+					if (visited[x][y] >= 10) {
+						sb.append(visited[x][y]);
+					} else {
+						sb.append(visited[x][y])
+								.append(" ");
+					}
+				} else {
+					if (piece == null) {
+						sb.append("  ");
+					} else {
+						sb.append(piece.getSymbol()).append(" ");
+					}
+				}
+
+				sb.append(" | ");
+			}
+			sb.append("\n  +");
+			for (int x = 0; x < dimension.width; x++) {
+				sb.append("----+");
+			}
+			sb.append("\n");
+		}
+
+		sb.append("    ");
+		for (int x = 0; x < dimension.width; x++) {
+			sb.append(x);
+			sb.append("    ");
+		}
+		sb.append("\n");
+		return sb.toString();
+	}
+
 	@Override
 	public Board clone() {
 		Board copy = null;
