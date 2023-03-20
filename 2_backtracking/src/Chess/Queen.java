@@ -8,6 +8,7 @@ public class Queen extends Piece {
 
 	public Queen() {
 		super();
+		this.imagePath = "./assets/queen.png";
 		this.symbol = 'Q';
 	}
 

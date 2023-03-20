@@ -7,7 +7,7 @@ lookAndFeel: "Nimbus"
 windowOnCenter: true
 windowResizable: true
 windowCloseOperation: "EXIT_ON_CLOSE"
-windowIcon: "icon.png"
+windowIcon: "./assets/logo.png"
 windowWidthCenter: true
 windowOnLoadVisible: true
 bgColor: "black"

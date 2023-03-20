@@ -7,7 +7,6 @@ import Chess.Pieces;
 import Master.MVC;
 import Request.Notify;
 import Request.Request;
-import Request.RequestCode;
 
 public class Model implements Notify {
 
@@ -17,7 +16,7 @@ public class Model implements Notify {
     public Model(MVC mvc) {
         this.hub = mvc;
         this.board = new ChessBoard(8);
-        this.board.addPiece(Pieces.KNIGHT, new Point(0,0));
+        this.board.addPiece(Pieces.KNIGHT, new Point(0, 0));
     }
 
     @Override

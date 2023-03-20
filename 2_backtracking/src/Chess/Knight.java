@@ -6,7 +6,7 @@ public class Knight extends Piece {
 
     public Knight() {
         super();
-        this.imagePath = "./src/View/knight.png";
+        this.imagePath = "./assets/knight.png";
         this.symbol = 'K';
     }
 

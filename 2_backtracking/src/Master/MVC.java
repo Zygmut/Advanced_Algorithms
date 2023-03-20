@@ -6,6 +6,8 @@ import Request.Request;
 import View.View;
 import Controller.Controller;
 
+import javax.swing.SwingUtilities;
+
 public class MVC implements Notify {
 
     private Model model;
@@ -31,7 +33,7 @@ public class MVC implements Notify {
     }
 
     public void show() {
-        this.view.getWindow().start();
+        SwingUtilities.invokeLater(() -> this.view.getWindow().start());
     }
 
     @Override

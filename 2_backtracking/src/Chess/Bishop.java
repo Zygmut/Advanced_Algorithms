@@ -8,6 +8,7 @@ public class Bishop extends Piece {
 
     public Bishop() {
         super();
+        this.imagePath = "./assets/bishop.png";
         this.symbol = 'B';
     }
 

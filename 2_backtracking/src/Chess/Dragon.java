@@ -9,6 +9,7 @@ public class Dragon extends Piece {
 
     public Dragon() {
         super();
+        this.imagePath = "./assets/dragon.png";
         this.symbol = 'D';
     }
 

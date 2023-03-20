@@ -4,20 +4,14 @@ import Master.MVC;
 import Request.Notify;
 import Request.Request;
 import Request.RequestCode;
+import Chess.Piece;
+import Chess.ChessBoard;
+
 import java.awt.Point;
 import java.time.Duration;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.NoSuchElementException;
-
-import Chess.Piece;
-import Chess.Pieces;
-import Chess.ChessBoard;
-import Chess.LinkedHashQueue;
-import Chess.Mark;
 
 public class Controller implements Notify {
 
@@ -60,6 +54,8 @@ public class Controller implements Notify {
             // System.out.println(b.toString(visitedTowns));
             this.lastBoard = new ChessBoard(kingdom.getDimension(),
                     kingdom.getPieces().rest().add(movement, entry.getValue()));
+
+            this.safeThreadSleep(15);
             this.hub.notifyRequest(new Request(RequestCode.UpdateBoard, this));
 
             // recursivelly call
@@ -111,6 +107,14 @@ public class Controller implements Notify {
 
     public ChessBoard getLastBoard() {
         return lastBoard;
+    }
+
+    private void safeThreadSleep(long millis) {
+        try {
+            Thread.sleep(Duration.ofMillis(millis));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
 }

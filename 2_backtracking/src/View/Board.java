@@ -12,11 +12,9 @@ import java.io.File;
 import java.io.IOException;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Graphics;
 import java.util.Map.Entry;
 import java.awt.Graphics2D;
-import java.util.HashMap;
 import java.awt.Point;
 
 public class Board extends JPanel {
@@ -29,7 +27,7 @@ public class Board extends JPanel {
         this.board = board;
         this.width = board.getDimension().width;
         this.height = board.getDimension().height;
-        setLayout(new GridLayout( width, height));
+        setLayout(new GridLayout(width, height));
     }
 
     public void setBoard(ChessBoard board) {
@@ -38,47 +36,47 @@ public class Board extends JPanel {
 
     @Override
     public void paintComponent(Graphics g) {
-            setLayout(new BorderLayout());
-            JPanel panelAux = new JPanel();
-            panelAux.setLayout(new GridLayout(width, height));
-            Casilla cas[][] = new Casilla[width][height];
-            Casilla casilla;
-            for (int i = 0; i <  width; i++) {
-                for (int j = 0; j < height; j++) {
-                    casilla = new Casilla();
-                    if ((i + j) % 2 == 0) {
-                        casilla.setBackground(new Color(227, 206, 167));
-                        casilla.setOpaque(true);
-                    } else {
-                        casilla.setBackground(new Color(166, 126, 91));
-                        casilla.setOpaque(true);
-                    }
-                    cas[i][j] = casilla;
-                    panelAux.add(cas[i][j]);
+        // TODO: Improve this method
+        setLayout(new BorderLayout());
+        JPanel panelAux = new JPanel();
+        panelAux.setLayout(new GridLayout(width, height));
+        Box boxes[][] = new Box[width][height];
+        Box box;
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                box = new Box();
+                if ((i + j) % 2 == 0) {
+                    box.setBackground(new Color(227, 206, 167));
+                    box.setOpaque(true);
+                } else {
+                    box.setBackground(new Color(166, 126, 91));
+                    box.setOpaque(true);
                 }
+                boxes[i][j] = box;
+                panelAux.add(boxes[i][j]);
             }
+        }
 
-            for(Entry<Point, Piece> piece : board.getPieces().entrySet()){
-                cas[piece.getKey().y][piece.getKey().x].setImagePath(piece.getValue().getImagePath());
-            }
+        for (Entry<Point, Piece> piece : board.getPieces().entrySet()) {
+            boxes[piece.getKey().y][piece.getKey().x].setImagePath(piece.getValue().getImagePath());
+        }
 
-            add(panelAux, BorderLayout.CENTER);
+        add(panelAux, BorderLayout.CENTER);
     }
 
-    private class Casilla extends JPanel {
+    private class Box extends JPanel {
 
         private BufferedImage image;
 
-        public Casilla() {
+        public Box() {
             try {
-                image = ImageIO.read(new File("src/View/none.png"));
+                image = ImageIO.read(new File("./assets/none.png"));
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-
-        public void setImagePath(String imagePath){
+        public void setImagePath(String imagePath) {
             try {
                 image = ImageIO.read(new File(imagePath));
             } catch (IOException e) {

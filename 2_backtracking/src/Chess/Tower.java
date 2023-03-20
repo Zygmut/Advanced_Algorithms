@@ -8,6 +8,7 @@ public class Tower extends Piece {
 
     public Tower() {
         super();
+        this.imagePath = "./assets/tower.png";
         this.symbol = 'T';
     }
 

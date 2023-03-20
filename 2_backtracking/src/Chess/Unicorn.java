@@ -9,6 +9,7 @@ public class Unicorn extends Piece {
 
     public Unicorn() {
         super();
+        this.imagePath = "./assets/unicorn.png";
         this.symbol = 'U';
     }
 

@@ -26,10 +26,18 @@ public class View implements Notify {
      * The window of the view.
      */
     private Window window;
-
-    private int sizeTable;
-
+    /**
+     * The board of the view.
+     */
     private Board board;
+    /**
+     * The size of the board.
+     */
+    private int boardSize;
+    /**
+     * Indicates if the algorithm has started and start a timer.
+     */
+    private boolean hasStarted;
 
     /**
      * This constructor creates a view with the MVC hub without any configuration
@@ -40,6 +48,7 @@ public class View implements Notify {
     public View(MVC mvc) {
         this.hub = mvc;
         this.window = new Window();
+        this.hasStarted = false;
         this.loadContent();
     }
 
@@ -54,25 +63,33 @@ public class View implements Notify {
     public View(MVC mvc, String configPath) {
         this.hub = mvc;
         this.window = new Window(configPath);
+        this.hasStarted = false;
         this.loadContent();
-    }
-
-    private void updateBoard(ChessBoard board) {
-        this.board.setBoard(board);
-        this.board.paintComponent(this.board.getGraphics());
-        this.board.validate();
     }
 
     @Override
     public void notifyRequest(Request request) {
         switch (request.code) {
-            case UpdateBoard:
+            case UpdateBoard -> {
                 this.updateBoard(this.hub.getModel().getBoard());
-                break;
-            default:
+            }
+            default -> {
                 throw new UnsupportedOperationException(
                         request + " is not implemented in " + this.getClass().getSimpleName());
+            }
         }
+    }
+
+    /**
+     * Updates the board of the view.
+     * 
+     * @param board The new board.
+     * @see Board
+     */
+    private void updateBoard(ChessBoard board) {
+        this.board.setBoard(board);
+        this.board.paintComponent(this.board.getGraphics());
+        this.board.validate();
     }
 
     /**
@@ -112,11 +129,10 @@ public class View implements Notify {
      * @return The main section of the view.
      */
     private Section mainSection() {
-        // TODO: Implement this method.
         Section main = new Section();
         this.board = new Board(this.hub.getModel().getBoard());
-        this.board.paintComponent( this.board.getGraphics());
-        main.createFreeSection( this.board);
+        this.board.paintComponent(this.board.getGraphics());
+        main.createFreeSection(this.board);
         return main;
     }
 
@@ -129,9 +145,11 @@ public class View implements Notify {
     private Section sideBarSection() {
         // TODO: Implement this method.
         Section sideBar = new Section();
-        JPanel sideBarContent = new JPanel();
-        sideBarContent.setBackground(Color.GREEN);
-        sideBar.createFreeSection(sideBarContent);
+        JLabel[] labels = new JLabel[1];
+        labels[0] = new JLabel("Estadísticas");
+        // Section stats = new Section();
+        // stats.createStatsSection(/*TODO: Create this*/);
+        sideBar.addLabels(labels, DirectionAndPosition.DIRECTION_ROW);
         return sideBar;
     }
 
@@ -146,12 +164,10 @@ public class View implements Notify {
         Section footer = new Section();
         JPanel footerContent = new JPanel();
         JLabel tableSize = new JLabel("Tamaño del tablero: ");
-        // Falta pasar por parámetro el tamaño del tablero inicial y el tamaño del
-        // tablero cuando se cambie
-        SpinnerNumberModel size = new SpinnerNumberModel(8, 8, 20, 1);
+        SpinnerNumberModel size = new SpinnerNumberModel(1, 1, 20, 1);
         JSpinner tableSizeSpinner = new JSpinner(size);
         tableSizeSpinner.addChangeListener(e -> {
-            this.sizeTable = (int) tableSizeSpinner.getValue();
+            this.boardSize = (int) tableSizeSpinner.getValue();
             this.hub.notifyRequest(new Request(RequestCode.ChangedTableSize, this));
         });
         footerContent.add(tableSize);

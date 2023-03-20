@@ -46,5 +46,4 @@ public class Piece {
         this.id = id;
     }
 
-    
 }
