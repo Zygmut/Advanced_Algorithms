@@ -58,6 +58,10 @@ public class ChessBoard implements Cloneable {
 				&& position.y < this.dimension.height;
 	}
 
+	public boolean isOccupied(Point p) {
+		return this.pieces.containsKey(p);
+	}
+
 	public LinkedHashQueue<Point, Piece> addPiece(Piece piece, Point position) {
 		if (!sanityCheck(position)) {
 			throw new IllegalArgumentException("Position is out of the chess board");
@@ -130,7 +134,7 @@ public class ChessBoard implements Cloneable {
 		return sb.toString();
 	}
 
-	public String toString(int[][] visited) {
+	public String toString(boolean[][] visited) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Chess board with dimension ")
 				.append(dimension.width)
@@ -148,13 +152,8 @@ public class ChessBoard implements Cloneable {
 			for (int x = 0; x < dimension.width; x++) {
 				Point position = new Point(x, y);
 				Piece piece = pieces.get(position);
-				if (visited[x][y] != 0) {
-					if (visited[x][y] >= 10) {
-						sb.append(visited[x][y]);
-					} else {
-						sb.append(visited[x][y])
-								.append(" ");
-					}
+				if (visited[x][y]) {
+					sb.append("x ");
 				} else {
 					if (piece == null) {
 						sb.append("  ");

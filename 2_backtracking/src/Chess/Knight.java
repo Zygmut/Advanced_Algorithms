@@ -1,8 +1,20 @@
 package Chess;
 
 import java.awt.Point;
+import java.util.Arrays;
 
 public class Knight extends Piece {
+
+    private final Point[] permutations = {
+            new Point(-1, -2),
+            new Point(-2, -1),
+            new Point(-1, 2),
+            new Point(2, -1),
+            new Point(1, -2),
+            new Point(-2, 1),
+            new Point(1, 2),
+            new Point(2, 1)
+    };
 
     public Knight() {
         super();
@@ -12,8 +24,9 @@ public class Knight extends Piece {
 
     @Override
     public Point[] getMovements(ChessBoard board_state, Point piece_position) {
-        return Movements.jumpPermutation(piece_position, board_state,
-                new int[] { -1, 1 },
-                new int[] { -2, 2 });
+        return Arrays.stream(this.permutations)
+                .map(move -> new Point(move.x + piece_position.x, move.y + piece_position.y))
+                .filter(point -> board_state.sanityCheck(point) && !board_state.isOccupied(point))
+                .toArray(Point[]::new);
     }
 }
