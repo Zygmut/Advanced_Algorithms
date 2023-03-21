@@ -17,9 +17,11 @@ public class Controller implements Notify {
 
     private ChessBoard lastBoard;
     private MVC hub;
+    private int globalIteration;
 
     public Controller(MVC mvc) {
         this.hub = mvc;
+        this.globalIteration = 0;
     }
 
     private boolean kingdomTour(int[][] visitedTowns, ChessBoard kingdom, int iteration) {
@@ -45,6 +47,7 @@ public class Controller implements Notify {
 
             // add the piece with the new movement to the future kingdom queue
             visitedTowns[movement.x][movement.y] = iteration + 1;
+            this.globalIteration = iteration + 1;
 
             // System.out.println("[DEBUG] "
             // + piece.getValue().getClass().getSimpleName()
@@ -103,6 +106,10 @@ public class Controller implements Notify {
                 throw new UnsupportedOperationException(
                         request + " is not implemented in " + this.getClass().getSimpleName());
         }
+    }
+
+    public int getIteration() {
+        return this.globalIteration;
     }
 
     public ChessBoard getLastBoard() {

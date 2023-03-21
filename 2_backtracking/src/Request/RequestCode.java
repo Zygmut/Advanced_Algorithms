@@ -4,7 +4,10 @@ public enum RequestCode {
     None,
     Error,
     Start,
+    Resume,
     Stop,
+    ReStart,
+    Next,
     ChangedTableSize,
     UpdateBoard
 }

@@ -13,7 +13,7 @@ public class Main {
         //System.out.println(mvc.getModel().getBoard());
         mvc.show();
 
-        mvc.notifyRequest(new Request(RequestCode.Start, "main"));
+        //mvc.notifyRequest(new Request(RequestCode.Start, "main"));
 
     }
 

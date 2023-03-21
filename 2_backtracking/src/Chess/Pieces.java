@@ -9,4 +9,5 @@ public class Pieces {
     public static final Piece UNICORN = new Unicorn();
     public static final Piece CASTLE = new Castle();
     public static final Piece MARK = new Mark();
+    public static final Piece KING = new King();
 }
