@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.GridLayout;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -43,13 +42,16 @@ public class View implements Notify {
      */
     private int boardSize;
     /**
-     * Indicates if the algorithm has started and start a timer.
-     */
-    private boolean hasStarted;
-    /**
      * The progress bar of the view. Indicates the progress of the algorithm.
      */
     private JProgressBar progressBar;
+    /**
+     * The number of pieces of the view. Indicates the number of pieces of the
+     * board.
+     */
+    private int numOfPieces;
+    private int timeAnimation;
+    private JLabel tiempoValue;
 
     /**
      * This constructor creates a view with the MVC hub without any configuration
@@ -60,7 +62,9 @@ public class View implements Notify {
     public View(MVC mvc) {
         this.hub = mvc;
         this.window = new Window();
-        this.hasStarted = false;
+        this.numOfPieces = 0;
+        this.boardSize = 0;
+        this.timeAnimation = 0;
         this.loadContent();
     }
 
@@ -75,7 +79,9 @@ public class View implements Notify {
     public View(MVC mvc, String configPath) {
         this.hub = mvc;
         this.window = new Window(configPath);
-        this.hasStarted = false;
+        this.numOfPieces = 0;
+        this.boardSize = 0;
+        this.timeAnimation = 0;
         this.loadContent();
     }
 
@@ -86,8 +92,7 @@ public class View implements Notify {
                 this.updateBoard(this.hub.getModel().getBoard());
             }
             default -> {
-                throw new UnsupportedOperationException(
-                        request + " is not implemented in " + this.getClass().getSimpleName());
+                System.err.printf("[VIEW]: %s is not implemented.\n", request.toString());
             }
         }
     }
@@ -99,14 +104,31 @@ public class View implements Notify {
      * @see Board
      */
     private void updateBoard(ChessBoard board) {
+        calcAnimationForTimer();
         this.progressBar.setValue(getProgressValueToFinish());
         this.board.setBoard(board);
         this.board.paintComponent(this.board.getGraphics());
         this.board.validate();
     }
 
+    private void calcAnimationForTimer() {
+        String time = "Calculando...    ";
+        this.timeAnimation++;
+        if (this.timeAnimation == time.length()) {
+            this.timeAnimation = 0;
+        }
+        this.tiempoValue.setText(time.substring(0, this.timeAnimation));
+    }
+
+    private void resetTimeAnimation() {
+        this.timeAnimation = 0;
+        this.tiempoValue.setText("0 ms");
+    }
+
     private int getProgressValueToFinish() {
-        return (int) ((this.hub.getModel().getIteration() / this.hub.getModel().getBoard().size) * 100);
+        int iteration = this.hub.getModel().getIteration();
+        int boardSize = this.hub.getModel().getBoard().size;
+        return (int) ((((double) iteration) / ((double) boardSize)) * 100);
     }
 
     /**
@@ -118,6 +140,7 @@ public class View implements Notify {
      * @see #footerSection()
      */
     private void loadContent() {
+        this.boardSize = this.hub.getModel().getBoard().getDimension().width; // .height
         this.createProgressBar();
         this.window.addSection(this.headerSection(), DirectionAndPosition.POSITION_TOP, "Header");
         this.window.addSection(this.mainSection(), DirectionAndPosition.POSITION_CENTER, "MainContent");
@@ -186,7 +209,7 @@ public class View implements Notify {
         tam.setFont(new Font("Arial", Font.ITALIC, 20));
         infoTam.add(tam);
         infoTam.add(addMargin(10, 10));
-        JLabel tamValue = new JLabel("8");
+        JLabel tamValue = new JLabel(this.boardSize + "x" + this.boardSize);
         tamValue.setFont(new Font("Arial", Font.ITALIC, 20));
         infoTam.add(tamValue);
         infoTam.add(addMargin(10, 10));
@@ -200,7 +223,8 @@ public class View implements Notify {
         piezas.setFont(new Font("Arial", Font.ITALIC, 20));
         infoPiezas.add(piezas);
         infoPiezas.add(addMargin(10, 10));
-        JLabel piezasValue = new JLabel("32");
+        this.numOfPieces = this.hub.getModel().getNumberOfPieces();
+        JLabel piezasValue = new JLabel(this.numOfPieces + "");
         piezasValue.setFont(new Font("Arial", Font.ITALIC, 20));
         infoPiezas.add(piezasValue);
         infoPiezas.add(addMargin(10, 10));
@@ -210,11 +234,11 @@ public class View implements Notify {
 
         JPanel infoTiempo = new JPanel();
         infoTiempo.setBackground(Color.LIGHT_GRAY);
-        JLabel tiempo = new JLabel("Tiempo de juego: ");
+        JLabel tiempo = new JLabel("Tiempo: ");
         tiempo.setFont(new Font("Arial", Font.ITALIC, 20));
-        infoTiempo.add(tiempo);
         infoTiempo.add(addMargin(10, 10));
-        JLabel tiempoValue = new JLabel("0 ms");
+        infoTiempo.add(tiempo);
+        tiempoValue = new JLabel("0 ms");
         tiempoValue.setFont(new Font("Arial", Font.ITALIC, 20));
         infoTiempo.add(tiempoValue);
         infoTiempo.add(addMargin(10, 10));
@@ -262,17 +286,23 @@ public class View implements Notify {
         JButton[] buttons = new JButton[3];
         buttons[0] = new JButton("Iniciar");
         buttons[0].addActionListener(e -> {
-            buttons[2].setEnabled(true);
-            String btnText = buttons[0].getText();
-            String newBtnText = btnText.equals("Pausar") ? "Reanudar" : "Pausar";
-            buttons[4].setText(newBtnText);
-            RequestCode code;
-            if (btnText.equals("Pausar")) {
-                code = RequestCode.Stop;
+            if (buttons[0].getText().equals("Iniciar")) {
+                buttons[0].setText("Pausar");
+                buttons[2].setEnabled(true);
+                this.hub.notifyRequest(new Request(RequestCode.Start, this));
             } else {
-                code = RequestCode.Resume;
+                buttons[2].setEnabled(true);
+                String btnText = buttons[0].getText();
+                String newBtnText = btnText.equals("Pausar") ? "Reanudar" : "Pausar";
+                buttons[0].setText(newBtnText);
+                RequestCode code;
+                if (btnText.equals("Pausar")) {
+                    code = RequestCode.Stop;
+                } else {
+                    code = RequestCode.Resume;
+                }
+                this.hub.notifyRequest(new Request(code, this));
             }
-            this.hub.notifyRequest(new Request(code, this));
         });
         buttons[1] = new JButton("Siguiente iteración");
         buttons[1].addActionListener(e -> {
@@ -284,13 +314,14 @@ public class View implements Notify {
         buttons[2].addActionListener(e -> {
             buttons[0].setText("Iniciar");
             buttons[2].setEnabled(false);
+            resetTimeAnimation();
             this.hub.notifyRequest(new Request(RequestCode.ReStart, this));
         });
         buttonsSection.addButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
 
         JPanel boardSizePanel = new JPanel();
         JLabel tableSize = new JLabel("Tamaño del tablero: ");
-        SpinnerNumberModel size = new SpinnerNumberModel(1, 1, 20, 1);
+        SpinnerNumberModel size = new SpinnerNumberModel(this.boardSize, 1, 20, 1);
         JSpinner tableSizeSpinner = new JSpinner(size);
         tableSizeSpinner.addChangeListener(e -> {
             this.boardSize = (int) tableSizeSpinner.getValue();

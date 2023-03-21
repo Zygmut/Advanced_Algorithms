@@ -102,9 +102,10 @@ public class Controller implements Notify {
                 // this.run();
                 Thread.startVirtualThread(this::run);
                 break;
+            case Stop:
+                // TODO: stop the thread
             default:
-                throw new UnsupportedOperationException(
-                        request + " is not implemented in " + this.getClass().getSimpleName());
+                System.err.printf("[CONTROLLER]: %s is not implemented.\n", request.toString());
         }
     }
 

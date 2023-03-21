@@ -39,9 +39,8 @@ public class MVC implements Notify {
     @Override
     public void notifyRequest(Request request) {
         switch (request.code) {
-            case Start:
+            case Start, Resume, ReStart, Next, Stop:
                 this.controller.notifyRequest(request);
-                break;
             case UpdateBoard:
                 this.model.notifyRequest(request);
                 this.view.notifyRequest(request);
@@ -50,8 +49,7 @@ public class MVC implements Notify {
                 System.out.println(request);
                 System.exit(1);
             default:
-                throw new UnsupportedOperationException(
-                        request + " is not implemented in " + this.getClass().getSimpleName());
+                System.err.printf("[MVC]: %s is not implemented.\n", request.toString());
         }
     }
 
