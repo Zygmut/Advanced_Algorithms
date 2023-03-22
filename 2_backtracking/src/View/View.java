@@ -19,7 +19,6 @@ import javax.swing.JPanel;
 
 import Chess.ChessBoard;
 import Chess.Piece;
-import Chess.Pieces;
 import Chess.Bishop;
 import Chess.King;
 import Chess.Knight;
@@ -28,7 +27,6 @@ import Chess.Rook;
 import Chess.Unicorn;
 import Chess.Dragon;
 import Chess.Castle;
-import Chess.Mark;
 
 import java.awt.GridLayout;
 import java.awt.BorderLayout;
@@ -555,6 +553,7 @@ public class View implements Notify {
                         System.out.println("Clicked on " + x + ", " + y);
                         Board.this.setCursor(Cursor.getDefaultCursor());
                         if (evt.getButton() == MouseEvent.BUTTON3) {
+                            View.this.hub.notifyRequest(new Request(RequestCode.DeletedPiece, View.this));
                             setImagePath("./assets/none.png");
                             repaint();
                         }

@@ -85,6 +85,4 @@ public class Model implements Notify {
                 System.err.printf("[MODEL]: %s is not implemented.\n", piece);
         }
     }
-
-
 }
