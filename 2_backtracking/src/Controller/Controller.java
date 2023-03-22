@@ -10,7 +10,9 @@ import Chess.ChessBoard;
 import java.awt.Point;
 import java.time.Duration;
 import java.util.Map.Entry;
+import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.NoSuchElementException;
 
 public class Controller implements Notify {
@@ -18,32 +20,23 @@ public class Controller implements Notify {
     private ChessBoard lastBoard;
     private MVC hub;
     private int globalIteration;
+    private int boardSize;
 
     public Controller(MVC mvc) {
         this.hub = mvc;
         this.globalIteration = 0;
     }
 
-    private boolean kingdomTour(int[][] visitedTowns, ChessBoard kingdom, int iteration) {
+    private boolean kingdomTour(boolean[][] visitedTowns, Deque<Entry<Point, Piece>> pieces, int iteration) {
 
-        if (iteration == kingdom.size) {
+        if (iteration == this.boardSize) {
             return true;
         }
 
-        // Get the first element in the queue, removes it from it
-        Entry<Point, Piece> entry = kingdom.getPieces().peek();
-
-        // get all the possible movements from that piece and filter to get only the
-        // ones that has not been visited
-        Point[] movements = Arrays.stream(entry.getValue().getMovements(kingdom, entry.getKey()))
-                .filter(move -> visitedTowns[move.x][move.y] == 0)
-                .toArray(Point[]::new);
-
-        // Arrays.stream(movements).map(elem -> "(" + elem.x + ", " + elem.y + ")
-        // ").forEach(System.out::print);
-        // System.out.println(iteration);
-        // System.out.print("\033\143");
-        for (Point movement : movements) {
+        for (Point movement : pieces.getFirst().getValue().getMovements(lastBoard, null)) {
+            if(visitedTowns[movement.x][movement.y]){
+                continue;
+            }
 
             // add the piece with the new movement to the future kingdom queue
             visitedTowns[movement.x][movement.y] = iteration + 1;
@@ -73,17 +66,20 @@ public class Controller implements Notify {
     }
 
     private boolean kth(ChessBoard board) {
-        int[][] visited = new int[board.getDimension().height][board.getDimension().width];
+        int[][] visited = new int[board.height][board.width];
         for (int[] column : visited) {
             Arrays.fill(column, 0);
         }
 
+        Deque<Entry<Point, Piece>> queue = new ArrayDeque<>();
         int iter = 1;
-        for (Point pos : board.getPieces().keySet()) {
-            visited[pos.x][pos.y] = iter++;
+        for (Entry<Point,Piece> entry: board.getPieces()) {
+            visited[entry.getKey().x][entry.getKey().y] = iter++;
+            queue.add(entry);
         }
 
-        return kingdomTour(visited, board, board.getPieces().keySet().size());
+        this.boardSize = board.size;
+        return kingdomTour(visited, queue, iter);
     }
 
     private void run() {

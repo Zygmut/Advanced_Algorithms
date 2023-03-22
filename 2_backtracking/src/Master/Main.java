@@ -3,7 +3,6 @@ package Master;
 import java.util.Arrays;
 import java.util.Map.Entry;
 import java.awt.Point;
-import java.rmi.server.SocketSecurityException;
 import java.time.Duration;
 
 import Chess.ChessBoard;
@@ -79,7 +78,7 @@ public class Main {
     }
 
     private static boolean kth(ChessBoard board) {
-        boolean[][] visited = new boolean[board.getDimension().height][board.getDimension().width];
+        boolean[][] visited = new boolean[board.height][board.width];
         for (boolean[] column : visited) {
             Arrays.fill(column, false);
         }

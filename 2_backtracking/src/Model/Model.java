@@ -33,7 +33,7 @@ public class Model implements Notify {
     }
 
     public int getNumberOfPieces() {
-        return this.board.getPieces().size();
+        return this.board.getPieces().length;
     }
 
     public int getIteration() {

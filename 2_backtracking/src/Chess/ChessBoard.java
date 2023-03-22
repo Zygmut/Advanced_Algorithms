@@ -2,91 +2,89 @@ package Chess;
 
 import java.awt.Point;
 import java.awt.Dimension;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.Map.Entry;
 
-public class ChessBoard implements Cloneable {
-	private Dimension dimension;
-	private LinkedHashQueue<Point, Piece> pieces;
+public class ChessBoard {
+	Piece[][] content;
 	public final int size;
+	public final int width;
+	public final int height;
 
 	public ChessBoard() {
-		this.dimension = new Dimension(8, 8);
-		this.size = dimension.width * dimension.height;
-		this.pieces = new LinkedHashQueue<>();
+		this.content = new Piece[8][8];
+		this.width = 8;
+		this.height = 8;
+		this.size = 64;
 	}
 
 	public ChessBoard(Dimension dimension) {
-		this.dimension = dimension;
+		this.content = new Piece[dimension.width][dimension.height];
+		this.width = dimension.width;
+		this.height = dimension.height;
 		this.size = dimension.width * dimension.height;
-		this.pieces = new LinkedHashQueue<>();
 	}
 
-	public ChessBoard(Dimension dimension, LinkedHashQueue<Point, Piece> pieces) {
-		this.dimension = dimension;
-		this.size = dimension.width * dimension.height;
-		this.pieces = pieces;
-	}
 
 	public ChessBoard(int width, int height) {
-		this.dimension = new Dimension(width, height);
-		this.size = dimension.width * dimension.height;
-		this.pieces = new LinkedHashQueue<>();
+		this.content = new Piece[width][height];
+		this.width = width;
+		this.height = height;
+		this.size = width * height;
 	}
 
 	public ChessBoard(int n) {
-		this.dimension = new Dimension(n, n);
+		this.content = new Piece[n][n];
+		this.width = n;
+		this.height = n;
 		this.size = n * n;
-		this.pieces = new LinkedHashQueue<>();
-	}
-
-	public Dimension getDimension() {
-		return dimension;
-	}
-
-	public void setDimension(Dimension dimension) {
-		this.dimension = dimension;
-	}
-
-	public void setDimension(int width, int height) {
-		this.dimension = new Dimension(width, height);
 	}
 
 	public boolean sanityCheck(Point position) {
 		return 0 <= position.x
 				&& 0 <= position.y
-				&& position.x < this.dimension.width
-				&& position.y < this.dimension.height;
+				&& position.x < this.width
+				&& position.y < this.height;
 	}
 
 	public boolean isOccupied(Point p) {
-		return this.pieces.containsKey(p);
+		return this.content[p.x][p.y] != null;
 	}
 
-	public LinkedHashQueue<Point, Piece> addPiece(Piece piece, Point position) {
+	public Piece[][] addPiece(Piece piece, Point position) {
 		if (!sanityCheck(position)) {
 			throw new IllegalArgumentException("Position is out of the chess board");
 		}
 
-		if (this.pieces.get(position) != null) {
+		if (isOccupied(position)) {
 			throw new IllegalArgumentException(
 					"A piece already resides in position (" + position.x + ", " + position.y + ")");
 		}
-		this.pieces.put(position, piece);
-		return this.pieces;
+		this.content[position.x][position.y] = piece;
+		return this.content;
 	}
 
-	public LinkedHashQueue<Point, Piece> removePieceAt(Point position) {
-		this.pieces.remove(position);
-		return this.pieces;
+	public Piece[][] removePieceAt(Point position) {
+		this.content[position.x][position.y] = null;
+		return this.content;
 	}
 
-	public LinkedHashQueue<Point, Piece> getPieces() {
+	public ArrayList<Entry<Point,Piece>>getPieces() {
+		ArrayList<Entry<Point, Piece>> pieces = new ArrayList<>();
+		for (int x = 0; x < width; x++) {
+			for (int y= 0; y< height; y++) {
+				if(this.content[x][y] != null){
+					pieces.add(new SimpleEntry<Point,Piece>(new Point(x,y), content[x][y]));
+				}
+			}
+		}
 		return pieces;
 	}
 
 	public String getMovementStringAt(Point position) {
-		return Arrays.toString(Arrays.stream(this.pieces
-				.get(position)
+		return Arrays.toString(Arrays.stream(this.content[position.x][position.y]
 				.getMovements(this, position))
 				.map(move -> "(" + move.x + ", " + move.y + ")")
 				.toArray(String[]::new));
@@ -96,21 +94,20 @@ public class ChessBoard implements Cloneable {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Chess board with dimension ")
-				.append(dimension.width)
+				.append(width)
 				.append("x")
-				.append(dimension.height)
+				.append(height)
 				.append(":\n");
 		sb.append("  +");
-		for (int x = 0; x < dimension.width; x++) {
+		for (int x = 0; x < width; x++) {
 			sb.append("---+");
 		}
 		sb.append("\n");
 
-		for (int y = 0; y < dimension.height; y++) {
+		for (int y = 0; y < height; y++) {
 			sb.append(y).append(" | ");
-			for (int x = 0; x < dimension.width; x++) {
-				Point position = new Point(x, y);
-				Piece piece = pieces.get(position);
+			for (int x = 0; x < width; x++) {
+				Piece piece = this.content[x][y];
 				if (piece == null) {
 					sb.append(" ");
 				} else {
@@ -119,14 +116,14 @@ public class ChessBoard implements Cloneable {
 				sb.append(" | ");
 			}
 			sb.append("\n  +");
-			for (int x = 0; x < dimension.width; x++) {
+			for (int x = 0; x < width; x++) {
 				sb.append("---+");
 			}
 			sb.append("\n");
 		}
 
 		sb.append("    ");
-		for (int x = 0; x < dimension.width; x++) {
+		for (int x = 0; x < width; x++) {
 			sb.append(x);
 			sb.append("   ");
 		}
@@ -137,21 +134,20 @@ public class ChessBoard implements Cloneable {
 	public String toString(boolean[][] visited) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Chess board with dimension ")
-				.append(dimension.width)
+				.append(width)
 				.append("x")
-				.append(dimension.height)
+				.append(height)
 				.append(":\n");
 		sb.append("  +");
-		for (int x = 0; x < dimension.width; x++) {
+		for (int x = 0; x < width; x++) {
 			sb.append("----+");
 		}
 		sb.append("\n");
 
-		for (int y = 0; y < dimension.height; y++) {
+		for (int y = 0; y < height; y++) {
 			sb.append(y).append(" | ");
-			for (int x = 0; x < dimension.width; x++) {
-				Point position = new Point(x, y);
-				Piece piece = pieces.get(position);
+			for (int x = 0; x < width; x++) {
+				Piece piece = this.content[x][y];
 				if (visited[x][y]) {
 					sb.append("x ");
 				} else {
@@ -165,36 +161,18 @@ public class ChessBoard implements Cloneable {
 				sb.append(" | ");
 			}
 			sb.append("\n  +");
-			for (int x = 0; x < dimension.width; x++) {
+			for (int x = 0; x < width; x++) {
 				sb.append("----+");
 			}
 			sb.append("\n");
 		}
 
 		sb.append("    ");
-		for (int x = 0; x < dimension.width; x++) {
+		for (int x = 0; x < width; x++) {
 			sb.append(x);
 			sb.append("    ");
 		}
 		sb.append("\n");
 		return sb.toString();
-	}
-
-	@Override
-	public ChessBoard clone() {
-		ChessBoard copy = null;
-		try {
-			copy = (ChessBoard) super.clone();
-			copy.dimension = new Dimension(this.dimension.width, this.dimension.height);
-			copy.pieces = new LinkedHashQueue<>();
-			copy.pieces.putAll(this.pieces);
-		} catch (CloneNotSupportedException e) {
-			e.printStackTrace();
-		}
-		return copy;
-	}
-
-	public void setPieces(LinkedHashQueue<Point, Piece> pieces) {
-		this.pieces = pieces;
 	}
 }

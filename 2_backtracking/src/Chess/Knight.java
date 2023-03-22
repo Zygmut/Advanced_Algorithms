@@ -1,7 +1,7 @@
 package Chess;
 
 import java.awt.Point;
-import java.util.Arrays;
+import java.util.ArrayList;
 
 public class Knight extends Piece {
 
@@ -24,9 +24,14 @@ public class Knight extends Piece {
 
     @Override
     public Point[] getMovements(ChessBoard board_state, Point piece_position) {
-        return Arrays.stream(this.permutations)
-                .map(move -> new Point(move.x + piece_position.x, move.y + piece_position.y))
-                .filter(point -> board_state.sanityCheck(point) && !board_state.isOccupied(point))
-                .toArray(Point[]::new);
+        ArrayList<Point> movements = new ArrayList<>();
+        for (Point movement : permutations){
+            Point temp = new Point(movement.x + piece_position.x, movement.y + piece_position.y);
+            if (!board_state.sanityCheck(temp) || board_state.isOccupied(temp)){
+                continue;
+            }
+            movements.add(temp);
+        }
+        return movements.toArray(Point[]::new);
     }
 }
