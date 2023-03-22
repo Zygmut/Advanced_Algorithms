@@ -216,11 +216,23 @@ public class View implements Notify {
 
     // Al clicar sobre el icono de la pieza se debe añadir al tablero
     private MouseListener setPieceOnTable(String pieceName, Point p) {
-        return new MouseAdapter() {
+        return new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent evt) {
+
                 hub.getModel().setNewPiece(pieceName, p);
+
             }
+            public void mousePressed(MouseEvent e) {
+            }
+            public void mouseReleased(MouseEvent e) {
+
+            }
+            public void mouseEntered(MouseEvent e) {
+            }
+            public void mouseExited(MouseEvent e) {
+            }
+            
         };
     }
 
