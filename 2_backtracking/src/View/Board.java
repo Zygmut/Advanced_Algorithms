@@ -86,6 +86,10 @@ public class Board extends JPanel {
                 public void mouseClicked(MouseEvent evt) {
                     System.out.println("Clicked on " + x + ", " + y);
                     Board.this.setCursor(Cursor.getDefaultCursor());
+                    if (evt.getButton() == MouseEvent.BUTTON3) {
+                        setImagePath("./assets/none.png");
+                        repaint();
+                    }
                 }
             });
         }
