@@ -11,7 +11,7 @@ public interface ChessMovable {
      * @param piece_position the current piece position
      * @return an array of points being all the possible positions this piece can go
      * @see Point
-     * @see Board
+     * @see ChessBoard
      */
-    public Point[] getMovements(Board board_state, Point piece_position);
+    public Point[] getMovements(ChessBoard board_state, Point piece_position);
 }

@@ -8,8 +8,9 @@ public class Mark extends Piece {
         super();
         this.symbol = 'X';
     }
+
     @Override
-    public Point[] getMovements(Board board_state, Point piece_position) {
+    public Point[] getMovements(ChessBoard board_state, Point piece_position) {
         return new Point[]{};
     }
 }

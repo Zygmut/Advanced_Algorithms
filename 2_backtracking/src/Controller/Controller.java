@@ -4,90 +4,124 @@ import Master.MVC;
 import Request.Notify;
 import Request.Request;
 import Request.RequestCode;
-import java.awt.Point;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.NoSuchElementException;
-
 import Chess.Piece;
+import Chess.ChessBoard;
 
-import Chess.Board;
+import java.awt.Point;
+import java.time.Duration;
+import java.util.Map.Entry;
+import java.util.Arrays;
+import java.util.NoSuchElementException;
 
 public class Controller implements Notify {
 
+    private ChessBoard lastBoard;
     private MVC hub;
+    private int globalIteration;
 
     public Controller(MVC mvc) {
         this.hub = mvc;
+        this.globalIteration = 0;
     }
 
-    private Board kingdomTour(Set<Point> visitedTowns, Board kingdom) {
-        if (visitedTowns.size() == kingdom.size) {
-            return kingdom;
+    private boolean kingdomTour(int[][] visitedTowns, ChessBoard kingdom, int iteration) {
+
+        if (iteration == kingdom.size) {
+            return true;
         }
 
         // Get the first element in the queue, removes it from it
-        Entry<Point, Piece> piece = kingdom.getPieces().next();
+        Entry<Point, Piece> entry = kingdom.getPieces().peek();
 
         // get all the possible movements from that piece and filter to get only the
         // ones that has not been visited
-        Point[] movements = Arrays.stream(piece.getValue().getMovements(kingdom, piece.getKey()))
-                .filter(move -> !visitedTowns.contains(move))
+        Point[] movements = Arrays.stream(entry.getValue().getMovements(kingdom, entry.getKey()))
+                .filter(move -> visitedTowns[move.x][move.y] == 0)
                 .toArray(Point[]::new);
 
+        // Arrays.stream(movements).map(elem -> "(" + elem.x + ", " + elem.y + ")
+        // ").forEach(System.out::print);
+        // System.out.println(iteration);
+        // System.out.print("\033\143");
         for (Point movement : movements) {
-            // Create a copy of the kingdom to not change the current value
-            Board futureKingdom = kingdom.clone();
-            Set<Point> futureVisitedTowns = new HashSet<>();
-            futureVisitedTowns.addAll(visitedTowns);
-            futureVisitedTowns.add(movement);
-
-            //System.out.println("[DEBUG] "
-            //        + piece.getValue().getClass().getSimpleName()
-            //        + ": "
-            //        + "(" + movement.x + ", " + movement.y + ")");
 
             // add the piece with the new movement to the future kingdom queue
-            futureKingdom.addPiece(piece.getValue(), movement);
+            visitedTowns[movement.x][movement.y] = iteration + 1;
+            this.globalIteration = iteration + 1;
 
-            String str = futureKingdom.toString();
+            // System.out.println("[DEBUG] "
+            // + piece.getValue().getClass().getSimpleName()
+            // + ": "
+            // + "(" + movement.x + ", " + movement.y + ")");
+
+            // System.out.println(b.toString(visitedTowns));
+            this.lastBoard = new ChessBoard(kingdom.getDimension(),
+                    kingdom.getPieces().rest().add(movement, entry.getValue()));
+
+            this.safeThreadSleep(15);
+            this.hub.notifyRequest(new Request(RequestCode.UpdateBoard, this));
 
             // recursivelly call
-            futureKingdom = kingdomTour(futureVisitedTowns, futureKingdom);
-
-            if (futureKingdom != null) {
-                System.out.println(str);
-                return futureKingdom;
+            if (kingdomTour(visitedTowns, this.lastBoard, iteration + 1)) {
+                return true;
             }
+
+            visitedTowns[movement.x][movement.y] = 0;
         }
 
-        return null;
+        return false;
+    }
+
+    private boolean kth(ChessBoard board) {
+        int[][] visited = new int[board.getDimension().height][board.getDimension().width];
+        for (int[] column : visited) {
+            Arrays.fill(column, 0);
+        }
+
+        int iter = 1;
+        for (Point pos : board.getPieces().keySet()) {
+            visited[pos.x][pos.y] = iter++;
+        }
+
+        return kingdomTour(visited, board, board.getPieces().keySet().size());
     }
 
     private void run() {
-        Board board = this.hub.getModel().getBoard();
-        Set<Point> visited = new HashSet<>();
-        visited.addAll(board.getPieces().keySet());
-        board = this.kingdomTour(visited, board);
-        if (board == null) {
+        ChessBoard board = this.hub.getModel().getBoard();
+        boolean solution = this.kth(board);
+        if (!solution) {
             throw new NoSuchElementException("No solution found");
         }
         System.out.println("Solution found!");
-        System.out.println(board);
     }
 
     @Override
     public void notifyRequest(Request request) {
         switch (request.code) {
             case Start:
-                this.run();
-                // Thread.startVirtualThread(this::run);
+                // this.run();
+                Thread.startVirtualThread(this::run);
                 break;
+            case Stop:
+                // TODO: stop the thread
             default:
-                throw new UnsupportedOperationException(
-                        request + " is not implemented in " + this.getClass().getSimpleName());
+                System.err.printf("[CONTROLLER]: %s is not implemented.\n", request.toString());
+        }
+    }
+
+    public int getIteration() {
+        return this.globalIteration;
+    }
+
+    public ChessBoard getLastBoard() {
+        return lastBoard;
+    }
+
+    private void safeThreadSleep(long millis) {
+        try {
+            Thread.sleep(Duration.ofMillis(millis));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 

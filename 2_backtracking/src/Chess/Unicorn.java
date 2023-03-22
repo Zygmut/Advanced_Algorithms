@@ -9,11 +9,12 @@ public class Unicorn extends Piece {
 
     public Unicorn() {
         super();
+        this.imagePath = "./assets/unicorn.png";
         this.symbol = 'U';
     }
 
     @Override
-    public Point[] getMovements(Board board_state, Point piece_position) {
+    public Point[] getMovements(ChessBoard board_state, Point piece_position) {
         return Stream.of(Movements.straightTop(piece_position, board_state),
                 Movements.diagonalBottomRight(piece_position, board_state),
                 Movements.diagonalBottomLeft(piece_position, board_state))

@@ -13,9 +13,19 @@ public class LinkedHashQueue<K, V> extends LinkedHashMap<K,V> {
         Entry<K,V> next = this.peek();
         this.remove(next.getKey());
         return next;
-
     }
 
+    @SuppressWarnings("unchecked")
+    public LinkedHashQueue<K,V> rest(){
+        LinkedHashQueue<K,V> set = (LinkedHashQueue<K,V>) this.clone();
+        set.remove(set.peek().getKey());
+        return set;
+    }
+
+    public LinkedHashQueue<K, V> add(K key, V value){
+        this.put(key, value);
+        return this;
+    }
     public Entry<K,V> peek() {
         return this.entrySet().iterator().next();
     }

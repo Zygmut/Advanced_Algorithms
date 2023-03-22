@@ -6,6 +6,8 @@ import Request.Request;
 import View.View;
 import Controller.Controller;
 
+import javax.swing.SwingUtilities;
+
 public class MVC implements Notify {
 
     private Model model;
@@ -31,21 +33,27 @@ public class MVC implements Notify {
     }
 
     public void show() {
-        this.view.getWindow().start();
+        SwingUtilities.invokeLater(() -> this.view.getWindow().start());
     }
 
     @Override
     public void notifyRequest(Request request) {
         switch (request.code) {
-            case Start:
+            case Start, Resume, ReStart, Next, Stop:
                 this.controller.notifyRequest(request);
                 break;
+            case UpdateBoard:
+                this.model.notifyRequest(request);
+                this.view.notifyRequest(request);
+                break;
+            case ChangedPiece:
+                this.model.notifyRequest(request);
+                break;
             case Error:
-                System.out.println(request);
+                System.err.println(request);
                 System.exit(1);
             default:
-                throw new UnsupportedOperationException(
-                        request + " is not implemented in " + this.getClass().getSimpleName());
+                System.err.printf("[MVC]: %s is not implemented.\n", request.toString());
         }
     }
 
