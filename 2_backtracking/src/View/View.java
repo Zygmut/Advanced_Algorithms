@@ -425,8 +425,4 @@ public class View implements Notify {
         return this.window;
     }
 
-    public int getBoardSize() {
-        return this.boardSize;
-    }
-
 }
