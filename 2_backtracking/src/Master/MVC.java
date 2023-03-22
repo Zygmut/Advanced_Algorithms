@@ -41,12 +41,13 @@ public class MVC implements Notify {
         switch (request.code) {
             case Start, Resume, ReStart, Next, Stop:
                 this.controller.notifyRequest(request);
+                break;
             case UpdateBoard:
                 this.model.notifyRequest(request);
                 this.view.notifyRequest(request);
                 break;
             case Error:
-                System.out.println(request);
+                System.err.println(request);
                 System.exit(1);
             default:
                 System.err.printf("[MVC]: %s is not implemented.\n", request.toString());

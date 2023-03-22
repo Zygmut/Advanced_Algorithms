@@ -12,10 +12,13 @@ import java.io.File;
 import java.io.IOException;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Graphics;
 import java.util.Map.Entry;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class Board extends JPanel {
 
@@ -44,7 +47,7 @@ public class Board extends JPanel {
         Box box;
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
-                box = new Box();
+                box = new Box(i, j);
                 if ((i + j) % 2 == 0) {
                     box.setBackground(new Color(227, 206, 167));
                     box.setOpaque(true);
@@ -67,13 +70,24 @@ public class Board extends JPanel {
     private class Box extends JPanel {
 
         private BufferedImage image;
+        private int x;
+        private int y;
 
-        public Box() {
+        public Box(int x, int y) {
+            this.x = x;
+            this.y = y;
             try {
                 image = ImageIO.read(new File("./assets/none.png"));
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            this.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent evt) {
+                    System.out.println("Clicked on " + x + ", " + y);
+                    Board.this.setCursor(Cursor.getDefaultCursor());
+                }
+            });
         }
 
         public void setImagePath(String imagePath) {

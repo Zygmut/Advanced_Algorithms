@@ -2,11 +2,22 @@ package View;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.Toolkit;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
+import javax.imageio.ImageIO;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -50,7 +61,9 @@ public class View implements Notify {
      * board.
      */
     private int numOfPieces;
-    private int timeAnimation;
+    /**
+     * Time label of the view. keeps track of the time of the algorithm.
+     */
     private JLabel tiempoValue;
 
     /**
@@ -64,7 +77,6 @@ public class View implements Notify {
         this.window = new Window();
         this.numOfPieces = 0;
         this.boardSize = 0;
-        this.timeAnimation = 0;
         this.loadContent();
     }
 
@@ -81,7 +93,6 @@ public class View implements Notify {
         this.window = new Window(configPath);
         this.numOfPieces = 0;
         this.boardSize = 0;
-        this.timeAnimation = 0;
         this.loadContent();
     }
 
@@ -104,25 +115,10 @@ public class View implements Notify {
      * @see Board
      */
     private void updateBoard(ChessBoard board) {
-        calcAnimationForTimer();
         this.progressBar.setValue(getProgressValueToFinish());
         this.board.setBoard(board);
         this.board.paintComponent(this.board.getGraphics());
         this.board.validate();
-    }
-
-    private void calcAnimationForTimer() {
-        String time = "Calculando...    ";
-        this.timeAnimation++;
-        if (this.timeAnimation == time.length()) {
-            this.timeAnimation = 0;
-        }
-        this.tiempoValue.setText(time.substring(0, this.timeAnimation));
-    }
-
-    private void resetTimeAnimation() {
-        this.timeAnimation = 0;
-        this.tiempoValue.setText("0 ms");
     }
 
     private int getProgressValueToFinish() {
@@ -158,11 +154,92 @@ public class View implements Notify {
         Section header = new Section();
         JPanel headerContent = new JPanel();
         headerContent.setBackground(Color.LIGHT_GRAY);
-        JLabel title = new JLabel("TODO: Header Section");
-        title.setFont(new Font("Arial", Font.ITALIC, 13));
-        headerContent.add(title);
+        final int tamImg = 50;
+        final int marginOnX = 5;
+        JLabel pieceLabel = null;
+        BufferedImage img = getBufferedImage("./assets/bishop.png");
+        pieceLabel = new JLabel(this.escalateImageIcon(img, tamImg, tamImg));
+        pieceLabel.addMouseListener(this.getPieceListener("bishop"));
+        headerContent.add(pieceLabel);
+        headerContent.add(addMargin(marginOnX, 0));
+
+        img = getBufferedImage("./assets/dragon.png");
+        pieceLabel = new JLabel(this.escalateImageIcon(img, tamImg, tamImg));
+        pieceLabel.addMouseListener(this.getPieceListener("dragon"));
+        headerContent.add(pieceLabel);
+        headerContent.add(addMargin(marginOnX, 0));
+
+        img = getBufferedImage("./assets/king.png");
+        pieceLabel = new JLabel(this.escalateImageIcon(img, tamImg, tamImg));
+        pieceLabel.addMouseListener(this.getPieceListener("king"));
+        headerContent.add(pieceLabel);
+        headerContent.add(addMargin(marginOnX, 0));
+
+        img = getBufferedImage("./assets/knight.png");
+        pieceLabel = new JLabel(this.escalateImageIcon(img, tamImg, tamImg));
+        pieceLabel.addMouseListener(this.getPieceListener("knight"));
+        headerContent.add(pieceLabel);
+        headerContent.add(addMargin(marginOnX, 0));
+
+        img = getBufferedImage("./assets/pawn.png");
+        pieceLabel = new JLabel(this.escalateImageIcon(img, tamImg, tamImg));
+        pieceLabel.addMouseListener(this.getPieceListener("pawn"));
+        headerContent.add(pieceLabel);
+        headerContent.add(addMargin(marginOnX, 0));
+        img = getBufferedImage("./assets/queen.png");
+        pieceLabel = new JLabel(this.escalateImageIcon(img, tamImg, tamImg));
+        pieceLabel.addMouseListener(this.getPieceListener("queen"));
+        headerContent.add(pieceLabel);
+        headerContent.add(addMargin(marginOnX, 0));
+
+        img = getBufferedImage("./assets/rook.png");
+        pieceLabel = new JLabel(this.escalateImageIcon(img, tamImg, tamImg));
+        pieceLabel.addMouseListener(this.getPieceListener("rook"));
+        headerContent.add(pieceLabel);
+        headerContent.add(addMargin(marginOnX, 0));
+
+        img = getBufferedImage("./assets/tower.png");
+        pieceLabel = new JLabel(this.escalateImageIcon(img, tamImg, tamImg));
+        pieceLabel.addMouseListener(this.getPieceListener("tower"));
+        headerContent.add(pieceLabel);
+        headerContent.add(addMargin(marginOnX, 0));
+
+        img = getBufferedImage("./assets/unicorn.png");
+        pieceLabel = new JLabel(this.escalateImageIcon(img, tamImg, tamImg));
+        pieceLabel.addMouseListener(this.getPieceListener("unicorn"));
+        headerContent.add(pieceLabel);
+        headerContent.add(addMargin(marginOnX, 0));
+
         header.createFreeSection(headerContent);
         return header;
+    }
+
+    private MouseAdapter getPieceListener(String piece) {
+        return new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent evt) {
+                // Change cursor icon
+                Toolkit toolkit = Toolkit.getDefaultToolkit();
+                Image image = toolkit.getImage("./assets/" + piece.toLowerCase() + ".png");
+                Point hotSpot = new Point(0, 0);
+                Cursor cursor = toolkit.createCustomCursor(image, hotSpot, "Cursor");
+                board.setCursor(cursor);
+            }
+        };
+    }
+
+    private BufferedImage getBufferedImage(String path) {
+        BufferedImage img = null;
+        try {
+            img = ImageIO.read(new File(path));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return img;
+    }
+
+    private ImageIcon escalateImageIcon(Image icon, int width, int height) {
+        return new ImageIcon(icon.getScaledInstance(width, height, Image.SCALE_SMOOTH));
     }
 
     /**
@@ -290,6 +367,10 @@ public class View implements Notify {
                 buttons[0].setText("Pausar");
                 buttons[2].setEnabled(true);
                 this.hub.notifyRequest(new Request(RequestCode.Start, this));
+                this.tiempoValue.setText("");
+                ImageIcon loading = new ImageIcon("./assets/loading.gif");
+                loading.setImage(loading.getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT));
+                this.tiempoValue.setIcon(loading);
             } else {
                 buttons[2].setEnabled(true);
                 String btnText = buttons[0].getText();
@@ -314,7 +395,7 @@ public class View implements Notify {
         buttons[2].addActionListener(e -> {
             buttons[0].setText("Iniciar");
             buttons[2].setEnabled(false);
-            resetTimeAnimation();
+            this.tiempoValue.setText("0 ms");
             this.hub.notifyRequest(new Request(RequestCode.ReStart, this));
         });
         buttonsSection.addButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
