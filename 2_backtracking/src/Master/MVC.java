@@ -46,6 +46,9 @@ public class MVC implements Notify {
                 this.model.notifyRequest(request);
                 this.view.notifyRequest(request);
                 break;
+            case ChangedPiece:
+                this.model.notifyRequest(request);
+                break;
             case Error:
                 System.err.println(request);
                 System.exit(1);

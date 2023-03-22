@@ -14,20 +14,37 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.function.Function;
-
 import javax.imageio.ImageIO;
+import javax.swing.JPanel;
+
+import Chess.ChessBoard;
+import Chess.Piece;
+import Chess.Pieces;
+import Chess.Bishop;
+import Chess.King;
+import Chess.Knight;
+import Chess.Queen;
+import Chess.Tower;
+import Chess.Unicorn;
+import Chess.Dragon;
+import Chess.Castle;
+import Chess.Mark;
+
+import java.awt.GridLayout;
+import java.awt.BorderLayout;
+import java.awt.Graphics;
+import java.util.Map.Entry;
+import java.awt.Graphics2D;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
-import Chess.ChessBoard;
 import Master.MVC;
 import Request.Notify;
 import Request.Request;
@@ -67,6 +84,9 @@ public class View implements Notify {
      * Time label of the view. keeps track of the time of the algorithm.
      */
     private JLabel tiempoValue;
+    private String lastPieceString;
+    private Piece lastPiece;
+    private Point lastPoint;
 
     /**
      * This constructor creates a view with the MVC hub without any configuration
@@ -79,6 +99,7 @@ public class View implements Notify {
         this.window = new Window();
         this.numOfPieces = 0;
         this.boardSize = 0;
+        this.lastPieceString = null;
         this.loadContent();
     }
 
@@ -95,6 +116,7 @@ public class View implements Notify {
         this.window = new Window(configPath);
         this.numOfPieces = 0;
         this.boardSize = 0;
+        this.lastPieceString = null;
         this.loadContent();
     }
 
@@ -191,10 +213,11 @@ public class View implements Notify {
             public void mouseClicked(MouseEvent evt) {
                 // Change cursor icon
                 Toolkit toolkit = Toolkit.getDefaultToolkit();
-                Image image = toolkit.getImage("./assets/" + piece.toLowerCase() + ".png");
+                Image image = toolkit.getImage("./assets/" + piece + ".png");
                 Point hotSpot = new Point(0, 0);
                 Cursor cursor = toolkit.createCustomCursor(image, hotSpot, "Cursor");
                 board.setCursor(cursor);
+                lastPieceString = piece;
             }
 
             @Override
@@ -423,6 +446,172 @@ public class View implements Notify {
      */
     public Window getWindow() {
         return this.window;
+    }
+
+    public String getLastPieceString() {
+        return this.lastPieceString;
+    }
+
+    public Piece getLastPiece() {
+        return this.lastPiece;
+    }
+
+    public Point getLastPoint() {
+        return this.lastPoint;
+    }
+
+    public class Board extends JPanel {
+
+        private ChessBoard board;
+        private int width;
+        private int height;
+
+        public Board(ChessBoard board) {
+            this.board = board;
+            this.width = board.getDimension().width;
+            this.height = board.getDimension().height;
+            setLayout(new GridLayout(width, height));
+        }
+
+        public void setBoard(ChessBoard board) {
+            this.board = board;
+        }
+
+        @Override
+        public void paintComponent(Graphics g) {
+            // TODO: Improve this method
+            setLayout(new BorderLayout());
+            JPanel panelAux = new JPanel();
+            panelAux.setLayout(new GridLayout(width, height));
+            BoxBoard[][] boxes = new BoxBoard[width][height];
+            BoxBoard box;
+            Color color;
+            for (int i = 0; i < width; i++) {
+                for (int j = 0; j < height; j++) {
+                    box = new BoxBoard(j, i);
+                    if ((i + j) % 2 == 0) {
+                        color = new Color(227, 206, 167);
+                        box.setBackground(color);
+                        box.setColor(color);
+                        box.setOpaque(true);
+                    } else {
+                        color = new Color(166, 126, 91);
+                        box.setBackground(color);
+                        box.setColor(color);
+                        box.setOpaque(true);
+                    }
+                    boxes[i][j] = box;
+                    panelAux.add(boxes[i][j]);
+                }
+            }
+
+            for (Entry<Point, Piece> piece : board.getPieces().entrySet()) {
+                boxes[piece.getKey().y][piece.getKey().x].setImagePath(piece.getValue().getImagePath());
+            }
+
+            add(panelAux, BorderLayout.CENTER);
+        }
+
+        private class BoxBoard extends JPanel {
+
+            private BufferedImage image;
+            private int x;
+            private int y;
+            private Color color;
+
+            public BoxBoard(int x, int y) {
+                this.x = x;
+                this.y = y;
+                try {
+                    image = ImageIO.read(new File("./assets/none.png"));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                this.addMouseListener(this.createMouseListner());
+            }
+
+            private Piece getLastPiece(String imagePath) {
+                return switch (imagePath) {
+                    case "bishop" -> new Bishop();
+                    case "dragon" -> new Dragon();
+                    case "king" -> new King();
+                    case "knight" -> new Knight();
+                    // case "pawn" -> new Pawn();
+                    case "queen" -> new Queen();
+                    case "rook" -> new Castle();
+                    case "tower" -> new Tower();
+                    case "unicorn" -> new Unicorn();
+                    default -> null;
+                };
+            }
+
+            private MouseListener createMouseListner() {
+                return new MouseListener() {
+                    @Override
+                    public void mouseClicked(MouseEvent evt) {
+                        System.out.println("Clicked on " + x + ", " + y);
+                        Board.this.setCursor(Cursor.getDefaultCursor());
+                        if (evt.getButton() == MouseEvent.BUTTON3) {
+                            setImagePath("./assets/none.png");
+                            repaint();
+                        }
+                        if (evt.getButton() == MouseEvent.BUTTON1) {
+                            String imagePath = View.this.lastPieceString;
+                            if (imagePath != null) {
+                                View.this.lastPiece = getLastPiece(imagePath);
+                                View.this.lastPoint = new Point(x, y);
+                                View.this.hub.notifyRequest(new Request(RequestCode.ChangedPiece, View.this));
+                                setImagePath("./assets/" + imagePath + ".png");
+                                repaint();
+                                View.this.lastPieceString = null;
+                                View.this.lastPiece = null;
+                                View.this.lastPoint = null;
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void mousePressed(MouseEvent e) {
+                        // Do nothing
+                    }
+
+                    @Override
+                    public void mouseReleased(MouseEvent e) {
+                        // Do nothing
+                    }
+
+                    @Override
+                    public void mouseEntered(MouseEvent e) {
+                        BoxBoard.this.setBackground(Color.LIGHT_GRAY);
+                    }
+
+                    @Override
+                    public void mouseExited(MouseEvent e) {
+                        BoxBoard.this.setBackground(color);
+                    }
+                };
+            }
+
+            private void setColor(Color color) {
+                this.color = color;
+            }
+
+            private void setImagePath(String imagePath) {
+                try {
+                    image = ImageIO.read(new File(imagePath));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.drawImage(image, 0, 0, getWidth(), getHeight(), null);
+            }
+
+        }
     }
 
 }

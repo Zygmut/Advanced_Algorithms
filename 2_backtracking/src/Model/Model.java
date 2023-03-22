@@ -28,6 +28,9 @@ public class Model implements Notify {
                 this.board = this.hub.getController().getLastBoard();
                 this.iteration = this.hub.getController().getIteration();
                 break;
+            case ChangedPiece:
+                this.board.addPiece(this.hub.getView().getLastPiece(), this.hub.getView().getLastPoint());
+                break;
             default:
                 System.err.printf("[MODEL]: %s is not implemented.\n", request.toString());
         }
