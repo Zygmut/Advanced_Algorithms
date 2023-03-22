@@ -10,6 +10,7 @@ import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -162,6 +163,8 @@ public class View implements Notify {
         Function<String, JPanel> addContentToHeader = (String pieceName) -> {
             BufferedImage buffImg = getBufferedImage("./assets/" + pieceName + ".png");
             JLabel label = new JLabel(this.escalateImageIcon(buffImg, tamImg, tamImg));
+            //Añade una pieza en la mesa en cada esquina
+            label.addMouseListener(this.setPieceOnTable(pieceName, this.getPosicion()));
             label.addMouseListener(this.getPieceListener(pieceName));
             headerContent.add(label);
             headerContent.add(addMargin(marginOnX, 0));
@@ -180,6 +183,44 @@ public class View implements Notify {
 
         header.createFreeSection(headerContent);
         return header;
+    }
+
+    //Devuelve la posicion de las esquinas dependiendo del numero de piezas del tablero
+    private Point getPosicion() {
+        Point p;
+        numOfPieces = this.hub.getModel().getBoard().getPieces().size();
+        System.out.println(numOfPieces);
+        switch (numOfPieces) {
+            case 0:
+                // Añadir pieza al tablero arriba izquierda
+                p = new Point(0, 0);
+                return p;
+            case 1:
+                // Añadir pieza al tablero arriba derecha
+                p = new Point(0, boardSize-1);
+                return p;
+            case 2:
+                // Añadir pieza al tablero abajo derecha
+                p = new Point(boardSize-1, boardSize-1);
+                return p;
+            case 3:
+                // Añadir pieza al tablero abajo izquierda
+                p = new Point(boardSize-1, 0);
+                return p;
+        }
+        return null;
+    }
+
+    //Al clicar sobre el icono de la pieza se debe añadir al tablero
+    private MouseListener setPieceOnTable(String pieceName, Point p) {
+        return new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent evt) {
+                hub.getModel().setNewPiece(pieceName, p);
+            }
+            
+        };
+        
     }
 
     private MouseAdapter getPieceListener(String piece) {
