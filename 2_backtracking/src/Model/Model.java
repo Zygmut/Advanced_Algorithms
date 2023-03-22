@@ -24,15 +24,19 @@ public class Model implements Notify {
     @Override
     public void notifyRequest(Request request) {
         switch (request.code) {
-            case UpdateBoard:
+            case UpdateBoard -> {
                 this.board = this.hub.getController().getLastBoard();
                 this.iteration = this.hub.getController().getIteration();
-                break;
-            case ChangedPiece:
+            }
+            case ChangedPiece -> {
                 this.board.addPiece(this.hub.getView().getLastPiece(), this.hub.getView().getLastPoint());
-                break;
-            default:
+            }
+            case DeletedPiece -> {
+                // TODO: Implement this method
+            }
+            default -> {
                 System.err.printf("[MODEL]: %s is not implemented.\n", request.toString());
+            }
         }
     }
 
