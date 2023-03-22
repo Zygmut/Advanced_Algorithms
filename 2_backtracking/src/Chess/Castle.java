@@ -2,12 +2,15 @@ package Chess;
 
 import java.awt.Point;
 
+import utils.Config;
+import utils.Helpers;
+
 // https://chesscraft.ca/design?id=2ATC
 public class Castle extends Piece {
 
     public Castle() {
         super();
-        this.imagePath = "./assets/castle.png";
+        this.imagePath = Helpers.getAssetPath(Config.ASSET_NAME_OF_PIECE_CASTLE);
         this.symbol = 'C';
     }
 

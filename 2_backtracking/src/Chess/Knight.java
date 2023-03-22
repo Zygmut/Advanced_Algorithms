@@ -3,6 +3,9 @@ package Chess;
 import java.awt.Point;
 import java.util.ArrayList;
 
+import utils.Config;
+import utils.Helpers;
+
 public class Knight extends Piece {
 
     private final Point[] permutations = {
@@ -18,7 +21,7 @@ public class Knight extends Piece {
 
     public Knight() {
         super();
-        this.imagePath = "./assets/knight.png";
+        this.imagePath = Helpers.getAssetPath(Config.ASSET_NAME_OF_PIECE_KNIGHT);
         this.symbol = 'K';
     }
 

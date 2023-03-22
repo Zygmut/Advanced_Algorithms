@@ -50,6 +50,8 @@ import Request.RequestCode;
 import betterSwing.DirectionAndPosition;
 import betterSwing.Section;
 import betterSwing.Window;
+import utils.Config;
+import utils.Helpers;
 
 public class View implements Notify {
 
@@ -82,8 +84,17 @@ public class View implements Notify {
      * Time label of the view. keeps track of the time of the algorithm.
      */
     private JLabel tiempoValue;
+    /**
+     * The last piece string of the view. Keeps track of the last piece string.
+     */
     private String lastPieceString;
+    /**
+     * The last piece of the view. Keeps track of the last piece.
+     */
     private Piece lastPiece;
+    /**
+     * The last point of the view. Keeps track of the last point.
+     */
     private Point lastPoint;
 
     /**
@@ -124,12 +135,12 @@ public class View implements Notify {
             case UpdateBoard -> {
                 this.updateBoard(this.hub.getModel().getBoard());
             }
-            default -> {
-                System.err.printf("[VIEW]: %s is not implemented.\n", request.toString());
-            }
             case ChangedTableSize -> {
                 this.board.setSize(boardSize, boardSize);
                 this.updateBoard(this.hub.getModel().getBoard());
+            }
+            default -> {
+                System.err.printf("[VIEW]: %s is not implemented.\n", request.toString());
             }
         }
     }
@@ -186,7 +197,8 @@ public class View implements Notify {
         final int marginOnY = 5;
 
         Function<String, JPanel> addContentToHeader = (String pieceName) -> {
-            BufferedImage buffImg = getBufferedImage("./assets/" + pieceName + ".png");
+            BufferedImage buffImg = getBufferedImage(
+                    Config.PATH_TO_ASSETS + pieceName + Config.ASSET_EXTENSION_OF_PIECES);
             JLabel label = new JLabel(this.escalateImageIcon(buffImg, tamImg, tamImg));
             label.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1));
             label.addMouseListener(this.getPieceListener(pieceName, label));
@@ -195,14 +207,14 @@ public class View implements Notify {
             return null;
         };
 
-        addContentToHeader.apply("bishop");
-        addContentToHeader.apply("dragon");
-        addContentToHeader.apply("king");
-        addContentToHeader.apply("knight");
-        addContentToHeader.apply("queen");
-        addContentToHeader.apply("rook");
-        addContentToHeader.apply("castle");
-        addContentToHeader.apply("unicorn");
+        addContentToHeader.apply(Config.ASSET_NAME_OF_PIECE_KING);
+        addContentToHeader.apply(Config.ASSET_NAME_OF_PIECE_QUEEN);
+        addContentToHeader.apply(Config.ASSET_NAME_OF_PIECE_ROOK);
+        addContentToHeader.apply(Config.ASSET_NAME_OF_PIECE_KNIGHT);
+        addContentToHeader.apply(Config.ASSET_NAME_OF_PIECE_BISHOP);
+        addContentToHeader.apply(Config.ASSET_NAME_OF_PIECE_UNICORN);
+        addContentToHeader.apply(Config.ASSET_NAME_OF_PIECE_DRAGON);
+        addContentToHeader.apply(Config.ASSET_NAME_OF_PIECE_CASTLE);
 
         header.createFreeSection(headerContent);
         return header;
@@ -214,7 +226,7 @@ public class View implements Notify {
             public void mouseClicked(MouseEvent evt) {
                 // Change cursor icon
                 Toolkit toolkit = Toolkit.getDefaultToolkit();
-                Image image = toolkit.getImage("./assets/" + piece + ".png");
+                Image image = toolkit.getImage(Helpers.getAssetPath(piece));
                 Point hotSpot = new Point(0, 0);
                 Cursor cursor = toolkit.createCustomCursor(image, hotSpot, "Cursor");
                 board.setCursor(cursor);
@@ -234,7 +246,7 @@ public class View implements Notify {
             @Override
             public void mouseEntered(MouseEvent e) {
                 Toolkit toolkit = Toolkit.getDefaultToolkit();
-                Image image = toolkit.getImage("./assets/" + piece.toLowerCase() + ".png");
+                Image image = toolkit.getImage(Helpers.getAssetPath(piece));
                 Point hotSpot = new Point(0, 0);
                 Cursor cursor = toolkit.createCustomCursor(image, hotSpot, "Cursor");
                 label.setCursor(cursor);
@@ -461,6 +473,10 @@ public class View implements Notify {
         return this.lastPoint;
     }
 
+    public int getBoardSize() {
+        return boardSize;
+    }
+
     public class Board extends JPanel {
 
         private ChessBoard board;
@@ -506,7 +522,7 @@ public class View implements Notify {
                 }
             }
 
-            for (Entry<Point, Piece> piece : board.getPieces()){
+            for (Entry<Point, Piece> piece : board.getPieces()) {
                 boxes[piece.getKey().y][piece.getKey().x].setImagePath(piece.getValue().getImagePath());
             }
 
@@ -524,7 +540,7 @@ public class View implements Notify {
                 this.x = x;
                 this.y = y;
                 try {
-                    image = ImageIO.read(new File("./assets/none.png"));
+                    image = ImageIO.read(new File(Helpers.getAssetPath(Config.ASSET_NAME_OF_PIECE_NONE)));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -533,15 +549,14 @@ public class View implements Notify {
 
             private Piece getLastPiece(String imagePath) {
                 return switch (imagePath) {
-                    case "bishop" -> new Bishop();
-                    case "dragon" -> new Dragon();
-                    case "king" -> new King();
-                    case "knight" -> new Knight();
-                    // case "pawn" -> new Pawn();
-                    case "queen" -> new Queen();
-                    case "castle" -> new Castle();
-                    case "rook" -> new Rook();
-                    case "unicorn" -> new Unicorn();
+                    case Config.ASSET_NAME_OF_PIECE_BISHOP -> new Bishop();
+                    case Config.ASSET_NAME_OF_PIECE_DRAGON -> new Dragon();
+                    case Config.ASSET_NAME_OF_PIECE_KING -> new King();
+                    case Config.ASSET_NAME_OF_PIECE_KNIGHT -> new Knight();
+                    case Config.ASSET_NAME_OF_PIECE_QUEEN -> new Queen();
+                    case Config.ASSET_NAME_OF_PIECE_CASTLE -> new Castle();
+                    case Config.ASSET_NAME_OF_PIECE_ROOK -> new Rook();
+                    case Config.ASSET_NAME_OF_PIECE_UNICORN -> new Unicorn();
                     default -> null;
                 };
             }
@@ -550,20 +565,20 @@ public class View implements Notify {
                 return new MouseListener() {
                     @Override
                     public void mouseClicked(MouseEvent evt) {
-                        System.out.println("Clicked on " + x + ", " + y);
+                        // System.out.println("Clicked on " + x + ", " + y);
                         Board.this.setCursor(Cursor.getDefaultCursor());
                         if (evt.getButton() == MouseEvent.BUTTON3) {
                             View.this.hub.notifyRequest(new Request(RequestCode.DeletedPiece, View.this));
-                            setImagePath("./assets/none.png");
+                            setImagePath(Helpers.getAssetPath(Config.ASSET_NAME_OF_PIECE_NONE));
                             repaint();
                         }
                         if (evt.getButton() == MouseEvent.BUTTON1) {
-                            String imagePath = View.this.lastPieceString;
-                            if (imagePath != null) {
-                                View.this.lastPiece = getLastPiece(imagePath);
+                            String imageName = View.this.lastPieceString;
+                            if (imageName != null) {
+                                View.this.lastPiece = getLastPiece(imageName);
                                 View.this.lastPoint = new Point(x, y);
                                 View.this.hub.notifyRequest(new Request(RequestCode.ChangedPiece, View.this));
-                                setImagePath("./assets/" + imagePath + ".png");
+                                setImagePath(Helpers.getAssetPath(imageName));
                                 repaint();
                                 View.this.lastPieceString = null;
                                 View.this.lastPiece = null;
@@ -615,10 +630,5 @@ public class View implements Notify {
 
         }
     }
-
-    public int getBoardSize() {
-        return boardSize;
-    }
-
 
 }

@@ -7,6 +7,7 @@ import Chess.Pieces;
 import Master.MVC;
 import Request.Notify;
 import Request.Request;
+import utils.Config;
 
 public class Model implements Notify {
 
@@ -17,7 +18,7 @@ public class Model implements Notify {
     public Model(MVC mvc) {
         this.hub = mvc;
         this.iteration = 0;
-        this.board = new ChessBoard(8);
+        this.board = new ChessBoard(Config.INITIAL_DEFAULT_BOARD_SIZE);
     }
 
     @Override
@@ -34,7 +35,7 @@ public class Model implements Notify {
                 break;
             default:
                 System.err.printf("[MODEL]: %s is not implemented.\n", request.toString());
-       }
+        }
     }
 
     public int getNumberOfPieces() {
@@ -51,34 +52,34 @@ public class Model implements Notify {
 
     public void setBoard(ChessBoard board) {
         this.board = board;
-        
+
     }
 
     public void setNewPiece(String piece, Point position) {
         board = this.hub.getModel().getBoard();
         switch (piece) {
-            case "king":
+            case Config.ASSET_NAME_OF_PIECE_KING:
                 this.board.addPiece(Pieces.KING, position);
                 break;
-            case "queen":
+            case Config.ASSET_NAME_OF_PIECE_QUEEN:
                 this.board.addPiece(Pieces.QUEEN, position);
                 break;
-            case "rook":
+            case Config.ASSET_NAME_OF_PIECE_ROOK:
                 this.board.addPiece(Pieces.ROOK, position);
                 break;
-            case "knight":
+            case Config.ASSET_NAME_OF_PIECE_KNIGHT:
                 this.board.addPiece(Pieces.KNIGHT, position);
                 break;
-            case "bishop":
+            case Config.ASSET_NAME_OF_PIECE_BISHOP:
                 this.board.addPiece(Pieces.BISHOP, position);
                 break;
-            case "unicorn":
+            case Config.ASSET_NAME_OF_PIECE_UNICORN:
                 this.board.addPiece(Pieces.UNICORN, position);
                 break;
-            case "dragon":
+            case Config.ASSET_NAME_OF_PIECE_DRAGON:
                 this.board.addPiece(Pieces.DRAGON, position);
                 break;
-            case "castle":
+            case Config.ASSET_NAME_OF_PIECE_CASTLE:
                 this.board.addPiece(Pieces.CASTLE, position);
                 break;
             default:

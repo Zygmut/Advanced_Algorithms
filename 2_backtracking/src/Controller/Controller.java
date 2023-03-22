@@ -7,7 +7,6 @@ import Request.RequestCode;
 import Chess.Piece;
 import Chess.ChessBoard;
 
-import java.util.AbstractMap.SimpleEntry;
 import java.awt.Point;
 import java.time.Duration;
 import java.util.Map.Entry;

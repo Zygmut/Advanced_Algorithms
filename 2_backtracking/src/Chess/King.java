@@ -2,11 +2,14 @@ package Chess;
 
 import java.awt.Point;
 
+import utils.Config;
+import utils.Helpers;
+
 public class King extends Piece {
 
     public King() {
         super();
-        this.imagePath = "./assets/king.png";
+        this.imagePath = Helpers.getAssetPath(Config.ASSET_NAME_OF_PIECE_KING);
         this.symbol = 'K';
     }
 

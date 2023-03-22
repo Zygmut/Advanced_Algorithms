@@ -4,11 +4,14 @@ import java.awt.Point;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
+import utils.Config;
+import utils.Helpers;
+
 public class Bishop extends Piece {
 
     public Bishop() {
         super();
-        this.imagePath = "./assets/bishop.png";
+        this.imagePath = Helpers.getAssetPath(Config.ASSET_NAME_OF_PIECE_BISHOP);
         this.symbol = 'B';
     }
 

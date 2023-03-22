@@ -4,11 +4,14 @@ import java.awt.Point;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
+import utils.Config;
+import utils.Helpers;
+
 public class Rook extends Piece {
 
     public Rook() {
         super();
-        this.imagePath = "./assets/rook.png";
+        this.imagePath = Helpers.getAssetPath(Config.ASSET_NAME_OF_PIECE_ROOK);
         this.symbol = 'R';
     }
 

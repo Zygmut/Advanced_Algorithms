@@ -1,13 +1,13 @@
 package Master;
 
 import mesurament.Mesurament;
+import utils.Config;
 
 public class Main {
 
     public static void main(String[] args) throws Exception {
         // Mesurament.mesura();
-        MVC mvc = new MVC("config.txt");
-        System.out.println(mvc.getModel().getBoard());
+        MVC mvc = new MVC(Config.PATH_TO_WINDOW_CONFIG_FILE);
         mvc.show();
     }
 }

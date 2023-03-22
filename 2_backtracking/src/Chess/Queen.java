@@ -4,11 +4,14 @@ import java.awt.Point;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
+import utils.Config;
+import utils.Helpers;
+
 public class Queen extends Piece {
 
 	public Queen() {
 		super();
-		this.imagePath = "./assets/queen.png";
+		this.imagePath = Helpers.getAssetPath(Config.ASSET_NAME_OF_PIECE_QUEEN);
 		this.symbol = 'Q';
 	}
 

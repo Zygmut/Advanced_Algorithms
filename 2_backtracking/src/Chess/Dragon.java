@@ -4,12 +4,15 @@ import java.awt.Point;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
+import utils.Config;
+import utils.Helpers;
+
 //https://chesscraft.ca/design?id=8RF
 public class Dragon extends Piece {
 
     public Dragon() {
         super();
-        this.imagePath = "./assets/dragon.png";
+        this.imagePath = Helpers.getAssetPath(Config.ASSET_NAME_OF_PIECE_DRAGON);
         this.symbol = 'D';
     }
 
