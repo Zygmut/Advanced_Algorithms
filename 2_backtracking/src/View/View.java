@@ -219,20 +219,16 @@ public class View implements Notify {
         return new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent evt) {
-
                 hub.getModel().setNewPiece(pieceName, p);
-
             }
             public void mousePressed(MouseEvent e) {
             }
             public void mouseReleased(MouseEvent e) {
-
             }
             public void mouseEntered(MouseEvent e) {
             }
             public void mouseExited(MouseEvent e) {
             }
-            
         };
     }
 
