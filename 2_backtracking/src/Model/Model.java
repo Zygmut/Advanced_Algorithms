@@ -18,7 +18,7 @@ public class Model implements Notify {
         this.hub = mvc;
         this.iteration = 0;
         this.board = new ChessBoard(8);
-        this.board.addPiece(Pieces.KING, new Point(0, 0));
+        this.board.addPiece(Pieces.KNIGHT, new Point(0, 0));
     }
 
     @Override
@@ -30,7 +30,7 @@ public class Model implements Notify {
                 break;
             default:
                 System.err.printf("[MODEL]: %s is not implemented.\n", request.toString());
-       }
+        }
     }
 
     public int getNumberOfPieces() {
