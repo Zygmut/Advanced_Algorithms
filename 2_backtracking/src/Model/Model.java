@@ -19,6 +19,8 @@ public class Model implements Notify {
         this.iteration = 0;
         this.board = new ChessBoard(8);
         this.board.addPiece(Pieces.KING, new Point(0, 0));
+        board.addPiece(Pieces.UNICORN, new Point(0,0));
+        board.addPiece(Pieces.KING, new Point(7,7));
     }
 
     @Override
