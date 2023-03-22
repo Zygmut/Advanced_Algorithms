@@ -47,7 +47,7 @@ public class Board extends JPanel {
         Box box;
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
-                box = new Box(i, j);
+                box = new Box(j, i);
                 if ((i + j) % 2 == 0) {
                     box.setBackground(new Color(227, 206, 167));
                     box.setOpaque(true);
