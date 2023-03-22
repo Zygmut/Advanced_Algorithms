@@ -13,6 +13,7 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.function.Function;
 
 import javax.imageio.ImageIO;
 import javax.swing.Box;
@@ -154,61 +155,28 @@ public class View implements Notify {
         Section header = new Section();
         JPanel headerContent = new JPanel();
         headerContent.setBackground(Color.LIGHT_GRAY);
+
         final int tamImg = 50;
         final int marginOnX = 5;
-        JLabel pieceLabel = null;
-        BufferedImage img = getBufferedImage("./assets/bishop.png");
-        pieceLabel = new JLabel(this.escalateImageIcon(img, tamImg, tamImg));
-        pieceLabel.addMouseListener(this.getPieceListener("bishop"));
-        headerContent.add(pieceLabel);
-        headerContent.add(addMargin(marginOnX, 0));
 
-        img = getBufferedImage("./assets/dragon.png");
-        pieceLabel = new JLabel(this.escalateImageIcon(img, tamImg, tamImg));
-        pieceLabel.addMouseListener(this.getPieceListener("dragon"));
-        headerContent.add(pieceLabel);
-        headerContent.add(addMargin(marginOnX, 0));
+        Function<String, JPanel> addContentToHeader = (String pieceName) -> {
+            BufferedImage buffImg = getBufferedImage("./assets/" + pieceName + ".png");
+            JLabel label = new JLabel(this.escalateImageIcon(buffImg, tamImg, tamImg));
+            label.addMouseListener(this.getPieceListener(pieceName));
+            headerContent.add(label);
+            headerContent.add(addMargin(marginOnX, 0));
+            return null;
+        };
 
-        img = getBufferedImage("./assets/king.png");
-        pieceLabel = new JLabel(this.escalateImageIcon(img, tamImg, tamImg));
-        pieceLabel.addMouseListener(this.getPieceListener("king"));
-        headerContent.add(pieceLabel);
-        headerContent.add(addMargin(marginOnX, 0));
-
-        img = getBufferedImage("./assets/knight.png");
-        pieceLabel = new JLabel(this.escalateImageIcon(img, tamImg, tamImg));
-        pieceLabel.addMouseListener(this.getPieceListener("knight"));
-        headerContent.add(pieceLabel);
-        headerContent.add(addMargin(marginOnX, 0));
-
-        img = getBufferedImage("./assets/pawn.png");
-        pieceLabel = new JLabel(this.escalateImageIcon(img, tamImg, tamImg));
-        pieceLabel.addMouseListener(this.getPieceListener("pawn"));
-        headerContent.add(pieceLabel);
-        headerContent.add(addMargin(marginOnX, 0));
-        img = getBufferedImage("./assets/queen.png");
-        pieceLabel = new JLabel(this.escalateImageIcon(img, tamImg, tamImg));
-        pieceLabel.addMouseListener(this.getPieceListener("queen"));
-        headerContent.add(pieceLabel);
-        headerContent.add(addMargin(marginOnX, 0));
-
-        img = getBufferedImage("./assets/rook.png");
-        pieceLabel = new JLabel(this.escalateImageIcon(img, tamImg, tamImg));
-        pieceLabel.addMouseListener(this.getPieceListener("rook"));
-        headerContent.add(pieceLabel);
-        headerContent.add(addMargin(marginOnX, 0));
-
-        img = getBufferedImage("./assets/tower.png");
-        pieceLabel = new JLabel(this.escalateImageIcon(img, tamImg, tamImg));
-        pieceLabel.addMouseListener(this.getPieceListener("tower"));
-        headerContent.add(pieceLabel);
-        headerContent.add(addMargin(marginOnX, 0));
-
-        img = getBufferedImage("./assets/unicorn.png");
-        pieceLabel = new JLabel(this.escalateImageIcon(img, tamImg, tamImg));
-        pieceLabel.addMouseListener(this.getPieceListener("unicorn"));
-        headerContent.add(pieceLabel);
-        headerContent.add(addMargin(marginOnX, 0));
+        addContentToHeader.apply("bishop");
+        addContentToHeader.apply("dragon");
+        addContentToHeader.apply("king");
+        addContentToHeader.apply("knight");
+        addContentToHeader.apply("pawn");
+        addContentToHeader.apply("queen");
+        addContentToHeader.apply("rook");
+        addContentToHeader.apply("tower");
+        addContentToHeader.apply("unicorn");
 
         header.createFreeSection(headerContent);
         return header;
