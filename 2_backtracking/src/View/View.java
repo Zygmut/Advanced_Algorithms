@@ -8,7 +8,6 @@ import java.awt.Font;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Toolkit;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
@@ -17,6 +16,7 @@ import java.io.IOException;
 import java.util.function.Function;
 
 import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -159,15 +159,17 @@ public class View implements Notify {
 
         final int tamImg = 50;
         final int marginOnX = 5;
+        final int marginOnY = 5;
 
         Function<String, JPanel> addContentToHeader = (String pieceName) -> {
             BufferedImage buffImg = getBufferedImage("./assets/" + pieceName + ".png");
             JLabel label = new JLabel(this.escalateImageIcon(buffImg, tamImg, tamImg));
-            //Añade una pieza en la mesa en cada esquina
+            // Añade una pieza en la mesa en cada esquina
             label.addMouseListener(this.setPieceOnTable(pieceName, this.getPosicion()));
-            label.addMouseListener(this.getPieceListener(pieceName));
+            label.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1));
+            label.addMouseListener(this.getPieceListener(pieceName, label));
             headerContent.add(label);
-            headerContent.add(addMargin(marginOnX, 0));
+            headerContent.add(addMargin(marginOnX, marginOnY));
             return null;
         };
 
@@ -185,7 +187,8 @@ public class View implements Notify {
         return header;
     }
 
-    //Devuelve la posicion de las esquinas dependiendo del numero de piezas del tablero
+    // Devuelve la posicion de las esquinas dependiendo del numero de piezas del
+    // tablero
     private Point getPosicion() {
         Point p;
         numOfPieces = this.hub.getModel().getBoard().getPieces().size();
@@ -197,34 +200,32 @@ public class View implements Notify {
                 return p;
             case 1:
                 // Añadir pieza al tablero arriba derecha
-                p = new Point(0, boardSize-1);
+                p = new Point(0, boardSize - 1);
                 return p;
             case 2:
                 // Añadir pieza al tablero abajo derecha
-                p = new Point(boardSize-1, boardSize-1);
+                p = new Point(boardSize - 1, boardSize - 1);
                 return p;
             case 3:
                 // Añadir pieza al tablero abajo izquierda
-                p = new Point(boardSize-1, 0);
+                p = new Point(boardSize - 1, 0);
                 return p;
         }
         return null;
     }
 
-    //Al clicar sobre el icono de la pieza se debe añadir al tablero
+    // Al clicar sobre el icono de la pieza se debe añadir al tablero
     private MouseListener setPieceOnTable(String pieceName, Point p) {
         return new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent evt) {
                 hub.getModel().setNewPiece(pieceName, p);
             }
-            
         };
-        
     }
 
-    private MouseAdapter getPieceListener(String piece) {
-        return new MouseAdapter() {
+    private MouseListener getPieceListener(String piece, JLabel label) {
+        return new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent evt) {
                 // Change cursor icon
@@ -233,6 +234,32 @@ public class View implements Notify {
                 Point hotSpot = new Point(0, 0);
                 Cursor cursor = toolkit.createCustomCursor(image, hotSpot, "Cursor");
                 board.setCursor(cursor);
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                label.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                label.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1));
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                Toolkit toolkit = Toolkit.getDefaultToolkit();
+                Image image = toolkit.getImage("./assets/" + piece.toLowerCase() + ".png");
+                Point hotSpot = new Point(0, 0);
+                Cursor cursor = toolkit.createCustomCursor(image, hotSpot, "Cursor");
+                label.setCursor(cursor);
+                label.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                label.setCursor(Cursor.getDefaultCursor());
+                label.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1));
             }
         };
     }
