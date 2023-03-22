@@ -18,7 +18,7 @@ public class Model implements Notify {
         this.hub = mvc;
         this.iteration = 0;
         this.board = new ChessBoard(8);
-        this.board.addPiece(Pieces.KNIGHT, new Point(0, 0));
+        this.board.addPiece(Pieces.KING, new Point(0, 0));
     }
 
     @Override
