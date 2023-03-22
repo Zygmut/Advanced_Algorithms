@@ -9,5 +9,6 @@ public enum RequestCode {
     ReStart,
     Next,
     ChangedTableSize,
+    ChangedPiece,
     UpdateBoard
 }

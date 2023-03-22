@@ -30,6 +30,8 @@ public class Model implements Notify {
                 break;
             case ChangedTableSize:
                 this.board.setDimension(this.hub.getView().getBoardSize(), this.hub.getView().getBoardSize());
+            case ChangedPiece:
+                this.board.addPiece(this.hub.getView().getLastPiece(), this.hub.getView().getLastPoint());
                 break;
             default:
                 System.err.printf("[MODEL]: %s is not implemented.\n", request.toString());

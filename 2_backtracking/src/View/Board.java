@@ -103,6 +103,11 @@ public class Board extends JPanel {
                         setImagePath("./assets/none.png");
                         repaint();
                     }
+                    if (evt.getButton() == MouseEvent.BUTTON1) {
+                        // Get the image path from the cursor
+                        String imagePath = Box.this.getCursor().getName();
+                        repaint();
+                    }
                 }
 
                 @Override
