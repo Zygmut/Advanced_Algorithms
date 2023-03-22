@@ -39,23 +39,21 @@ public class MVC implements Notify {
     @Override
     public void notifyRequest(Request request) {
         switch (request.code) {
-            case Start, Resume, ReStart, Next, Stop -> {
+            case Start, Resume, ReStart, Next, Stop:
                 this.controller.notifyRequest(request);
-            }
-            case UpdateBoard -> {
+                break;
+            case UpdateBoard, ChangedTableSize:
                 this.model.notifyRequest(request);
                 this.view.notifyRequest(request);
-            }
-            case ChangedPiece, DeletedPiece, ChangedTableSize -> {
+                break;
+            case ChangedPiece:
                 this.model.notifyRequest(request);
-            }
-            case Error -> {
+                break;
+            case Error:
                 System.err.println(request);
                 System.exit(1);
-            }
-            default -> {
+            default:
                 System.err.printf("[MVC]: %s is not implemented.\n", request.toString());
-            }
         }
     }
 
