@@ -5,6 +5,7 @@ import javax.swing.JPanel;
 
 import Chess.ChessBoard;
 import Chess.Piece;
+import Chess.Pieces;
 
 import java.awt.GridLayout;
 import java.awt.image.BufferedImage;
@@ -25,8 +26,8 @@ public class Board extends JPanel {
 
     public Board(ChessBoard board) {
         this.board = board;
-        this.width = board.getDimension().width;
-        this.height = board.getDimension().height;
+        this.width = board.width;
+        this.height = board.height;
         setLayout(new GridLayout(width, height));
     }
 
@@ -57,7 +58,7 @@ public class Board extends JPanel {
             }
         }
 
-        for (Entry<Point, Piece> piece : board.getPieces().entrySet()) {
+        for (Entry<Point, Piece> piece : board.getPieces()) {
             boxes[piece.getKey().y][piece.getKey().x].setImagePath(piece.getValue().getImagePath());
         }
 

@@ -140,7 +140,7 @@ public class View implements Notify {
      * @see #footerSection()
      */
     private void loadContent() {
-        this.boardSize = this.hub.getModel().getBoard().getDimension().width; // .height
+        this.boardSize = this.hub.getModel().getBoard().width; // .height
         this.createProgressBar();
         this.window.addSection(this.headerSection(), DirectionAndPosition.POSITION_TOP, "Header");
         this.window.addSection(this.mainSection(), DirectionAndPosition.POSITION_CENTER, "MainContent");
@@ -321,7 +321,7 @@ public class View implements Notify {
 
         JPanel boardSizePanel = new JPanel();
         JLabel tableSize = new JLabel("Tamaño del tablero: ");
-        SpinnerNumberModel size = new SpinnerNumberModel(this.boardSize, 1, 20, 1);
+        SpinnerNumberModel size = new SpinnerNumberModel(this.boardSize, 1, 32, 1);
         JSpinner tableSizeSpinner = new JSpinner(size);
         tableSizeSpinner.addChangeListener(e -> {
             this.boardSize = (int) tableSizeSpinner.getValue();

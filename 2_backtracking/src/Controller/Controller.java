@@ -7,6 +7,7 @@ import Request.RequestCode;
 import Chess.Piece;
 import Chess.ChessBoard;
 
+import java.util.AbstractMap.SimpleEntry;
 import java.awt.Point;
 import java.time.Duration;
 import java.util.Map.Entry;
@@ -27,64 +28,62 @@ public class Controller implements Notify {
         this.globalIteration = 0;
     }
 
-    private boolean kingdomTour(boolean[][] visitedTowns, Deque<Entry<Point, Piece>> pieces, int iteration) {
+    private boolean kingdomTour(boolean[][] visitedTowns, Deque<Point> pieces, ChessBoard board, int iteration) {
 
         if (iteration == this.boardSize) {
             return true;
         }
 
-        for (Point movement : pieces.getFirst().getValue().getMovements(lastBoard, null)) {
-            if(visitedTowns[movement.x][movement.y]){
+        Point firstPiece = pieces.removeFirst();
+        for (Point movement : board.getPieceAt(firstPiece).getMovements(board, firstPiece)) {
+            if (visitedTowns[movement.x][movement.y]) {
                 continue;
             }
 
-            // add the piece with the new movement to the future kingdom queue
-            visitedTowns[movement.x][movement.y] = iteration + 1;
             this.globalIteration = iteration + 1;
+            board.move(firstPiece, movement);
+            String str = board.toString(visitedTowns);
+            visitedTowns[movement.x][movement.y] = true;
+            pieces.addLast(movement);
 
-            // System.out.println("[DEBUG] "
-            // + piece.getValue().getClass().getSimpleName()
-            // + ": "
-            // + "(" + movement.x + ", " + movement.y + ")");
+            if (kingdomTour(visitedTowns, pieces, board, globalIteration)) {
+                System.out.println(str);
+                safeThreadSleep(2000);
 
-            // System.out.println(b.toString(visitedTowns));
-            this.lastBoard = new ChessBoard(kingdom.getDimension(),
-                    kingdom.getPieces().rest().add(movement, entry.getValue()));
-
-            this.safeThreadSleep(15);
-            this.hub.notifyRequest(new Request(RequestCode.UpdateBoard, this));
-
-            // recursivelly call
-            if (kingdomTour(visitedTowns, this.lastBoard, iteration + 1)) {
                 return true;
             }
 
-            visitedTowns[movement.x][movement.y] = 0;
+            board.move(movement, firstPiece);
+            visitedTowns[movement.x][movement.y] = false;
+            pieces.removeLast();
         }
 
+        pieces.offerFirst(firstPiece);
         return false;
     }
 
     private boolean kth(ChessBoard board) {
-        int[][] visited = new int[board.height][board.width];
-        for (int[] column : visited) {
-            Arrays.fill(column, 0);
+        boolean[][] visited = new boolean[board.height][board.width];
+        for (boolean[] column : visited) {
+            Arrays.fill(column, false);
         }
 
-        Deque<Entry<Point, Piece>> queue = new ArrayDeque<>();
-        int iter = 1;
-        for (Entry<Point,Piece> entry: board.getPieces()) {
-            visited[entry.getKey().x][entry.getKey().y] = iter++;
-            queue.add(entry);
+        Deque<Point> queue = new ArrayDeque<>();
+        for (Entry<Point, Piece> entry : board.getPieces()) {
+            visited[entry.getKey().x][entry.getKey().y] = true;
+            queue.add(entry.getKey());
         }
 
         this.boardSize = board.size;
-        return kingdomTour(visited, queue, iter);
+        return kingdomTour(visited, queue, board, queue.size());
     }
 
     private void run() {
         ChessBoard board = this.hub.getModel().getBoard();
+        long start = System.nanoTime();
         boolean solution = this.kth(board);
+        long end = System.nanoTime();
+        System.out.println("Time elapsed: " + Duration.ofNanos(end - start).toSeconds());
         if (!solution) {
             throw new NoSuchElementException("No solution found");
         }
@@ -95,8 +94,8 @@ public class Controller implements Notify {
     public void notifyRequest(Request request) {
         switch (request.code) {
             case Start:
-                // this.run();
-                Thread.startVirtualThread(this::run);
+                this.run();
+                // Thread.startVirtualThread(this::run);
                 break;
             case Stop:
                 // TODO: stop the thread

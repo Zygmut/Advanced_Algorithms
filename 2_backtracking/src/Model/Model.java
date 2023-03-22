@@ -17,7 +17,9 @@ public class Model implements Notify {
     public Model(MVC mvc) {
         this.hub = mvc;
         this.iteration = 0;
-        this.board = new ChessBoard(6);
+        this.board = new ChessBoard(8);
+        board.addPiece(Pieces.UNICORN, new Point(0,0));
+        board.addPiece(Pieces.KING, new Point(7,7));
     }
 
     @Override
@@ -33,7 +35,7 @@ public class Model implements Notify {
     }
 
     public int getNumberOfPieces() {
-        return this.board.getPieces().length;
+        return this.board.getPieces().size();
     }
 
     public int getIteration() {

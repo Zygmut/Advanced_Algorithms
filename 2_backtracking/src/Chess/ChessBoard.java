@@ -27,7 +27,6 @@ public class ChessBoard {
 		this.size = dimension.width * dimension.height;
 	}
 
-
 	public ChessBoard(int width, int height) {
 		this.content = new Piece[width][height];
 		this.width = width;
@@ -53,6 +52,15 @@ public class ChessBoard {
 		return this.content[p.x][p.y] != null;
 	}
 
+	public Piece getPieceAt(Point p) {
+		return this.content[p.x][p.y];
+	}
+
+	public void move(Point from, Point to) {
+		this.content[to.x][to.y] = this.content[from.x][from.y];
+		this.content[from.x][from.y] = null;
+	}
+
 	public Piece[][] addPiece(Piece piece, Point position) {
 		if (!sanityCheck(position)) {
 			throw new IllegalArgumentException("Position is out of the chess board");
@@ -71,12 +79,12 @@ public class ChessBoard {
 		return this.content;
 	}
 
-	public ArrayList<Entry<Point,Piece>>getPieces() {
+	public ArrayList<Entry<Point, Piece>> getPieces() {
 		ArrayList<Entry<Point, Piece>> pieces = new ArrayList<>();
 		for (int x = 0; x < width; x++) {
-			for (int y= 0; y< height; y++) {
-				if(this.content[x][y] != null){
-					pieces.add(new SimpleEntry<Point,Piece>(new Point(x,y), content[x][y]));
+			for (int y = 0; y < height; y++) {
+				if (this.content[x][y] != null) {
+					pieces.add(new SimpleEntry<Point, Piece>(new Point(x, y), content[x][y]));
 				}
 			}
 		}
