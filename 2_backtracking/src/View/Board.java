@@ -32,7 +32,10 @@ public class Board extends JPanel {
         this.height = board.getDimension().height;
         setLayout(new GridLayout(width, height));
     }
-
+    public void setBoardSize(int i, int j) {
+        this.width = i;
+        this.height = j;
+    }
     public void setBoard(ChessBoard board) {
         this.board = board;
     }

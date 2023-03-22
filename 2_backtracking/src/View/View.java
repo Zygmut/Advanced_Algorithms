@@ -107,6 +107,10 @@ public class View implements Notify {
             default -> {
                 System.err.printf("[VIEW]: %s is not implemented.\n", request.toString());
             }
+            case ChangedTableSize -> {
+                this.board.setBoardSize(boardSize, boardSize);
+                this.updateBoard(this.hub.getModel().getBoard());
+            }
         }
     }
 
@@ -428,5 +432,6 @@ public class View implements Notify {
     public int getBoardSize() {
         return this.boardSize;
     }
+
 
 }

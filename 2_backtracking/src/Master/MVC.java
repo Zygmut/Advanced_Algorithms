@@ -42,7 +42,7 @@ public class MVC implements Notify {
             case Start, Resume, ReStart, Next, Stop:
                 this.controller.notifyRequest(request);
                 break;
-            case UpdateBoard:
+            case UpdateBoard, ChangedTableSize:
                 this.model.notifyRequest(request);
                 this.view.notifyRequest(request);
                 break;
