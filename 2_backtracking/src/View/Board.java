@@ -17,8 +17,8 @@ import java.awt.Graphics;
 import java.util.Map.Entry;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 public class Board extends JPanel {
 
@@ -45,14 +45,19 @@ public class Board extends JPanel {
         panelAux.setLayout(new GridLayout(width, height));
         Box boxes[][] = new Box[width][height];
         Box box;
+        Color color;
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
                 box = new Box(j, i);
                 if ((i + j) % 2 == 0) {
-                    box.setBackground(new Color(227, 206, 167));
+                    color = new Color(227, 206, 167);
+                    box.setBackground(color);
+                    box.setColor(color);
                     box.setOpaque(true);
                 } else {
-                    box.setBackground(new Color(166, 126, 91));
+                    color = new Color(166, 126, 91);
+                    box.setBackground(color);
+                    box.setColor(color);
                     box.setOpaque(true);
                 }
                 boxes[i][j] = box;
@@ -72,6 +77,7 @@ public class Board extends JPanel {
         private BufferedImage image;
         private int x;
         private int y;
+        private Color color;
 
         public Box(int x, int y) {
             this.x = x;
@@ -81,7 +87,11 @@ public class Board extends JPanel {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            this.addMouseListener(new MouseAdapter() {
+            this.addMouseListener(this.createMouseListner());
+        }
+
+        private MouseListener createMouseListner() {
+            return new MouseListener() {
                 @Override
                 public void mouseClicked(MouseEvent evt) {
                     System.out.println("Clicked on " + x + ", " + y);
@@ -91,10 +101,34 @@ public class Board extends JPanel {
                         repaint();
                     }
                 }
-            });
+
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    // Do nothing
+                }
+
+                @Override
+                public void mouseReleased(MouseEvent e) {
+                    // Do nothing
+                }
+
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    Box.this.setBackground(Color.LIGHT_GRAY);
+                }
+
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    Box.this.setBackground(color);
+                }
+            };
         }
 
-        public void setImagePath(String imagePath) {
+        private void setColor(Color color) {
+            this.color = color;
+        }
+
+        private void setImagePath(String imagePath) {
             try {
                 image = ImageIO.read(new File(imagePath));
             } catch (IOException e) {

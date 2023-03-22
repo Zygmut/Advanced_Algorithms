@@ -18,7 +18,7 @@ public class Model implements Notify {
         this.hub = mvc;
         this.iteration = 0;
         this.board = new ChessBoard(8);
-        this.board.addPiece(Pieces.KING, new Point(0, 0));
+        this.board.addPiece(Pieces.KNIGHT, new Point(0, 0));
     }
 
     @Override
@@ -30,7 +30,7 @@ public class Model implements Notify {
                 break;
             default:
                 System.err.printf("[MODEL]: %s is not implemented.\n", request.toString());
-       }
+        }
     }
 
     public int getNumberOfPieces() {
@@ -48,37 +48,5 @@ public class Model implements Notify {
     public void setBoard(ChessBoard board) {
         this.board = board;
     }
-
-    public void setNewPiece(String piece, Point position) {
-        switch (piece) {
-            case "king":
-                this.board.addPiece(Pieces.KING, position);
-                break;
-            case "queen":
-                this.board.addPiece(Pieces.QUEEN, position);
-                break;
-            case "tower":
-                this.board.addPiece(Pieces.TOWER, position);
-                break;
-            case "knight":
-                this.board.addPiece(Pieces.KNIGHT, position);
-                break;
-            case "bishop":
-                this.board.addPiece(Pieces.BISHOP, position);
-                break;
-            case "unicorn":
-                this.board.addPiece(Pieces.UNICORN, position);
-                break;
-            case "dragon":
-                this.board.addPiece(Pieces.DRAGON, position);
-                break;
-            case "rook":
-                this.board.addPiece(Pieces.CASTLE, position);
-                break;
-            default:
-                System.err.printf("[MODEL]: %s is not implemented.\n", piece);
-        }
-    }
-
 
 }
