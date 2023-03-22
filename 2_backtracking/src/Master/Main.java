@@ -10,6 +10,4 @@ public class Main {
         System.out.println(mvc.getModel().getBoard());
         mvc.show();
     }
-
-
 }

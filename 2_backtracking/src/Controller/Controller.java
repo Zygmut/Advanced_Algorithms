@@ -7,10 +7,13 @@ import Request.RequestCode;
 import Chess.Piece;
 import Chess.ChessBoard;
 
+import java.util.AbstractMap.SimpleEntry;
 import java.awt.Point;
 import java.time.Duration;
 import java.util.Map.Entry;
+import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.NoSuchElementException;
 
 public class Controller implements Notify {
@@ -18,77 +21,69 @@ public class Controller implements Notify {
     private ChessBoard lastBoard;
     private MVC hub;
     private int globalIteration;
+    private int boardSize;
 
     public Controller(MVC mvc) {
         this.hub = mvc;
         this.globalIteration = 0;
     }
 
-    private boolean kingdomTour(int[][] visitedTowns, ChessBoard kingdom, int iteration) {
+    private boolean kingdomTour(boolean[][] visitedTowns, Deque<Point> pieces, ChessBoard board, int iteration) {
 
-        if (iteration == kingdom.size) {
+        if (iteration == this.boardSize) {
             return true;
         }
 
-        // Get the first element in the queue, removes it from it
-        Entry<Point, Piece> entry = kingdom.getPieces().peek();
+        Point firstPiece = pieces.removeFirst();
+        for (Point movement : board.getPieceAt(firstPiece).getMovements(board, firstPiece)) {
+            if (visitedTowns[movement.x][movement.y]) {
+                continue;
+            }
 
-        // get all the possible movements from that piece and filter to get only the
-        // ones that has not been visited
-        Point[] movements = Arrays.stream(entry.getValue().getMovements(kingdom, entry.getKey()))
-                .filter(move -> visitedTowns[move.x][move.y] == 0)
-                .toArray(Point[]::new);
-
-        // Arrays.stream(movements).map(elem -> "(" + elem.x + ", " + elem.y + ")
-        // ").forEach(System.out::print);
-        // System.out.println(iteration);
-        // System.out.print("\033\143");
-        for (Point movement : movements) {
-
-            // add the piece with the new movement to the future kingdom queue
-            visitedTowns[movement.x][movement.y] = iteration + 1;
             this.globalIteration = iteration + 1;
-
-            // System.out.println("[DEBUG] "
-            // + piece.getValue().getClass().getSimpleName()
-            // + ": "
-            // + "(" + movement.x + ", " + movement.y + ")");
-
-            // System.out.println(b.toString(visitedTowns));
-            this.lastBoard = new ChessBoard(kingdom.getDimension(),
-                    kingdom.getPieces().rest().add(movement, entry.getValue()));
-
-            this.safeThreadSleep(15);
+            board.move(firstPiece, movement);
+            this.lastBoard = board;
             this.hub.notifyRequest(new Request(RequestCode.UpdateBoard, this));
+            visitedTowns[movement.x][movement.y] = true;
+            pieces.addLast(movement);
+            safeThreadSleep(10);
 
-            // recursivelly call
-            if (kingdomTour(visitedTowns, this.lastBoard, iteration + 1)) {
+            if (kingdomTour(visitedTowns, pieces, board, globalIteration)) {
+
                 return true;
             }
 
-            visitedTowns[movement.x][movement.y] = 0;
+            board.move(movement, firstPiece);
+            visitedTowns[movement.x][movement.y] = false;
+            pieces.removeLast();
         }
 
+        pieces.offerFirst(firstPiece);
         return false;
     }
 
     private boolean kth(ChessBoard board) {
-        int[][] visited = new int[board.getDimension().height][board.getDimension().width];
-        for (int[] column : visited) {
-            Arrays.fill(column, 0);
+        boolean[][] visited = new boolean[board.height][board.width];
+        for (boolean[] column : visited) {
+            Arrays.fill(column, false);
         }
 
-        int iter = 1;
-        for (Point pos : board.getPieces().keySet()) {
-            visited[pos.x][pos.y] = iter++;
+        Deque<Point> queue = new ArrayDeque<>();
+        for (Entry<Point, Piece> entry : board.getPieces()) {
+            visited[entry.getKey().x][entry.getKey().y] = true;
+            queue.add(entry.getKey());
         }
 
-        return kingdomTour(visited, board, board.getPieces().keySet().size());
+        this.boardSize = board.size;
+        return kingdomTour(visited, queue, board, queue.size());
     }
 
     private void run() {
         ChessBoard board = this.hub.getModel().getBoard();
+        long start = System.nanoTime();
         boolean solution = this.kth(board);
+        long end = System.nanoTime();
+        System.out.println("Time elapsed: " + Duration.ofNanos(end - start).toSeconds());
         if (!solution) {
             throw new NoSuchElementException("No solution found");
         }
@@ -99,7 +94,7 @@ public class Controller implements Notify {
     public void notifyRequest(Request request) {
         switch (request.code) {
             case Start:
-                // this.run();
+                //this.run();
                 Thread.startVirtualThread(this::run);
                 break;
             case Stop:

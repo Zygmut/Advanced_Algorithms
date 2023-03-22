@@ -23,7 +23,7 @@ import Chess.Bishop;
 import Chess.King;
 import Chess.Knight;
 import Chess.Queen;
-import Chess.Tower;
+import Chess.Rook;
 import Chess.Unicorn;
 import Chess.Dragon;
 import Chess.Castle;
@@ -127,6 +127,10 @@ public class View implements Notify {
             default -> {
                 System.err.printf("[VIEW]: %s is not implemented.\n", request.toString());
             }
+            case ChangedTableSize -> {
+                this.board.setSize(boardSize, boardSize);
+                this.updateBoard(this.hub.getModel().getBoard());
+            }
         }
     }
 
@@ -158,7 +162,7 @@ public class View implements Notify {
      * @see #footerSection()
      */
     private void loadContent() {
-        this.boardSize = this.hub.getModel().getBoard().getDimension().width; // .height
+        this.boardSize = this.hub.getModel().getBoard().width; // .height
         this.createProgressBar();
         this.window.addSection(this.headerSection(), DirectionAndPosition.POSITION_TOP, "Header");
         this.window.addSection(this.mainSection(), DirectionAndPosition.POSITION_CENTER, "MainContent");
@@ -195,10 +199,9 @@ public class View implements Notify {
         addContentToHeader.apply("dragon");
         addContentToHeader.apply("king");
         addContentToHeader.apply("knight");
-        addContentToHeader.apply("pawn");
         addContentToHeader.apply("queen");
         addContentToHeader.apply("rook");
-        addContentToHeader.apply("tower");
+        addContentToHeader.apply("castle");
         addContentToHeader.apply("unicorn");
 
         header.createFreeSection(headerContent);
@@ -420,7 +423,7 @@ public class View implements Notify {
 
         JPanel boardSizePanel = new JPanel();
         JLabel tableSize = new JLabel("Tamaño del tablero: ");
-        SpinnerNumberModel size = new SpinnerNumberModel(this.boardSize, 1, 20, 1);
+        SpinnerNumberModel size = new SpinnerNumberModel(this.boardSize, 1, 32, 1);
         JSpinner tableSizeSpinner = new JSpinner(size);
         tableSizeSpinner.addChangeListener(e -> {
             this.boardSize = (int) tableSizeSpinner.getValue();
@@ -466,8 +469,8 @@ public class View implements Notify {
 
         public Board(ChessBoard board) {
             this.board = board;
-            this.width = board.getDimension().width;
-            this.height = board.getDimension().height;
+            this.width = board.width;
+            this.height = board.height;
             setLayout(new GridLayout(width, height));
         }
 
@@ -503,7 +506,7 @@ public class View implements Notify {
                 }
             }
 
-            for (Entry<Point, Piece> piece : board.getPieces().entrySet()) {
+            for (Entry<Point, Piece> piece : board.getPieces()){
                 boxes[piece.getKey().y][piece.getKey().x].setImagePath(piece.getValue().getImagePath());
             }
 
@@ -536,8 +539,8 @@ public class View implements Notify {
                     case "knight" -> new Knight();
                     // case "pawn" -> new Pawn();
                     case "queen" -> new Queen();
-                    case "rook" -> new Castle();
-                    case "tower" -> new Tower();
+                    case "castle" -> new Castle();
+                    case "rook" -> new Rook();
                     case "unicorn" -> new Unicorn();
                     default -> null;
                 };
@@ -612,5 +615,10 @@ public class View implements Notify {
 
         }
     }
+
+    public int getBoardSize() {
+        return boardSize;
+    }
+
 
 }
