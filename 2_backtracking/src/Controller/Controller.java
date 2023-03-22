@@ -42,13 +42,13 @@ public class Controller implements Notify {
 
             this.globalIteration = iteration + 1;
             board.move(firstPiece, movement);
-            String str = board.toString(visitedTowns);
+            this.lastBoard = board;
+            this.hub.notifyRequest(new Request(RequestCode.UpdateBoard, this));
             visitedTowns[movement.x][movement.y] = true;
             pieces.addLast(movement);
+            safeThreadSleep(10);
 
             if (kingdomTour(visitedTowns, pieces, board, globalIteration)) {
-                System.out.println(str);
-                safeThreadSleep(2000);
 
                 return true;
             }
@@ -94,8 +94,8 @@ public class Controller implements Notify {
     public void notifyRequest(Request request) {
         switch (request.code) {
             case Start:
-                this.run();
-                // Thread.startVirtualThread(this::run);
+                //this.run();
+                Thread.startVirtualThread(this::run);
                 break;
             case Stop:
                 // TODO: stop the thread

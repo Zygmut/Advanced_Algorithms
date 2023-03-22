@@ -7,7 +7,7 @@ public class Castle extends Piece {
 
     public Castle() {
         super();
-        this.imagePath = "./assets/rook.png";
+        this.imagePath = "./assets/castle.png";
         this.symbol = 'C';
     }
 

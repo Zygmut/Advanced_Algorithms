@@ -1,7 +1,7 @@
 package Chess;
 
 public class Pieces {
-    public static final Piece TOWER = new Tower();
+    public static final Piece ROOK = new Rook();
     public static final Piece QUEEN = new Queen();
     public static final Piece KNIGHT = new Knight();
     public static final Piece BISHOP = new Bishop();

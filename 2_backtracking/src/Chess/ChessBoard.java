@@ -183,4 +183,5 @@ public class ChessBoard {
 		sb.append("\n");
 		return sb.toString();
 	}
+
 }

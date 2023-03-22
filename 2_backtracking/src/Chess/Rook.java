@@ -4,12 +4,12 @@ import java.awt.Point;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
-public class Tower extends Piece {
+public class Rook extends Piece {
 
-    public Tower() {
+    public Rook() {
         super();
-        this.imagePath = "./assets/tower.png";
-        this.symbol = 'T';
+        this.imagePath = "./assets/rook.png";
+        this.symbol = 'R';
     }
 
     @Override

@@ -18,9 +18,6 @@ public class Model implements Notify {
         this.hub = mvc;
         this.iteration = 0;
         this.board = new ChessBoard(8);
-        this.board.addPiece(Pieces.KING, new Point(0, 0));
-        board.addPiece(Pieces.UNICORN, new Point(0,0));
-        board.addPiece(Pieces.KING, new Point(7,7));
     }
 
     @Override
@@ -31,7 +28,7 @@ public class Model implements Notify {
                 this.iteration = this.hub.getController().getIteration();
                 break;
             case ChangedTableSize:
-                this.board.setDimension(this.hub.getView().getBoardSize(), this.hub.getView().getBoardSize());
+                this.board = new ChessBoard(this.hub.getView().getBoardSize());
             case ChangedPiece:
                 this.board.addPiece(this.hub.getView().getLastPiece(), this.hub.getView().getLastPoint());
                 break;
@@ -66,8 +63,8 @@ public class Model implements Notify {
             case "queen":
                 this.board.addPiece(Pieces.QUEEN, position);
                 break;
-            case "tower":
-                this.board.addPiece(Pieces.TOWER, position);
+            case "rook":
+                this.board.addPiece(Pieces.ROOK, position);
                 break;
             case "knight":
                 this.board.addPiece(Pieces.KNIGHT, position);
@@ -81,7 +78,7 @@ public class Model implements Notify {
             case "dragon":
                 this.board.addPiece(Pieces.DRAGON, position);
                 break;
-            case "rook":
+            case "castle":
                 this.board.addPiece(Pieces.CASTLE, position);
                 break;
             default:
