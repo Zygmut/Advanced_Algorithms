@@ -56,7 +56,7 @@ public class Config {
     /**
      * Path to the window config file.
      */
-    public static final String PATH_TO_WINDOW_CONFIG_FILE = "./config.txt";
+    public static final String PATH_TO_WINDOW_CONFIG_FILE = "./config.json";
     /**
      * Default board size.
      */

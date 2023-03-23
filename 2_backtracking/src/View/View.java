@@ -37,7 +37,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
-import betterSwing.DirectionAndPosition;
+import betterSwing.utils.DirectionAndPosition;
 import betterSwing.Section;
 import betterSwing.Window;
 import Chess.ChessBoard;
@@ -111,6 +111,7 @@ public class View implements Notify {
     public View(MVC mvc) {
         this.hub = mvc;
         this.window = new Window();
+        this.window.initConfig();
         this.numOfPieces = 0;
         this.boardWidth = 0;
         this.lastPieceString = null;
@@ -128,6 +129,7 @@ public class View implements Notify {
     public View(MVC mvc, String configPath) {
         this.hub = mvc;
         this.window = new Window(configPath);
+        this.window.initConfig();
         this.numOfPieces = 0;
         this.boardWidth = 0;
         this.lastPieceString = null;
@@ -445,7 +447,7 @@ public class View implements Notify {
             this.tiempoValue.setText("0 ms");
             this.hub.notifyRequest(new Request(RequestCode.RESTART, this));
         });
-        buttonsSection.addButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
+        buttonsSection.createButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
 
         JPanel boardSizePanel = new JPanel();
         JLabel tableSize = new JLabel("Tamaño del tablero: ");
