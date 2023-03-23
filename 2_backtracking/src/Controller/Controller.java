@@ -24,11 +24,13 @@ public class Controller implements Notify {
     private int globalIteration;
     private int boardSize;
     private int elapsedTime;
+    private boolean stop;
 
     public Controller(MVC mvc) {
         this.hub = mvc;
         this.globalIteration = 0;
         this.elapsedTime = 0;
+        this.stop = false;
     }
 
     private boolean kingdomTour(boolean[][] visitedTowns, Deque<Point> pieces, ChessBoard board, int iteration) {
@@ -105,6 +107,9 @@ public class Controller implements Notify {
             return;
         }
         Thread.startVirtualThread(this::run);
+        if (request.code == RequestCode.STOP) {
+        this.stop = true;
+        }   
     }
 
     public int getIteration() {
