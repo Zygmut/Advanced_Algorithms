@@ -1,4 +1,4 @@
-package Chess;
+package chess;
 
 import java.awt.Point;
 import java.util.Arrays;
@@ -17,10 +17,10 @@ public class Unicorn extends Piece {
     }
 
     @Override
-    public Point[] getMovements(ChessBoard board_state, Point piece_position) {
-        return Stream.of(Movements.straightTop(piece_position, board_state),
-                Movements.diagonalBottomRight(piece_position, board_state),
-                Movements.diagonalBottomLeft(piece_position, board_state))
+    public Point[] getMovements(ChessBoard boardState, Point piecePosition) {
+        return Stream.of(Movements.straightTop(piecePosition, boardState),
+                Movements.diagonalBottomRight(piecePosition, boardState),
+                Movements.diagonalBottomLeft(piecePosition, boardState))
                 .flatMap(Arrays::stream)
                 .toArray(Point[]::new);
     }

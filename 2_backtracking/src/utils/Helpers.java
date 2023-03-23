@@ -6,9 +6,12 @@ package utils;
  */
 public class Helpers {
 
+    private Helpers() {
+    }
+
     /**
      * This method returns the build path to the asset with the given name.
-     * 
+     *
      * @param assetName The name of the asset.
      * @return The path to the asset.
      */

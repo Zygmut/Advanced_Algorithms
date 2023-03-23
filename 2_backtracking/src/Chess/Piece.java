@@ -1,4 +1,4 @@
-package Chess;
+package chess;
 
 import java.awt.Point;
 
@@ -16,8 +16,8 @@ public abstract class Piece implements ChessMovable {
         return imagePath;
     }
 
-    public void setImagePath(String image_path) {
-        this.imagePath = image_path;
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
     }
 
     public Character getSymbol() {

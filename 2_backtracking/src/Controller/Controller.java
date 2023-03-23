@@ -1,15 +1,17 @@
-package Controller;
+package controller;
 
-import Master.MVC;
-import Request.Notify;
-import Request.Request;
-import Request.RequestCode;
-import Chess.Piece;
-import Chess.ChessBoard;
+import chess.ChessBoard;
+import chess.Piece;
+import master.MVC;
+import request.Notify;
+import request.Request;
+import request.RequestCode;
 
 import java.awt.Point;
 import java.time.Duration;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
@@ -44,7 +46,7 @@ public class Controller implements Notify {
             this.globalIteration = iteration + 1;
             board.move(firstPiece, movement);
             this.lastBoard = board;
-            this.hub.notifyRequest(new Request(RequestCode.UpdateBoard, this));
+            this.hub.notifyRequest(new Request(RequestCode.UPDATEDBOARD, this));
             visitedTowns[movement.x][movement.y] = true;
             pieces.addLast(movement);
             safeThreadSleep(10);
@@ -84,13 +86,11 @@ public class Controller implements Notify {
         long start = System.nanoTime();
         boolean solution = this.kth(board);
         long end = System.nanoTime();
-        System.out.println("Time elapsed: " + Duration.ofNanos(end - start).toSeconds());
         this.elapsedTime = (int) Duration.ofNanos(end - start).toSeconds();
-        this.hub.notifyRequest(new Request(RequestCode.HasFinished, this));
+        this.hub.notifyRequest(new Request(RequestCode.HASFINISHED, this));
         if (!solution) {
             throw new NoSuchElementException("No solution found");
         }
-        System.out.println("Solution found!");
     }
 
     public int getElapsedTime() {
@@ -99,16 +99,12 @@ public class Controller implements Notify {
 
     @Override
     public void notifyRequest(Request request) {
-        switch (request.code) {
-            case Start:
-                //this.run();
-                Thread.startVirtualThread(this::run);
-                break;
-            case Stop:
-                // TODO: stop the thread
-            default:
-                System.err.printf("[CONTROLLER]: %s is not implemented.\n", request.toString());
+        if (request.code != RequestCode.START) {
+            Logger.getLogger(this.getClass().getSimpleName())
+                    .log(Level.SEVERE, "{0} is not implemented.", request);
+            return;
         }
+        Thread.startVirtualThread(this::run);
     }
 
     public int getIteration() {
@@ -123,7 +119,7 @@ public class Controller implements Notify {
         try {
             Thread.sleep(Duration.ofMillis(millis));
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Thread.currentThread().interrupt();
         }
     }
 

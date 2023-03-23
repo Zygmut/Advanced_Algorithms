@@ -1,4 +1,4 @@
-package Request;
+package request;
 
 public interface Notify {
     /**

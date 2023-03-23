@@ -1,4 +1,4 @@
-package Chess;
+package chess;
 
 import java.awt.Point;
 import java.util.Arrays;
@@ -17,13 +17,13 @@ public class Dragon extends Piece {
     }
 
     @Override
-    public Point[] getMovements(ChessBoard board_state, Point piece_position) {
+    public Point[] getMovements(ChessBoard boardState, Point piecePosition) {
         return Stream
-                .of(Movements.jumpPermutation(piece_position, board_state, new int[] { -1, 1 }, new int[] { -2, 2 }),
-                        Movements.diagonalTopRight(piece_position, board_state),
-                        Movements.diagonalBottomRight(piece_position, board_state),
-                        Movements.diagonalBottomLeft(piece_position, board_state),
-                        Movements.diagonalTopLeft(piece_position, board_state))
+                .of(Movements.jumpPermutation(piecePosition, boardState, new int[] { -1, 1 }, new int[] { -2, 2 }),
+                        Movements.diagonalTopRight(piecePosition, boardState),
+                        Movements.diagonalBottomRight(piecePosition, boardState),
+                        Movements.diagonalBottomLeft(piecePosition, boardState),
+                        Movements.diagonalTopLeft(piecePosition, boardState))
                 .flatMap(Arrays::stream)
                 .toArray(Point[]::new);
     }

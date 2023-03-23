@@ -1,12 +1,14 @@
-package Model;
+package model;
 
 import java.awt.Point;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import Chess.ChessBoard;
-import Chess.Pieces;
-import Master.MVC;
-import Request.Notify;
-import Request.Request;
+import chess.ChessBoard;
+import chess.Pieces;
+import master.MVC;
+import request.Notify;
+import request.Request;
 import utils.Config;
 
 public class Model implements Notify {
@@ -26,24 +28,25 @@ public class Model implements Notify {
     @Override
     public void notifyRequest(Request request) {
         switch (request.code) {
-            case UpdateBoard:
+            case UPDATEDBOARD:
                 this.board = this.hub.getController().getLastBoard();
                 this.iteration = this.hub.getController().getIteration();
                 break;
-            case ChangedTableSize:
-                this.board = new ChessBoard(this.hub.getView().getBoardSize());
+            case CHANGEDTABLESIZE:
+                this.board = new ChessBoard(this.hub.getView().getBoardWidth());
                 break;
-            case ChangedPiece:
+            case CHANGEDPIECE:
                 this.board.addPiece(this.hub.getView().getLastPiece(), this.hub.getView().getLastPoint());
                 break;
-            case DeletedPiece:
+            case DELETEDPIECE:
                 this.board.removePieceAt(this.hub.getView().getLastPoint());
                 break;
-            case HasFinished:
+            case HASFINISHED:
                 this.elapsedTime = this.hub.getController().getElapsedTime();
                 break;
             default:
-                System.err.printf("[MODEL]: %s is not implemented.\n", request.toString());
+                Logger.getLogger(this.getClass().getSimpleName())
+                        .log(Level.SEVERE, "{0} is not implemented.", request);
         }
     }
 
@@ -96,7 +99,8 @@ public class Model implements Notify {
                 this.board.addPiece(Pieces.CASTLE, position);
                 break;
             default:
-                System.err.printf("[MODEL]: %s is not implemented.\n", piece);
+                Logger.getLogger(this.getClass().getSimpleName())
+                        .log(Level.SEVERE, "{0} is not implemented.", piece);
         }
     }
 }

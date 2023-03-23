@@ -1,10 +1,13 @@
-package Master;
+package master;
 
-import Model.Model;
-import Request.Notify;
-import Request.Request;
-import View.View;
-import Controller.Controller;
+import controller.Controller;
+import model.Model;
+import request.Notify;
+import request.Request;
+import view.View;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
 
@@ -39,21 +42,19 @@ public class MVC implements Notify {
     @Override
     public void notifyRequest(Request request) {
         switch (request.code) {
-            case Start, Resume, ReStart, Next, Stop:
+            case START, RESUME, RESTART, NEXT, STOP:
                 this.controller.notifyRequest(request);
                 break;
-            case UpdateBoard, ChangedTableSize, HasFinished:
+            case UPDATEDBOARD, CHANGEDTABLESIZE, HASFINISHED:
                 this.model.notifyRequest(request);
                 this.view.notifyRequest(request);
                 break;
-            case ChangedPiece, DeletedPiece:
+            case CHANGEDPIECE, DELETEDPIECE:
                 this.model.notifyRequest(request);
                 break;
-            case Error:
-                System.err.println(request);
-                System.exit(1);
             default:
-                System.err.printf("[MVC]: %s is not implemented.\n", request.toString());
+                Logger.getLogger(this.getClass().getSimpleName())
+                        .log(Level.SEVERE, "{0} is not implemented.", request);
         }
     }
 

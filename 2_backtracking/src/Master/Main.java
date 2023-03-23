@@ -1,4 +1,4 @@
-package Master;
+package master;
 
 import mesurament.Mesurament;
 import utils.Config;

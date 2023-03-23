@@ -1,4 +1,4 @@
-package Chess;
+package chess;
 
 import java.awt.Point;
 import java.util.ArrayList;
@@ -26,11 +26,11 @@ public class Knight extends Piece {
     }
 
     @Override
-    public Point[] getMovements(ChessBoard board_state, Point piece_position) {
+    public Point[] getMovements(ChessBoard boardState, Point piecePosition) {
         ArrayList<Point> movements = new ArrayList<>();
         for (Point movement : permutations){
-            Point temp = new Point(movement.x + piece_position.x, movement.y + piece_position.y);
-            if (!board_state.sanityCheck(temp) || board_state.isOccupied(temp)){
+            Point temp = new Point(movement.x + piecePosition.x, movement.y + piecePosition.y);
+            if (!boardState.sanityCheck(temp) || boardState.isOccupied(temp)){
                 continue;
             }
             movements.add(temp);

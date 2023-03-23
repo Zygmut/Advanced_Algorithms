@@ -1,4 +1,4 @@
-package Chess;
+package chess;
 
 import java.awt.Point;
 
@@ -15,8 +15,8 @@ public class Castle extends Piece {
     }
 
     @Override
-    public Point[] getMovements(ChessBoard board_state, Point piece_position) {
-        return Movements.jumpPermutation(piece_position, board_state,
+    public Point[] getMovements(ChessBoard boardState, Point piecePosition) {
+        return Movements.jumpPermutation(piecePosition, boardState,
                 new int[] { 2, -2 },
                 new int[] { 0, 1, -1 });
     }

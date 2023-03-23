@@ -1,6 +1,7 @@
-package Chess;
+package chess;
 
 public class Pieces {
+    private Pieces(){}
     public static final Piece ROOK = new Rook();
     public static final Piece QUEEN = new Queen();
     public static final Piece KNIGHT = new Knight();

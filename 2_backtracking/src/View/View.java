@@ -1,4 +1,4 @@
-package View;
+package view;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -14,19 +14,11 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
-
-import Chess.ChessBoard;
-import Chess.Piece;
-import Chess.Bishop;
-import Chess.King;
-import Chess.Knight;
-import Chess.Queen;
-import Chess.Rook;
-import Chess.Unicorn;
-import Chess.Dragon;
-import Chess.Castle;
 
 import java.awt.GridLayout;
 import java.awt.BorderLayout;
@@ -43,13 +35,16 @@ import javax.swing.JProgressBar;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
-import Master.MVC;
-import Request.Notify;
-import Request.Request;
-import Request.RequestCode;
 import betterSwing.DirectionAndPosition;
 import betterSwing.Section;
 import betterSwing.Window;
+import chess.ChessBoard;
+import chess.Piece;
+import chess.Pieces;
+import master.MVC;
+import request.Notify;
+import request.Request;
+import request.RequestCode;
 import utils.Config;
 import utils.Helpers;
 
@@ -70,7 +65,7 @@ public class View implements Notify {
     /**
      * The size of the board.
      */
-    private int boardSize;
+    private int boardWidth;
     /**
      * The progress bar of the view. Indicates the progress of the algorithm.
      */
@@ -109,7 +104,7 @@ public class View implements Notify {
         this.hub = mvc;
         this.window = new Window();
         this.numOfPieces = 0;
-        this.boardSize = 0;
+        this.boardWidth = 0;
         this.lastPieceString = null;
         this.loadContent();
     }
@@ -126,7 +121,7 @@ public class View implements Notify {
         this.hub = mvc;
         this.window = new Window(configPath);
         this.numOfPieces = 0;
-        this.boardSize = 0;
+        this.boardWidth = 0;
         this.lastPieceString = null;
         this.loadContent();
     }
@@ -134,28 +129,29 @@ public class View implements Notify {
     @Override
     public void notifyRequest(Request request) {
         switch (request.code) {
-            case UpdateBoard -> {
+            case UPDATEDBOARD -> {
                 this.updateBoard(this.hub.getModel().getBoard());
             }
-            case ChangedTableSize -> {
-                this.tamValue.setText(this.boardSize + "x" + this.boardSize);
-                this.board.setBoardSize(this.boardSize, this.boardSize);
+            case CHANGEDTABLESIZE -> {
+                this.tamValue.setText(this.boardWidth + "x" + this.boardWidth);
+                this.board.setBoardSize(this.boardWidth, this.boardWidth);
                 this.board.removeAll();
                 this.updateBoard(this.hub.getModel().getBoard());
             }
-            case HasFinished -> {
+            case HASFINISHED -> {
                 this.tiempoValue.setIcon(null);
                 this.tiempoValue.setText(this.hub.getModel().getElapsedTime() + " ms");
             }
             default -> {
-                System.err.printf("[VIEW]: %s is not implemented.\n", request.toString());
+                Logger.getLogger(this.getClass().getSimpleName())
+                        .log(Level.SEVERE, "{0} is not implemented.", request);
             }
         }
     }
 
     /**
      * Updates the board of the view.
-     * 
+     *
      * @param board The new board.
      * @see Board
      */
@@ -174,14 +170,14 @@ public class View implements Notify {
 
     /**
      * Loads all the view content.
-     * 
+     *
      * @see #headerSection()
      * @see #mainSection()
      * @see #sideBarSection()
      * @see #footerSection()
      */
     private void loadContent() {
-        this.boardSize = this.hub.getModel().getBoard().width; // .height
+        this.boardWidth = this.hub.getModel().getBoard().width; // .height
         this.createProgressBar();
         this.window.addSection(this.headerSection(), DirectionAndPosition.POSITION_TOP, "Header");
         this.window.addSection(this.mainSection(), DirectionAndPosition.POSITION_CENTER, "MainContent");
@@ -192,7 +188,7 @@ public class View implements Notify {
     /**
      * Creates and returns the header section of the view. This section is mainly
      * used for allowing the user to select the piece to play and the game mode.
-     * 
+     *
      * @return The header section of the view.
      */
     private Section headerSection() {
@@ -286,7 +282,7 @@ public class View implements Notify {
     /**
      * Creates and returns the main section of the view. This section is mainly used
      * for showing the game board.
-     * 
+     *
      * @return The main section of the view.
      */
     private Section mainSection() {
@@ -301,10 +297,11 @@ public class View implements Notify {
     /**
      * Creates and returns the side bar section of the view. This section is mainly
      * used for showing the stats of the game.
-     * 
+     *
      * @return The side bar section of the view.
      */
     private Section sideBarSection() {
+        final String font = "Arial";
         Section sideBar = new Section();
         JPanel sideBarContent = new JPanel();
         sideBarContent.setBackground(Color.LIGHT_GRAY);
@@ -313,7 +310,7 @@ public class View implements Notify {
         JPanel contentTitleLayout = new JPanel();
         contentTitleLayout.setBackground(Color.LIGHT_GRAY);
         JLabel title = new JLabel("Estadísticas");
-        title.setFont(new Font("Arial", Font.ITALIC, 30));
+        title.setFont(new Font(font, Font.ITALIC, 30));
         contentTitleLayout.add(addMargin(10, 10));
         contentTitleLayout.add(title);
         contentTitleLayout.add(addMargin(10, 10));
@@ -324,11 +321,11 @@ public class View implements Notify {
         JPanel infoTam = new JPanel();
         infoTam.setBackground(Color.LIGHT_GRAY);
         JLabel tam = new JLabel("Tamaño del tablero: ");
-        tam.setFont(new Font("Arial", Font.ITALIC, 20));
+        tam.setFont(new Font(font, Font.ITALIC, 20));
         infoTam.add(tam);
         infoTam.add(addMargin(10, 10));
-        this.tamValue = new JLabel(this.boardSize + "x" + this.boardSize);
-        this.tamValue.setFont(new Font("Arial", Font.ITALIC, 20));
+        this.tamValue = new JLabel(this.boardWidth + "x" + this.boardWidth);
+        this.tamValue.setFont(new Font(font, Font.ITALIC, 20));
         infoTam.add(this.tamValue);
         infoTam.add(addMargin(10, 10));
 
@@ -338,12 +335,12 @@ public class View implements Notify {
         JPanel infoPiezas = new JPanel();
         infoPiezas.setBackground(Color.LIGHT_GRAY);
         JLabel piezas = new JLabel("Piezas en el tablero: ");
-        piezas.setFont(new Font("Arial", Font.ITALIC, 20));
+        piezas.setFont(new Font(font, Font.ITALIC, 20));
         infoPiezas.add(piezas);
         infoPiezas.add(addMargin(10, 10));
         this.numOfPieces = this.hub.getModel().getNumberOfPieces();
         this.piezasValue = new JLabel(this.numOfPieces + "");
-        this.piezasValue.setFont(new Font("Arial", Font.ITALIC, 20));
+        this.piezasValue.setFont(new Font(font, Font.ITALIC, 20));
         infoPiezas.add(this.piezasValue);
         infoPiezas.add(addMargin(10, 10));
 
@@ -353,11 +350,11 @@ public class View implements Notify {
         JPanel infoTiempo = new JPanel();
         infoTiempo.setBackground(Color.LIGHT_GRAY);
         JLabel tiempo = new JLabel("Tiempo: ");
-        tiempo.setFont(new Font("Arial", Font.ITALIC, 20));
+        tiempo.setFont(new Font(font, Font.ITALIC, 20));
         infoTiempo.add(addMargin(10, 10));
         infoTiempo.add(tiempo);
         tiempoValue = new JLabel("0 ms");
-        tiempoValue.setFont(new Font("Arial", Font.ITALIC, 20));
+        tiempoValue.setFont(new Font(font, Font.ITALIC, 20));
         infoTiempo.add(tiempoValue);
         infoTiempo.add(addMargin(10, 10));
 
@@ -367,7 +364,7 @@ public class View implements Notify {
         JPanel infProgresoPanel = new JPanel();
         infProgresoPanel.setBackground(Color.LIGHT_GRAY);
         JLabel progreso = new JLabel("Progreso: ");
-        progreso.setFont(new Font("Arial", Font.ITALIC, 20));
+        progreso.setFont(new Font(font, Font.ITALIC, 20));
         infProgresoPanel.add(addMargin(10, 10));
         infProgresoPanel.add(progreso);
         infProgresoPanel.add(this.progressBar);
@@ -394,7 +391,7 @@ public class View implements Notify {
     /**
      * Creates and returns the footer section of the view. This section is mainly
      * used for allowing the user to navigate through different views.
-     * 
+     *
      * @return The footer section of the view.
      */
     private Section footerSection() {
@@ -402,12 +399,14 @@ public class View implements Notify {
 
         Section buttonsSection = new Section();
         JButton[] buttons = new JButton[3];
-        buttons[0] = new JButton("Iniciar");
+        final String Startstr = "Iniciar";
+        final String Endstr = "Pausar";
+        buttons[0] = new JButton(Startstr);
         buttons[0].addActionListener(e -> {
-            if (buttons[0].getText().equals("Iniciar")) {
-                buttons[0].setText("Pausar");
+            if (buttons[0].getText().equals(Startstr)) {
+                buttons[0].setText(Endstr);
                 buttons[2].setEnabled(true);
-                this.hub.notifyRequest(new Request(RequestCode.Start, this));
+                this.hub.notifyRequest(new Request(RequestCode.START, this));
                 this.tiempoValue.setText("");
                 ImageIcon loading = new ImageIcon("./assets/loading.gif");
                 loading.setImage(loading.getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT));
@@ -415,13 +414,13 @@ public class View implements Notify {
             } else {
                 buttons[2].setEnabled(true);
                 String btnText = buttons[0].getText();
-                String newBtnText = btnText.equals("Pausar") ? "Reanudar" : "Pausar";
+                String newBtnText = btnText.equals(Endstr) ? "Reanudar" : Endstr;
                 buttons[0].setText(newBtnText);
                 RequestCode code;
-                if (btnText.equals("Pausar")) {
-                    code = RequestCode.Stop;
+                if (btnText.equals(Endstr)) {
+                    code = RequestCode.STOP;
                 } else {
-                    code = RequestCode.Resume;
+                    code = RequestCode.RESUME;
                 }
                 this.hub.notifyRequest(new Request(code, this));
             }
@@ -429,25 +428,25 @@ public class View implements Notify {
         buttons[1] = new JButton("Siguiente iteración");
         buttons[1].addActionListener(e -> {
             buttons[2].setEnabled(true);
-            this.hub.notifyRequest(new Request(RequestCode.Next, this));
+            this.hub.notifyRequest(new Request(RequestCode.NEXT, this));
         });
         buttons[2] = new JButton("Reiniciar");
         buttons[2].setEnabled(false);
         buttons[2].addActionListener(e -> {
-            buttons[0].setText("Iniciar");
+            buttons[0].setText(Startstr);
             buttons[2].setEnabled(false);
             this.tiempoValue.setText("0 ms");
-            this.hub.notifyRequest(new Request(RequestCode.ReStart, this));
+            this.hub.notifyRequest(new Request(RequestCode.RESTART, this));
         });
         buttonsSection.addButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
 
         JPanel boardSizePanel = new JPanel();
         JLabel tableSize = new JLabel("Tamaño del tablero: ");
-        SpinnerNumberModel size = new SpinnerNumberModel(this.boardSize, 1, 32, 1);
+        SpinnerNumberModel size = new SpinnerNumberModel(this.boardWidth, 1, 32, 1);
         JSpinner tableSizeSpinner = new JSpinner(size);
         tableSizeSpinner.addChangeListener(e -> {
-            this.boardSize = (int) tableSizeSpinner.getValue();
-            this.hub.notifyRequest(new Request(RequestCode.ChangedTableSize, this));
+            this.boardWidth = (int) tableSizeSpinner.getValue();
+            this.hub.notifyRequest(new Request(RequestCode.CHANGEDTABLESIZE, this));
         });
         boardSizePanel.add(tableSize);
         boardSizePanel.add(tableSizeSpinner);
@@ -462,7 +461,7 @@ public class View implements Notify {
 
     /**
      * Returns the window of the view.
-     * 
+     *
      * @return The window of the view.
      */
     public Window getWindow() {
@@ -481,48 +480,47 @@ public class View implements Notify {
         return this.lastPoint;
     }
 
-    public int getBoardSize() {
-        return boardSize;
+    public int getBoardWidth() {
+        return boardWidth;
     }
 
     public class Board extends JPanel {
 
-        private ChessBoard board;
-        private int width;
-        private int height;
+        private ChessBoard content;
+        private int boardWidth;
+        private int boardHeight;
 
         public Board(ChessBoard board) {
-            this.board = board;
-            this.width = board.width;
-            this.height = board.height;
-            setLayout(new GridLayout(width, height));
+            this.content = board;
+            this.boardWidth = board.width;
+            this.boardHeight = board.height;
+            setLayout(new GridLayout(boardWidth, boardHeight));
         }
 
         public void setBoard(ChessBoard board) {
-            this.board = board;
+            this.content = board;
         }
 
         public void setBoardSize(int i, int j) {
-            this.width = i;
-            this.height = j;
+            this.boardWidth = i;
+            this.boardHeight = j;
         }
 
         @Override
         public String toString() {
-            return "Board [board=" + board + ", height=" + height + ", width=" + width + "]";
+            return "Board [board=" + content + ", height=" + boardHeight + ", width=" + boardWidth + "]";
         }
 
         @Override
         public void paintComponent(Graphics g) {
-            // TODO: Improve this method
             setLayout(new BorderLayout());
             JPanel panelAux = new JPanel();
-            panelAux.setLayout(new GridLayout(width, height));
-            BoxBoard[][] boxes = new BoxBoard[width][height];
+            panelAux.setLayout(new GridLayout(boardWidth, boardHeight));
+            BoxBoard[][] boxes = new BoxBoard[boardWidth][boardHeight];
             BoxBoard box;
             Color color;
-            for (int i = 0; i < width; i++) {
-                for (int j = 0; j < height; j++) {
+            for (int i = 0; i < boardWidth; i++) {
+                for (int j = 0; j < boardHeight; j++) {
                     box = new BoxBoard(j, i);
                     if ((i + j) % 2 == 0) {
                         color = new Color(227, 206, 167);
@@ -540,7 +538,7 @@ public class View implements Notify {
                 }
             }
 
-            for (Entry<Point, Piece> piece : board.getPieces()) {
+            for (Entry<Point, Piece> piece : content.getPieces()) {
                 boxes[piece.getKey().y][piece.getKey().x].setImagePath(piece.getValue().getImagePath());
             }
 
@@ -550,13 +548,13 @@ public class View implements Notify {
         private class BoxBoard extends JPanel {
 
             private BufferedImage image;
-            private int x;
-            private int y;
+            private int xPos;
+            private int yPos;
             private Color color;
 
             public BoxBoard(int x, int y) {
-                this.x = x;
-                this.y = y;
+                this.xPos = x;
+                this.yPos = y;
                 try {
                     image = ImageIO.read(new File(Helpers.getAssetPath(Config.ASSET_NAME_OF_PIECE_NONE)));
                 } catch (IOException e) {
@@ -567,14 +565,14 @@ public class View implements Notify {
 
             private Piece getLastPiece(String imagePath) {
                 return switch (imagePath) {
-                    case Config.ASSET_NAME_OF_PIECE_BISHOP -> new Bishop();
-                    case Config.ASSET_NAME_OF_PIECE_DRAGON -> new Dragon();
-                    case Config.ASSET_NAME_OF_PIECE_KING -> new King();
-                    case Config.ASSET_NAME_OF_PIECE_KNIGHT -> new Knight();
-                    case Config.ASSET_NAME_OF_PIECE_QUEEN -> new Queen();
-                    case Config.ASSET_NAME_OF_PIECE_CASTLE -> new Castle();
-                    case Config.ASSET_NAME_OF_PIECE_ROOK -> new Rook();
-                    case Config.ASSET_NAME_OF_PIECE_UNICORN -> new Unicorn();
+                    case Config.ASSET_NAME_OF_PIECE_BISHOP -> Pieces.BISHOP;
+                    case Config.ASSET_NAME_OF_PIECE_DRAGON -> Pieces.DRAGON;
+                    case Config.ASSET_NAME_OF_PIECE_KING -> Pieces.KING;
+                    case Config.ASSET_NAME_OF_PIECE_KNIGHT -> Pieces.KNIGHT;
+                    case Config.ASSET_NAME_OF_PIECE_QUEEN -> Pieces.QUEEN;
+                    case Config.ASSET_NAME_OF_PIECE_CASTLE -> Pieces.CASTLE;
+                    case Config.ASSET_NAME_OF_PIECE_ROOK -> Pieces.ROOK;
+                    case Config.ASSET_NAME_OF_PIECE_UNICORN -> Pieces.UNICORN;
                     default -> null;
                 };
             }
@@ -583,11 +581,10 @@ public class View implements Notify {
                 return new MouseListener() {
                     @Override
                     public void mouseClicked(MouseEvent evt) {
-                        // System.out.println("Clicked on " + x + ", " + y);
                         Board.this.setCursor(Cursor.getDefaultCursor());
                         if (evt.getButton() == MouseEvent.BUTTON3) {
-                            View.this.lastPoint = new Point(x, y);
-                            View.this.hub.notifyRequest(new Request(RequestCode.DeletedPiece, View.this));
+                            View.this.lastPoint = new Point(xPos, yPos);
+                            View.this.hub.notifyRequest(new Request(RequestCode.DELETEDPIECE, View.this));
                             View.this.numOfPieces = View.this.hub.getModel().getNumberOfPieces();
                             View.this.piezasValue.setText(View.this.numOfPieces + "");
                             View.this.lastPoint = null;
@@ -598,8 +595,8 @@ public class View implements Notify {
                             String imageName = View.this.lastPieceString;
                             if (imageName != null) {
                                 View.this.lastPiece = getLastPiece(imageName);
-                                View.this.lastPoint = new Point(x, y);
-                                View.this.hub.notifyRequest(new Request(RequestCode.ChangedPiece, View.this));
+                                View.this.lastPoint = new Point(xPos, yPos);
+                                View.this.hub.notifyRequest(new Request(RequestCode.CHANGEDPIECE, View.this));
                                 View.this.numOfPieces = View.this.hub.getModel().getNumberOfPieces();
                                 View.this.piezasValue.setText(View.this.numOfPieces + "");
                                 setImagePath(Helpers.getAssetPath(imageName));

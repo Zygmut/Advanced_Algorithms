@@ -1,16 +1,16 @@
-package Request;
+package request;
 
 public enum RequestCode {
-    None,
-    Error,
-    Start,
-    Resume,
-    Stop,
-    ReStart,
-    Next,
-    ChangedTableSize,
-    ChangedPiece,
-    DeletedPiece,
-    UpdateBoard,
-    HasFinished,
+    NONE,
+    ERROR,
+    START,
+    RESUME,
+    STOP,
+    RESTART,
+    NEXT,
+    CHANGEDTABLESIZE,
+    CHANGEDPIECE,
+    DELETEDPIECE,
+    UPDATEDBOARD,
+    HASFINISHED,
 }

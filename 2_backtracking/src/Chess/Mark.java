@@ -1,4 +1,4 @@
-package Chess;
+package chess;
 
 import java.awt.Point;
 
@@ -10,7 +10,7 @@ public class Mark extends Piece {
     }
 
     @Override
-    public Point[] getMovements(ChessBoard board_state, Point piece_position) {
+    public Point[] getMovements(ChessBoard boardState, Point piecePosition) {
         return new Point[]{};
     }
 }

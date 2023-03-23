@@ -5,6 +5,10 @@ package utils;
  * strings and make the code more readable and maintainable.
  */
 public class Config {
+
+    private Config() {
+    }
+
     /**
      * Path to assets folder.
      */

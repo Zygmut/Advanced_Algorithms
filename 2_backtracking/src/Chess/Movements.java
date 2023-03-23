@@ -1,4 +1,4 @@
-package Chess;
+package chess;
 
 import java.awt.Point;
 import java.util.Collections;
@@ -7,78 +7,81 @@ import java.util.stream.Stream;
 
 public class Movements {
 
-    public static Point[] straightTop(Point piece_position, ChessBoard board_state) {
-        return IntStream.range(0, piece_position.y)
+    private Movements() {
+    }
+
+    public static Point[] straightTop(Point piecePosition, ChessBoard boardState) {
+        return IntStream.range(0, piecePosition.y)
                 .boxed()
                 .sorted(Collections.reverseOrder())
-                .map((y) -> new Point(piece_position.x, y))
-                .takeWhile(point -> !board_state.isOccupied(point))
+                .map((y) -> new Point(piecePosition.x, y))
+                .takeWhile(point -> !boardState.isOccupied(point))
                 .toArray(Point[]::new);
     }
 
-    public static Point[] straightRight(Point piece_position, ChessBoard board_state) {
-        return IntStream.range(piece_position.x + 1, board_state.width)
-                .mapToObj((x) -> new Point(x, piece_position.y))
-                .takeWhile(point -> !board_state.isOccupied(point))
+    public static Point[] straightRight(Point piecePosition, ChessBoard boardState) {
+        return IntStream.range(piecePosition.x + 1, boardState.width)
+                .mapToObj((x) -> new Point(x, piecePosition.y))
+                .takeWhile(point -> !boardState.isOccupied(point))
                 .toArray(Point[]::new);
     }
 
-    public static Point[] straightBottom(Point piece_position, ChessBoard board_state) {
-        return IntStream.range(piece_position.y + 1, board_state.height)
-                .mapToObj(y -> new Point(piece_position.x, y))
-                .takeWhile(point -> !board_state.isOccupied(point))
+    public static Point[] straightBottom(Point piecePosition, ChessBoard boardState) {
+        return IntStream.range(piecePosition.y + 1, boardState.height)
+                .mapToObj(y -> new Point(piecePosition.x, y))
+                .takeWhile(point -> !boardState.isOccupied(point))
                 .toArray(Point[]::new);
     }
 
-    public static Point[] straightLeft(Point piece_position, ChessBoard board_state) {
-        return IntStream.range(0, piece_position.x)
+    public static Point[] straightLeft(Point piecePosition, ChessBoard boardState) {
+        return IntStream.range(0, piecePosition.x)
                 .boxed()
                 .sorted(Collections.reverseOrder())
-                .map((x) -> new Point(x, piece_position.y))
-                .takeWhile(point -> !board_state.isOccupied(point))
+                .map((x) -> new Point(x, piecePosition.y))
+                .takeWhile(point -> !boardState.isOccupied(point))
                 .toArray(Point[]::new);
     }
 
-    public static Point[] diagonalTopRight(Point piece_position, ChessBoard board_state) {
+    public static Point[] diagonalTopRight(Point piecePosition, ChessBoard boardState) {
         return IntStream
-                .range(1, Math.min(board_state.width - piece_position.x,
-                        piece_position.y + 1))
-                .mapToObj(i -> new Point(piece_position.x + i, piece_position.y - i))
-                .takeWhile(point -> !board_state.isOccupied(point))
+                .range(1, Math.min(boardState.width - piecePosition.x,
+                        piecePosition.y + 1))
+                .mapToObj(i -> new Point(piecePosition.x + i, piecePosition.y - i))
+                .takeWhile(point -> !boardState.isOccupied(point))
                 .toArray(Point[]::new);
     }
 
-    public static Point[] diagonalTopLeft(Point piece_position, ChessBoard board_state) {
-        return IntStream.range(1, Math.min(piece_position.x + 1, piece_position.y + 1))
-                .mapToObj(i -> new Point(piece_position.x - i, piece_position.y - i))
-                .takeWhile(point -> !board_state.isOccupied(point))
+    public static Point[] diagonalTopLeft(Point piecePosition, ChessBoard boardState) {
+        return IntStream.range(1, Math.min(piecePosition.x + 1, piecePosition.y + 1))
+                .mapToObj(i -> new Point(piecePosition.x - i, piecePosition.y - i))
+                .takeWhile(point -> !boardState.isOccupied(point))
                 .toArray(Point[]::new);
     }
 
-    public static Point[] diagonalBottomRight(Point piece_position, ChessBoard board_state) {
+    public static Point[] diagonalBottomRight(Point piecePosition, ChessBoard boardState) {
         return IntStream
-                .range(1, Math.min(board_state.width - piece_position.x,
-                        board_state.height - piece_position.y))
-                .mapToObj(i -> new Point(piece_position.x + i, piece_position.y + i))
-                .takeWhile(point -> !board_state.isOccupied(point))
+                .range(1, Math.min(boardState.width - piecePosition.x,
+                        boardState.height - piecePosition.y))
+                .mapToObj(i -> new Point(piecePosition.x + i, piecePosition.y + i))
+                .takeWhile(point -> !boardState.isOccupied(point))
                 .toArray(Point[]::new);
     }
 
-    public static Point[] diagonalBottomLeft(Point piece_position, ChessBoard board_state) {
+    public static Point[] diagonalBottomLeft(Point piecePosition, ChessBoard boardState) {
         return IntStream
-                .range(1, Math.min(piece_position.x + 1,
-                        board_state.height - piece_position.y))
-                .mapToObj(i -> new Point(piece_position.x - i, piece_position.y + i))
-                .takeWhile(point -> !board_state.isOccupied(point))
+                .range(1, Math.min(piecePosition.x + 1,
+                        boardState.height - piecePosition.y))
+                .mapToObj(i -> new Point(piecePosition.x - i, piecePosition.y + i))
+                .takeWhile(point -> !boardState.isOccupied(point))
                 .toArray(Point[]::new);
 
     }
 
-    public static Point[] jumpPermutation(Point piece_position, ChessBoard board_state, int[] permutation1,
+    public static Point[] jumpPermutation(Point piecePosition, ChessBoard boardState, int[] permutation1,
             int[] permutation2) {
         return generatePermutations(permutation1, permutation2)
-                .map(move -> new Point(move[0] + piece_position.x, move[1] + piece_position.y))
-                .filter(point -> board_state.sanityCheck(point) && !board_state.isOccupied(point))
+                .map(move -> new Point(move[0] + piecePosition.x, move[1] + piecePosition.y))
+                .filter(point -> boardState.sanityCheck(point) && !boardState.isOccupied(point))
                 .toArray(Point[]::new);
     }
 

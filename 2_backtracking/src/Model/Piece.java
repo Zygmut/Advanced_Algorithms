@@ -1,4 +1,4 @@
-package Model;
+package model;
 
 public record Piece(int x, int y, int color, String id) {
     public Piece {

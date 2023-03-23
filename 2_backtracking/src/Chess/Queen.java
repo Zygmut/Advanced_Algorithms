@@ -1,4 +1,4 @@
-package Chess;
+package chess;
 
 import java.awt.Point;
 import java.util.Arrays;
@@ -16,15 +16,15 @@ public class Queen extends Piece {
 	}
 
 	@Override
-	public Point[] getMovements(ChessBoard board_state, Point piece_position) {
-		return Stream.of(Movements.straightTop(piece_position, board_state),
-				Movements.diagonalTopRight(piece_position, board_state),
-				Movements.straightRight(piece_position, board_state),
-				Movements.diagonalBottomRight(piece_position, board_state),
-				Movements.straightBottom(piece_position, board_state),
-				Movements.diagonalBottomLeft(piece_position, board_state),
-				Movements.straightLeft(piece_position, board_state),
-				Movements.diagonalTopLeft(piece_position, board_state))
+	public Point[] getMovements(ChessBoard boardState, Point piecePosition) {
+		return Stream.of(Movements.straightTop(piecePosition, boardState),
+				Movements.diagonalTopRight(piecePosition, boardState),
+				Movements.straightRight(piecePosition, boardState),
+				Movements.diagonalBottomRight(piecePosition, boardState),
+				Movements.straightBottom(piecePosition, boardState),
+				Movements.diagonalBottomLeft(piecePosition, boardState),
+				Movements.straightLeft(piecePosition, boardState),
+				Movements.diagonalTopLeft(piecePosition, boardState))
 				.flatMap(Arrays::stream)
 				.toArray(Point[]::new);
 	}

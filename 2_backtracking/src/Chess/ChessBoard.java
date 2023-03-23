@@ -1,4 +1,4 @@
-package Chess;
+package chess;
 
 import java.awt.Point;
 import java.awt.Dimension;
@@ -158,12 +158,10 @@ public class ChessBoard {
 				Piece piece = this.content[x][y];
 				if (visited[x][y]) {
 					sb.append("x ");
+				} else if (piece == null) {
+					sb.append("  ");
 				} else {
-					if (piece == null) {
-						sb.append("  ");
-					} else {
-						sb.append(piece.getSymbol()).append(" ");
-					}
+					sb.append(piece.getSymbol()).append(" ");
 				}
 
 				sb.append(" | ");
