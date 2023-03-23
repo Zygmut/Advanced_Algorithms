@@ -143,6 +143,10 @@ public class View implements Notify {
                 this.board.removeAll();
                 this.updateBoard(this.hub.getModel().getBoard());
             }
+            case HasFinished -> {
+                this.tiempoValue.setIcon(null);
+                this.tiempoValue.setText(this.hub.getModel().getElapsedTime() + " ms");
+            }
             default -> {
                 System.err.printf("[VIEW]: %s is not implemented.\n", request.toString());
             }
@@ -592,6 +596,8 @@ public class View implements Notify {
                                 View.this.lastPiece = getLastPiece(imageName);
                                 View.this.lastPoint = new Point(x, y);
                                 View.this.hub.notifyRequest(new Request(RequestCode.ChangedPiece, View.this));
+                                View.this.numOfPieces = View.this.hub.getModel().getNumberOfPieces();
+                                View.this.piezasValue.setText(View.this.numOfPieces + "");
                                 setImagePath(Helpers.getAssetPath(imageName));
                                 repaint();
                                 View.this.lastPieceString = null;

@@ -14,10 +14,12 @@ public class Model implements Notify {
     private MVC hub;
     private ChessBoard board;
     private int iteration;
+    private int elapsedTime;
 
     public Model(MVC mvc) {
         this.hub = mvc;
         this.iteration = 0;
+        this.elapsedTime = 0;
         this.board = new ChessBoard(Config.INITIAL_DEFAULT_BOARD_SIZE);
     }
 
@@ -34,9 +36,16 @@ public class Model implements Notify {
             case ChangedPiece:
                 this.board.addPiece(this.hub.getView().getLastPiece(), this.hub.getView().getLastPoint());
                 break;
+            case HasFinished:
+                this.elapsedTime = this.hub.getController().getElapsedTime();
+                break;
             default:
                 System.err.printf("[MODEL]: %s is not implemented.\n", request.toString());
         }
+    }
+
+    public int getElapsedTime() {
+        return elapsedTime;
     }
 
     public int getNumberOfPieces() {

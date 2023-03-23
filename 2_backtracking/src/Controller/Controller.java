@@ -21,10 +21,12 @@ public class Controller implements Notify {
     private MVC hub;
     private int globalIteration;
     private int boardSize;
+    private int elapsedTime;
 
     public Controller(MVC mvc) {
         this.hub = mvc;
         this.globalIteration = 0;
+        this.elapsedTime = 0;
     }
 
     private boolean kingdomTour(boolean[][] visitedTowns, Deque<Point> pieces, ChessBoard board, int iteration) {
@@ -83,10 +85,16 @@ public class Controller implements Notify {
         boolean solution = this.kth(board);
         long end = System.nanoTime();
         System.out.println("Time elapsed: " + Duration.ofNanos(end - start).toSeconds());
+        this.elapsedTime = (int) Duration.ofNanos(end - start).toSeconds();
+        this.hub.notifyRequest(new Request(RequestCode.HasFinished, this));
         if (!solution) {
             throw new NoSuchElementException("No solution found");
         }
         System.out.println("Solution found!");
+    }
+
+    public int getElapsedTime() {
+        return this.elapsedTime;
     }
 
     @Override

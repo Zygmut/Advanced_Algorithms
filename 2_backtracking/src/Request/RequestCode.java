@@ -11,5 +11,6 @@ public enum RequestCode {
     ChangedTableSize,
     ChangedPiece,
     DeletedPiece,
-    UpdateBoard
+    UpdateBoard,
+    HasFinished,
 }
