@@ -586,7 +586,11 @@ public class View implements Notify {
                         // System.out.println("Clicked on " + x + ", " + y);
                         Board.this.setCursor(Cursor.getDefaultCursor());
                         if (evt.getButton() == MouseEvent.BUTTON3) {
+                            View.this.lastPoint = new Point(x, y);
                             View.this.hub.notifyRequest(new Request(RequestCode.DeletedPiece, View.this));
+                            View.this.numOfPieces = View.this.hub.getModel().getNumberOfPieces();
+                            View.this.piezasValue.setText(View.this.numOfPieces + "");
+                            View.this.lastPoint = null;
                             setImagePath(Helpers.getAssetPath(Config.ASSET_NAME_OF_PIECE_NONE));
                             repaint();
                         }

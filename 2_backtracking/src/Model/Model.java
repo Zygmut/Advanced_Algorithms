@@ -36,6 +36,9 @@ public class Model implements Notify {
             case ChangedPiece:
                 this.board.addPiece(this.hub.getView().getLastPiece(), this.hub.getView().getLastPoint());
                 break;
+            case DeletedPiece:
+                this.board.removePieceAt(this.hub.getView().getLastPoint());
+                break;
             case HasFinished:
                 this.elapsedTime = this.hub.getController().getElapsedTime();
                 break;
