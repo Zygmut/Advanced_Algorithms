@@ -1,4 +1,4 @@
-package chess;
+package Chess;
 
 import java.awt.Point;
 import java.awt.Dimension;

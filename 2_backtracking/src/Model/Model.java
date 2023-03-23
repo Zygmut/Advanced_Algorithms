@@ -1,14 +1,14 @@
-package model;
+package Model;
 
 import java.awt.Point;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import chess.ChessBoard;
-import chess.Pieces;
-import master.MVC;
-import request.Notify;
-import request.Request;
+import Chess.ChessBoard;
+import Chess.Pieces;
+import Master.MVC;
+import Request.Notify;
+import Request.Request;
 import utils.Config;
 
 public class Model implements Notify {

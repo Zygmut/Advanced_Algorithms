@@ -1,4 +1,4 @@
-package chess;
+package Chess;
 
 public class Pieces {
     private Pieces(){}

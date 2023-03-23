@@ -1,10 +1,10 @@
-package master;
+package Master;
 
-import controller.Controller;
-import model.Model;
-import request.Notify;
-import request.Request;
-import view.View;
+import Controller.Controller;
+import Model.Model;
+import Request.Notify;
+import Request.Request;
+import View.View;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;

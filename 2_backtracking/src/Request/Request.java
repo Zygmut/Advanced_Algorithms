@@ -1,4 +1,4 @@
-package request;
+package Request;
 
 public class Request {
     public final RequestCode code;

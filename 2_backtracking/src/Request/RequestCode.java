@@ -1,4 +1,4 @@
-package request;
+package Request;
 
 public enum RequestCode {
     NONE,

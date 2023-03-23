@@ -1,4 +1,4 @@
-package view;
+package View;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -40,13 +40,13 @@ import javax.swing.SpinnerNumberModel;
 import betterSwing.DirectionAndPosition;
 import betterSwing.Section;
 import betterSwing.Window;
-import chess.ChessBoard;
-import chess.Piece;
-import chess.Pieces;
-import master.MVC;
-import request.Notify;
-import request.Request;
-import request.RequestCode;
+import Chess.ChessBoard;
+import Chess.Piece;
+import Chess.Pieces;
+import Master.MVC;
+import Request.Notify;
+import Request.Request;
+import Request.RequestCode;
 import utils.Config;
 import utils.Helpers;
 
@@ -493,7 +493,7 @@ public class View implements Notify {
 
     /**
      * Draws an arrow between two points in a graphics context.
-     * 
+     *
      * @param g          The graphics context to draw the arrow in.
      * @param x0         The x coordinate of the start point.
      * @param y0         The y coordinate of the start point.
@@ -525,7 +525,7 @@ public class View implements Notify {
     /**
      * This class represents a section of the view. Particularlly, it's a chess
      * board for the game. Each box of the board is made with the class BoxBoard.
-     * 
+     *
      * @see BoxBoard
      */
     public class Board extends JPanel {

@@ -1,11 +1,11 @@
-package controller;
+package Controller;
 
-import chess.ChessBoard;
-import chess.Piece;
-import master.MVC;
-import request.Notify;
-import request.Request;
-import request.RequestCode;
+import Chess.ChessBoard;
+import Chess.Piece;
+import Master.MVC;
+import Request.Notify;
+import Request.Request;
+import Request.RequestCode;
 
 import java.awt.Point;
 import java.time.Duration;
