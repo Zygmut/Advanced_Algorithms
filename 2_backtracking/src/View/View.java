@@ -451,7 +451,7 @@ public class View implements Notify {
 
         JPanel boardSizePanel = new JPanel();
         JLabel tableSize = new JLabel("Tamaño del tablero: ");
-        SpinnerNumberModel size = new SpinnerNumberModel(this.boardWidth, 1, 32, 1);
+        SpinnerNumberModel size = new SpinnerNumberModel(this.boardWidth, 2, 32, 1);
         JSpinner tableSizeSpinner = new JSpinner(size);
         tableSizeSpinner.addChangeListener(e -> {
             this.boardWidth = (int) tableSizeSpinner.getValue();
