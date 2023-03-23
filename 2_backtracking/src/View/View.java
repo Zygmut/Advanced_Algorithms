@@ -7,6 +7,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Image;
 import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -21,6 +22,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
 import java.awt.GridLayout;
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Graphics;
 import java.util.Map.Entry;
@@ -91,7 +93,13 @@ public class View implements Notify {
      * The last point of the view. Keeps track of the last point.
      */
     private Point lastPoint;
+    /**
+     * The label of the size of the board.
+     */
     private JLabel tamValue;
+    /**
+     * The label of the number of pieces on the board.
+     */
     private JLabel piezasValue;
 
     /**
@@ -134,7 +142,6 @@ public class View implements Notify {
             }
             case CHANGEDTABLESIZE -> {
                 this.tamValue.setText(this.boardWidth + "x" + this.boardWidth);
-                this.board.setBoardSize(this.boardWidth, this.boardWidth);
                 this.board.removeAll();
                 this.updateBoard(this.hub.getModel().getBoard());
             }
@@ -484,43 +491,66 @@ public class View implements Notify {
         return boardWidth;
     }
 
+    /**
+     * Draws an arrow between two points in a graphics context.
+     * 
+     * @param g          The graphics context to draw the arrow in.
+     * @param x0         The x coordinate of the start point.
+     * @param y0         The y coordinate of the start point.
+     * @param x1         The x coordinate of the end point.
+     * @param y1         The y coordinate of the end point.
+     * @param headLength The length of the arrow head.
+     * @param headAngle  The angle of the arrow head.
+     */
+    private void drawArrow(Graphics g, int x0, int y0, int x1, int y1, int headLength, int headAngle) {
+        final float lineWidth = 1.5f;
+        final float headWidth = 2f;
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_ON);
+        double offs = headAngle * Math.PI / 180.0;
+        double angle = Math.atan2(y0 - y1, x0 - x1);
+        int[] xs = { x1 + (int) (headLength * Math.cos(angle + offs)), x1,
+                x1 + (int) (headLength * Math.cos(angle - offs)) };
+        int[] ys = { y1 + (int) (headLength * Math.sin(angle + offs)), y1,
+                y1 + (int) (headLength * Math.sin(angle - offs)) };
+        g2.setStroke(new BasicStroke(lineWidth, BasicStroke.CAP_ROUND,
+                BasicStroke.JOIN_ROUND));
+        g2.drawLine(x0, y0, x1, y1);
+        g2.setStroke(new BasicStroke(headWidth, BasicStroke.CAP_ROUND,
+                BasicStroke.JOIN_ROUND));
+        g2.drawPolyline(xs, ys, 3);
+    }
+
+    /**
+     * This class represents a section of the view. Particularlly, it's a chess
+     * board for the game. Each box of the board is made with the class BoxBoard.
+     * 
+     * @see BoxBoard
+     */
     public class Board extends JPanel {
 
         private ChessBoard content;
-        private int boardWidth;
-        private int boardHeight;
 
         public Board(ChessBoard board) {
             this.content = board;
-            this.boardWidth = board.width;
-            this.boardHeight = board.height;
-            setLayout(new GridLayout(boardWidth, boardHeight));
+            setLayout(new GridLayout(board.width, board.height));
         }
 
         public void setBoard(ChessBoard board) {
             this.content = board;
         }
 
-        public void setBoardSize(int i, int j) {
-            this.boardWidth = i;
-            this.boardHeight = j;
-        }
-
-        @Override
-        public String toString() {
-            return "Board [board=" + content + ", height=" + boardHeight + ", width=" + boardWidth + "]";
-        }
-
         @Override
         public void paintComponent(Graphics g) {
             setLayout(new BorderLayout());
             JPanel panelAux = new JPanel();
-            panelAux.setLayout(new GridLayout(boardWidth, boardHeight));
-            BoxBoard[][] boxes = new BoxBoard[boardWidth][boardHeight];
+            panelAux.setLayout(new GridLayout(content.width, content.height));
+            BoxBoard[][] boxes = new BoxBoard[content.width][content.height];
             BoxBoard box;
             Color color;
-            for (int i = 0; i < boardWidth; i++) {
-                for (int j = 0; j < boardHeight; j++) {
+            for (int i = 0; i < content.width; i++) {
+                for (int j = 0; j < content.height; j++) {
                     box = new BoxBoard(j, i);
                     if ((i + j) % 2 == 0) {
                         color = new Color(227, 206, 167);
@@ -533,6 +563,7 @@ public class View implements Notify {
                         box.setColor(color);
                         box.setOpaque(true);
                     }
+                    box.calcCenterPoint();
                     boxes[i][j] = box;
                     panelAux.add(boxes[i][j]);
                 }
@@ -548,19 +579,29 @@ public class View implements Notify {
         private class BoxBoard extends JPanel {
 
             private BufferedImage image;
-            private int xPos;
-            private int yPos;
+            private int xPos, yPos, centerX, centerY;
             private Color color;
 
             public BoxBoard(int x, int y) {
                 this.xPos = x;
                 this.yPos = y;
+                this.centerX = 0;
+                this.centerY = 0;
                 try {
                     image = ImageIO.read(new File(Helpers.getAssetPath(Config.ASSET_NAME_OF_PIECE_NONE)));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 this.addMouseListener(this.createMouseListner());
+            }
+
+            private void calcCenterPoint() {
+                this.centerX = this.getWidth() / 2;
+                this.centerY = this.getHeight() / 2;
+            }
+
+            private int[] getCenterPoint() {
+                return new int[] { this.centerX, this.centerY };
             }
 
             private Piece getLastPiece(String imagePath) {
