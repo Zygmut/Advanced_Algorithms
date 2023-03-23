@@ -96,6 +96,8 @@ public class View implements Notify {
      * The last point of the view. Keeps track of the last point.
      */
     private Point lastPoint;
+    private JLabel tamValue;
+    private JLabel piezasValue;
 
     /**
      * This constructor creates a view with the MVC hub without any configuration
@@ -136,7 +138,9 @@ public class View implements Notify {
                 this.updateBoard(this.hub.getModel().getBoard());
             }
             case ChangedTableSize -> {
-                this.board.setSize(boardSize, boardSize);
+                this.tamValue.setText(this.boardSize + "x" + this.boardSize);
+                this.board.setBoardSize(this.boardSize, this.boardSize);
+                this.board.removeAll();
                 this.updateBoard(this.hub.getModel().getBoard());
             }
             default -> {
@@ -319,9 +323,9 @@ public class View implements Notify {
         tam.setFont(new Font("Arial", Font.ITALIC, 20));
         infoTam.add(tam);
         infoTam.add(addMargin(10, 10));
-        JLabel tamValue = new JLabel(this.boardSize + "x" + this.boardSize);
-        tamValue.setFont(new Font("Arial", Font.ITALIC, 20));
-        infoTam.add(tamValue);
+        this.tamValue = new JLabel(this.boardSize + "x" + this.boardSize);
+        this.tamValue.setFont(new Font("Arial", Font.ITALIC, 20));
+        infoTam.add(this.tamValue);
         infoTam.add(addMargin(10, 10));
 
         sideBarContent.add(addMargin(0, 10));
@@ -334,9 +338,9 @@ public class View implements Notify {
         infoPiezas.add(piezas);
         infoPiezas.add(addMargin(10, 10));
         this.numOfPieces = this.hub.getModel().getNumberOfPieces();
-        JLabel piezasValue = new JLabel(this.numOfPieces + "");
-        piezasValue.setFont(new Font("Arial", Font.ITALIC, 20));
-        infoPiezas.add(piezasValue);
+        this.piezasValue = new JLabel(this.numOfPieces + "");
+        this.piezasValue.setFont(new Font("Arial", Font.ITALIC, 20));
+        infoPiezas.add(this.piezasValue);
         infoPiezas.add(addMargin(10, 10));
 
         sideBarContent.add(addMargin(0, 10));
@@ -492,6 +496,16 @@ public class View implements Notify {
 
         public void setBoard(ChessBoard board) {
             this.board = board;
+        }
+
+        public void setBoardSize(int i, int j) {
+            this.width = i;
+            this.height = j;
+        }
+
+        @Override
+        public String toString() {
+            return "Board [board=" + board + ", height=" + height + ", width=" + width + "]";
         }
 
         @Override
