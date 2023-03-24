@@ -7,7 +7,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Image;
 import java.awt.Point;
-import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -22,7 +21,6 @@ import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
 import java.awt.GridLayout;
-import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Graphics;
 import java.util.Map.Entry;
@@ -38,13 +36,21 @@ import javax.swing.JLabel;
 import javax.swing.JProgressBar;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.WindowConstants;
 
 import betterSwing.utils.DirectionAndPosition;
 import betterSwing.Section;
 import betterSwing.Window;
+import Chess.Bishop;
+import Chess.Castle;
 import Chess.ChessBoard;
+import Chess.Dragon;
+import Chess.King;
+import Chess.Knight;
 import Chess.Piece;
-import Chess.Pieces;
+import Chess.Queen;
+import Chess.Rook;
+import Chess.Unicorn;
 import Master.MVC;
 import Request.Notify;
 import Request.Request;
@@ -108,6 +114,8 @@ public class View implements Notify {
      */
     private JButton[] buttons;
 
+    private final String font;
+
     /**
      * This constructor creates a view with the MVC hub without any configuration
      *
@@ -121,6 +129,7 @@ public class View implements Notify {
         this.numOfPieces = 0;
         this.boardWidth = 0;
         this.lastPieceString = null;
+        this.font = "Arial";
         this.loadContent();
     }
 
@@ -139,6 +148,7 @@ public class View implements Notify {
         this.numOfPieces = 0;
         this.boardWidth = 0;
         this.lastPieceString = null;
+        this.font = "Arial";
         this.loadContent();
     }
 
@@ -154,7 +164,7 @@ public class View implements Notify {
             }
             case HASFINISHED -> {
                 this.tiempoValue.setIcon(null);
-                this.tiempoValue.setText(this.hub.getModel().getElapsedTime() + " ms");
+                this.tiempoValue.setText(this.hub.getModel().getElapsedTime() + " s");
                 this.showResult();
                 this.updateBoard(this.hub.getModel().getBoard(), this.hub.getModel().getBoardWithMemory());
             }
@@ -167,7 +177,7 @@ public class View implements Notify {
 
     private void showResult() {
         JDialog dialog = new JDialog(new JFrame(), "Resultado", true);
-        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         dialog.setLayout(new BorderLayout());
         dialog.setSize(400, 200);
         dialog.setLocationRelativeTo(null);
@@ -180,7 +190,7 @@ public class View implements Notify {
         titlePanel.setBackground(Color.WHITE);
         titlePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         JLabel title = new JLabel("¡El algoritmo ha terminado!");
-        title.setFont(new Font("Arial", Font.BOLD, 20));
+        title.setFont(new Font(font, Font.BOLD, 20));
         titlePanel.add(title);
         dialog.add(titlePanel, BorderLayout.NORTH);
         JPanel contentPanel = new JPanel();
@@ -191,7 +201,7 @@ public class View implements Notify {
                 ? "Se ha encontrado una solución."
                 : "No se ha encontrado una solución.";
         JLabel content = new JLabel(message);
-        content.setFont(new Font("Arial", Font.PLAIN, 16));
+        content.setFont(new Font(font, Font.PLAIN, 16));
         contentPanel.add(content, BorderLayout.CENTER);
         dialog.add(contentPanel, BorderLayout.CENTER);
         JButton button = new JButton("Aceptar");
@@ -353,7 +363,6 @@ public class View implements Notify {
      * @return The side bar section of the view.
      */
     private Section sideBarSection() {
-        final String font = "Arial";
         Section sideBar = new Section();
         JPanel sideBarContent = new JPanel();
         sideBarContent.setBackground(Color.LIGHT_GRAY);
@@ -450,44 +459,22 @@ public class View implements Notify {
         Section footer = new Section();
 
         Section buttonsSection = new Section();
-        this.buttons = new JButton[3];
-        final String Startstr = "Iniciar";
-        final String Endstr = "Pausar";
-        buttons[0] = new JButton(Startstr);
+        this.buttons = new JButton[2];
+        buttons[0] = new JButton("Iniciar");
         buttons[0].addActionListener(e -> {
-            if (buttons[0].getText().equals(Startstr)) {
-                buttons[0].setText(Endstr);
-                buttons[2].setEnabled(true);
-                this.hub.notifyRequest(new Request(RequestCode.START, this));
-                this.tiempoValue.setText("");
-                ImageIcon loading = new ImageIcon("./assets/loading.gif");
-                loading.setImage(loading.getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT));
-                this.tiempoValue.setIcon(loading);
-            } else {
-                buttons[2].setEnabled(true);
-                String btnText = buttons[0].getText();
-                String newBtnText = btnText.equals(Endstr) ? "Reanudar" : Endstr;
-                buttons[0].setText(newBtnText);
-                RequestCode code;
-                if (btnText.equals(Endstr)) {
-                    code = RequestCode.STOP;
-                } else {
-                    code = RequestCode.RESUME;
-                }
-                this.hub.notifyRequest(new Request(code, this));
-            }
+            buttons[1].setEnabled(true);
+            buttons[0].setEnabled(false);
+            this.hub.notifyRequest(new Request(RequestCode.START, this));
+            this.tiempoValue.setText("");
+            ImageIcon loading = new ImageIcon("./assets/loading.gif");
+            loading.setImage(loading.getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT));
+            this.tiempoValue.setIcon(loading);
         });
-        buttons[1] = new JButton("Siguiente iteración");
+        buttons[1] = new JButton("Reiniciar");
         buttons[1].setEnabled(false);
         buttons[1].addActionListener(e -> {
-            buttons[2].setEnabled(true);
-            this.hub.notifyRequest(new Request(RequestCode.NEXT, this));
-        });
-        buttons[2] = new JButton("Reiniciar");
-        buttons[2].setEnabled(false);
-        buttons[2].addActionListener(e -> {
-            buttons[0].setText(Startstr);
-            buttons[2].setEnabled(false);
+            buttons[1].setEnabled(false);
+            buttons[0].setEnabled(true);
             this.tiempoValue.setText("0 ms");
             this.hub.notifyRequest(new Request(RequestCode.RESTART, this));
         });
@@ -495,7 +482,7 @@ public class View implements Notify {
 
         JPanel boardSizePanel = new JPanel();
         JLabel tableSize = new JLabel("Tamaño del tablero: ");
-        tableSize.setFont(new Font("Arial", Font.ITALIC, 15));
+        tableSize.setFont(new Font(font, Font.ITALIC, 15));
         SpinnerNumberModel size = new SpinnerNumberModel(this.boardWidth, 2, 32, 1);
         JSpinner tableSizeSpinner = new JSpinner(size);
         tableSizeSpinner.addChangeListener(e -> {
@@ -536,37 +523,6 @@ public class View implements Notify {
 
     public int getBoardWidth() {
         return boardWidth;
-    }
-
-    /**
-     * Draws an arrow between two points in a graphics context.
-     *
-     * @param g          The graphics context to draw the arrow in.
-     * @param x0         The x coordinate of the start point.
-     * @param y0         The y coordinate of the start point.
-     * @param x1         The x coordinate of the end point.
-     * @param y1         The y coordinate of the end point.
-     * @param headLength The length of the arrow head.
-     * @param headAngle  The angle of the arrow head.
-     */
-    private void drawArrow(Graphics g, int x0, int y0, int x1, int y1, int headLength, int headAngle) {
-        final float lineWidth = 1.5f;
-        final float headWidth = 2f;
-        Graphics2D g2 = (Graphics2D) g;
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                RenderingHints.VALUE_ANTIALIAS_ON);
-        double offs = headAngle * Math.PI / 180.0;
-        double angle = Math.atan2(y0 - y1, x0 - x1);
-        int[] xs = { x1 + (int) (headLength * Math.cos(angle + offs)), x1,
-                x1 + (int) (headLength * Math.cos(angle - offs)) };
-        int[] ys = { y1 + (int) (headLength * Math.sin(angle + offs)), y1,
-                y1 + (int) (headLength * Math.sin(angle - offs)) };
-        g2.setStroke(new BasicStroke(lineWidth, BasicStroke.CAP_ROUND,
-                BasicStroke.JOIN_ROUND));
-        g2.drawLine(x0, y0, x1, y1);
-        g2.setStroke(new BasicStroke(headWidth, BasicStroke.CAP_ROUND,
-                BasicStroke.JOIN_ROUND));
-        g2.drawPolyline(xs, ys, 3);
     }
 
     /**
@@ -615,7 +571,6 @@ public class View implements Notify {
                     box.setBackground(color);
                     box.setColor(color);
                     box.setOpaque(true);
-                    box.calcCenterPoint();
                     boxes[i][j] = box;
                     panelAux.add(boxes[i][j]);
                 }
@@ -631,14 +586,13 @@ public class View implements Notify {
         private class BoxBoard extends JPanel {
 
             private BufferedImage image;
-            private int xPos, yPos, centerX, centerY;
+            private int xPos;
+            private int yPos;
             private Color color;
 
             public BoxBoard(int x, int y) {
                 this.xPos = x;
                 this.yPos = y;
-                this.centerX = 0;
-                this.centerY = 0;
                 try {
                     image = ImageIO.read(new File(Helpers.getAssetPath(Config.ASSET_NAME_OF_PIECE_NONE)));
                 } catch (IOException e) {
@@ -647,25 +601,16 @@ public class View implements Notify {
                 this.addMouseListener(this.createMouseListner());
             }
 
-            private void calcCenterPoint() {
-                this.centerX = this.getWidth() / 2;
-                this.centerY = this.getHeight() / 2;
-            }
-
-            private int[] getCenterPoint() {
-                return new int[] { this.centerX, this.centerY };
-            }
-
             private Piece getLastPiece(String imagePath) {
                 return switch (imagePath) {
-                    case Config.ASSET_NAME_OF_PIECE_BISHOP -> Pieces.BISHOP;
-                    case Config.ASSET_NAME_OF_PIECE_DRAGON -> Pieces.DRAGON;
-                    case Config.ASSET_NAME_OF_PIECE_KING -> Pieces.KING;
-                    case Config.ASSET_NAME_OF_PIECE_KNIGHT -> Pieces.KNIGHT;
-                    case Config.ASSET_NAME_OF_PIECE_QUEEN -> Pieces.QUEEN;
-                    case Config.ASSET_NAME_OF_PIECE_CASTLE -> Pieces.CASTLE;
-                    case Config.ASSET_NAME_OF_PIECE_ROOK -> Pieces.ROOK;
-                    case Config.ASSET_NAME_OF_PIECE_UNICORN -> Pieces.UNICORN;
+                    case Config.ASSET_NAME_OF_PIECE_BISHOP -> new Bishop();
+                    case Config.ASSET_NAME_OF_PIECE_DRAGON -> new Dragon();
+                    case Config.ASSET_NAME_OF_PIECE_KING -> new King();
+                    case Config.ASSET_NAME_OF_PIECE_KNIGHT -> new Knight();
+                    case Config.ASSET_NAME_OF_PIECE_QUEEN -> new Queen();
+                    case Config.ASSET_NAME_OF_PIECE_CASTLE -> new Castle();
+                    case Config.ASSET_NAME_OF_PIECE_ROOK -> new Rook();
+                    case Config.ASSET_NAME_OF_PIECE_UNICORN -> new Unicorn();
                     default -> null;
                 };
             }
@@ -747,7 +692,8 @@ public class View implements Notify {
                     Graphics2D g2d = (Graphics2D) g;
                     g2d.drawImage(image, 0, 0, getWidth(), getHeight(), null);
                 } catch (Exception e) {
-                    System.err.println("Error al pintar la imagen");
+                Logger.getLogger(this.getClass().getSimpleName())
+                        .log(Level.SEVERE, "Error while painting a piece");
                 }
             }
 

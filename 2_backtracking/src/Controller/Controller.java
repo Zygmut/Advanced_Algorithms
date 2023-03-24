@@ -26,13 +26,13 @@ public class Controller implements Notify {
     private int globalIteration;
     private int boardSize;
     private int elapsedTime;
-    private boolean hasSolution, stop, hasRestarted;
+    private boolean hasSolution;
+    private boolean hasRestarted;
 
     public Controller(MVC mvc) {
         this.hub = mvc;
         this.globalIteration = 0;
         this.elapsedTime = 0;
-        this.stop = false;
         this.hasSolution = false;
         this.hasRestarted = false;
     }
@@ -60,14 +60,15 @@ public class Controller implements Notify {
             this.boardWithMemory[movement.x][movement.y] = lastBoard.getPieceAt(movement);
             this.hub.notifyRequest(new Request(RequestCode.UPDATEMEMORYBOARD, this));
 
-            safeThreadSleep(10);
-
             this.hub.notifyRequest(new Request(RequestCode.UPDATEDBOARD, this));
             visitedTowns[movement.x][movement.y] = true;
             pieces.addLast(movement);
 
             if (kingdomTour(visitedTowns, pieces, board, globalIteration)) {
                 return true;
+            }
+            if (this.hasRestarted) {
+                return false;
             }
 
             board.move(movement, firstPiece);
@@ -143,19 +144,14 @@ public class Controller implements Notify {
     public void notifyRequest(Request request) {
         switch (request.code) {
             case START -> {
-                this.stop = false;
                 this.hasRestarted = false;
                 Thread.startVirtualThread(this::run);
             }
             case RESTART -> {
                 this.hasRestarted = true;
-                this.stop = false;
                 this.globalIteration = 0;
                 this.elapsedTime = 0;
                 this.hasSolution = false;
-            }
-            case STOP -> {
-                this.stop = true;
             }
             default -> {
                 Logger.getLogger(this.getClass().getSimpleName())
@@ -171,13 +167,4 @@ public class Controller implements Notify {
     public ChessBoard getLastBoard() {
         return lastBoard;
     }
-
-    private void safeThreadSleep(long millis) {
-        try {
-            Thread.sleep(Duration.ofMillis(millis));
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-    }
-
 }
