@@ -12,6 +12,8 @@ public class Castle extends Piece {
         super();
         this.imagePath = Helpers.getAssetPath(Config.ASSET_NAME_OF_PIECE_CASTLE);
         this.symbol = 'C';
+        this.name = Config.ASSET_NAME_OF_PIECE_CASTLE;
+        this.bgColor = Config.DEFAULT_BACKGROUND_COLOR_CASTLE;
     }
 
     @Override

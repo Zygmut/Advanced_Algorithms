@@ -11,6 +11,8 @@ public class King extends Piece {
         super();
         this.imagePath = Helpers.getAssetPath(Config.ASSET_NAME_OF_PIECE_KING);
         this.symbol = 'K';
+        this.name = Config.ASSET_NAME_OF_PIECE_KING;
+        this.bgColor = Config.DEFAULT_BACKGROUND_COLOR_KING;
     }
 
     @Override

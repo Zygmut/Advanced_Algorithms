@@ -13,4 +13,5 @@ public enum RequestCode {
     DELETEDPIECE,
     UPDATEDBOARD,
     HASFINISHED,
+    UPDATEMEMORYBOARD,
 }

@@ -32,6 +32,8 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JProgressBar;
 import javax.swing.JSpinner;
@@ -139,17 +141,18 @@ public class View implements Notify {
     @Override
     public void notifyRequest(Request request) {
         switch (request.code) {
-            case UPDATEDBOARD -> {
-                this.updateBoard(this.hub.getModel().getBoard());
+            case UPDATEDBOARD, RESTART -> {
+                this.updateBoard(this.hub.getModel().getBoard(), this.hub.getModel().getBoardWithMemory());
             }
             case CHANGEDTABLESIZE -> {
                 this.tamValue.setText(this.boardWidth + "x" + this.boardWidth);
                 this.board.removeAll();
-                this.updateBoard(this.hub.getModel().getBoard());
+                this.updateBoard(this.hub.getModel().getBoard(), this.hub.getModel().getBoardWithMemory());
             }
             case HASFINISHED -> {
                 this.tiempoValue.setIcon(null);
                 this.tiempoValue.setText(this.hub.getModel().getElapsedTime() + " ms");
+                this.showResult();
             }
             default -> {
                 Logger.getLogger(this.getClass().getSimpleName())
@@ -158,15 +161,50 @@ public class View implements Notify {
         }
     }
 
+    private void showResult() {
+        JDialog dialog = new JDialog(new JFrame(), "Resultado", true);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.setLayout(new BorderLayout());
+        dialog.setSize(400, 200);
+        dialog.setLocationRelativeTo(null);
+        dialog.setResizable(false);
+        dialog.setAlwaysOnTop(true);
+        dialog.setUndecorated(true);
+        dialog.setBackground(Color.WHITE);
+        JPanel titlePanel = new JPanel();
+        titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.X_AXIS));
+        titlePanel.setBackground(Color.WHITE);
+        titlePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JLabel title = new JLabel("¡El algoritmo ha terminado!");
+        title.setFont(new Font("Arial", Font.BOLD, 20));
+        titlePanel.add(title);
+        dialog.add(titlePanel, BorderLayout.NORTH);
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BorderLayout());
+        contentPanel.setBackground(Color.WHITE);
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        String message = this.hub.getModel().hasSolution()
+                ? "Se ha encontrado una solución."
+                : "No se ha encontrado una solución.";
+        JLabel content = new JLabel(message);
+        content.setFont(new Font("Arial", Font.PLAIN, 16));
+        contentPanel.add(content, BorderLayout.CENTER);
+        dialog.add(contentPanel, BorderLayout.CENTER);
+        JButton button = new JButton("Aceptar");
+        button.addActionListener(e -> dialog.dispose());
+        dialog.add(button, BorderLayout.SOUTH);
+        dialog.setVisible(true);
+    }
+
     /**
      * Updates the board of the view.
      *
      * @param board The new board.
      * @see Board
      */
-    private void updateBoard(ChessBoard board) {
+    private void updateBoard(ChessBoard board, Piece[][] memoryBoard) {
         this.progressBar.setValue(getProgressValueToFinish());
-        this.board.setBoard(board);
+        this.board.setBoards(board, memoryBoard);
         this.board.paintComponent(this.board.getGraphics());
         this.board.validate();
     }
@@ -296,7 +334,7 @@ public class View implements Notify {
      */
     private Section mainSection() {
         Section main = new Section();
-        this.board = new Board(this.hub.getModel().getBoard());
+        this.board = new Board(this.hub.getModel().getBoard(), this.hub.getModel().getBoardWithMemory());
         this.board.setPreferredSize(new Dimension(400, 400));
         this.board.paintComponent(this.board.getGraphics());
         main.createFreeSection(this.board);
@@ -533,14 +571,17 @@ public class View implements Notify {
     public class Board extends JPanel {
 
         private ChessBoard content;
+        private Piece[][] pieces;
 
-        public Board(ChessBoard board) {
+        public Board(ChessBoard board, Piece[][] pieces) {
             this.content = board;
+            this.pieces = pieces;
             setLayout(new GridLayout(board.width, board.height));
         }
 
-        public void setBoard(ChessBoard board) {
+        public void setBoards(ChessBoard board, Piece[][] pieces) {
             this.content = board;
+            this.pieces = pieces;
         }
 
         @Override
@@ -554,17 +595,19 @@ public class View implements Notify {
             for (int i = 0; i < content.width; i++) {
                 for (int j = 0; j < content.height; j++) {
                     box = new BoxBoard(j, i);
-                    if ((i + j) % 2 == 0) {
-                        color = new Color(227, 206, 167);
-                        box.setBackground(color);
-                        box.setColor(color);
-                        box.setOpaque(true);
+                    if (pieces[j][i] != null) {
+                        color = pieces[j][i].getBgColor();
+                        box.setBorder(BorderFactory.createLineBorder(Color.BLACK));
                     } else {
-                        color = new Color(166, 126, 91);
-                        box.setBackground(color);
-                        box.setColor(color);
-                        box.setOpaque(true);
+                        if ((i + j) % 2 == 0) {
+                            color = new Color(227, 206, 167);
+                        } else {
+                            color = new Color(166, 126, 91);
+                        }
                     }
+                    box.setBackground(color);
+                    box.setColor(color);
+                    box.setOpaque(true);
                     box.calcCenterPoint();
                     boxes[i][j] = box;
                     panelAux.add(boxes[i][j]);
@@ -574,7 +617,7 @@ public class View implements Notify {
             for (Entry<Point, Piece> piece : content.getPieces()) {
                 boxes[piece.getKey().y][piece.getKey().x].setImagePath(piece.getValue().getImagePath());
             }
-
+            panelAux.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             add(panelAux, BorderLayout.CENTER);
         }
 
@@ -687,9 +730,13 @@ public class View implements Notify {
 
             @Override
             public void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.drawImage(image, 0, 0, getWidth(), getHeight(), null);
+                try {
+                    super.paintComponent(g);
+                    Graphics2D g2d = (Graphics2D) g;
+                    g2d.drawImage(image, 0, 0, getWidth(), getHeight(), null);
+                } catch (Exception e) {
+                    System.err.println("Error al pintar la imagen");
+                }
             }
 
         }

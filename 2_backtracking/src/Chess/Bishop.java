@@ -13,6 +13,8 @@ public class Bishop extends Piece {
         super();
         this.imagePath = Helpers.getAssetPath(Config.ASSET_NAME_OF_PIECE_BISHOP);
         this.symbol = 'B';
+        this.name = Config.ASSET_NAME_OF_PIECE_BISHOP;
+        this.bgColor = Config.DEFAULT_BACKGROUND_COLOR_BISHOP;
     }
 
     @Override

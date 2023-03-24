@@ -6,7 +6,9 @@ import Master.MVC;
 import Request.Notify;
 import Request.Request;
 import Request.RequestCode;
+import utils.Config;
 
+import java.awt.Color;
 import java.awt.Point;
 import java.time.Duration;
 import java.util.Map.Entry;
@@ -15,25 +17,31 @@ import java.util.logging.Logger;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
-import java.util.NoSuchElementException;
 
 public class Controller implements Notify {
 
     private ChessBoard lastBoard;
+    private Piece[][] boardWithMemory;
     private MVC hub;
     private int globalIteration;
     private int boardSize;
     private int elapsedTime;
-    private boolean stop;
+    private boolean hasSolution, stop, hasRestarted;
 
     public Controller(MVC mvc) {
         this.hub = mvc;
         this.globalIteration = 0;
         this.elapsedTime = 0;
         this.stop = false;
+        this.hasSolution = false;
+        this.hasRestarted = false;
     }
 
     private boolean kingdomTour(boolean[][] visitedTowns, Deque<Point> pieces, ChessBoard board, int iteration) {
+
+        if (this.hasRestarted) {
+            return false;
+        }
 
         if (iteration == this.boardSize) {
             return true;
@@ -48,18 +56,24 @@ public class Controller implements Notify {
             this.globalIteration = iteration + 1;
             board.move(firstPiece, movement);
             this.lastBoard = board;
+
+            this.boardWithMemory[movement.x][movement.y] = lastBoard.getPieceAt(movement);
+            this.hub.notifyRequest(new Request(RequestCode.UPDATEMEMORYBOARD, this));
+
+            safeThreadSleep(10);
+
             this.hub.notifyRequest(new Request(RequestCode.UPDATEDBOARD, this));
             visitedTowns[movement.x][movement.y] = true;
             pieces.addLast(movement);
-            safeThreadSleep(10);
 
             if (kingdomTour(visitedTowns, pieces, board, globalIteration)) {
-
                 return true;
             }
 
             board.move(movement, firstPiece);
             visitedTowns[movement.x][movement.y] = false;
+            this.boardWithMemory[movement.x][movement.y] = null;
+            this.hub.notifyRequest(new Request(RequestCode.UPDATEMEMORYBOARD, this));
             pieces.removeLast();
         }
 
@@ -83,33 +97,70 @@ public class Controller implements Notify {
         return kingdomTour(visited, queue, board, queue.size());
     }
 
+    private boolean checkForPiece(Piece piece, Piece[] ps) {
+        for (int i = 0; i < ps.length; i++) {
+            if (ps[i] == null) {
+                ps[i] = piece;
+                return false;
+            }
+            if (ps[i].getName().equals(piece.getName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void run() {
         ChessBoard board = this.hub.getModel().getBoard();
+        this.boardWithMemory = new Piece[board.height][board.width];
+        Piece[] ps = new Piece[Config.NUM_OF_DIFFERENT_PIECES];
+        for (Entry<Point, Piece> entry : board.getPieces()) {
+            if (this.checkForPiece(entry.getValue(), ps)) {
+                entry.getValue().setBgColor(new Color((int) (Math.random() * 0x1000000)));
+            }
+            this.boardWithMemory[entry.getKey().x][entry.getKey().y] = entry.getValue();
+        }
         long start = System.nanoTime();
-        boolean solution = this.kth(board);
+        this.hasSolution = this.kth(board);
         long end = System.nanoTime();
         this.elapsedTime = (int) Duration.ofNanos(end - start).toSeconds();
         this.hub.notifyRequest(new Request(RequestCode.HASFINISHED, this));
-        if (!solution) {
-            throw new NoSuchElementException("No solution found");
-        }
     }
 
     public int getElapsedTime() {
         return this.elapsedTime;
     }
 
+    public boolean hasSolution() {
+        return this.hasSolution;
+    }
+
+    public Piece[][] getBoardWithMemory() {
+        return this.boardWithMemory;
+    }
+
     @Override
     public void notifyRequest(Request request) {
-        if (request.code != RequestCode.START) {
-            Logger.getLogger(this.getClass().getSimpleName())
-                    .log(Level.SEVERE, "{0} is not implemented.", request);
-            return;
+        switch (request.code) {
+            case START -> {
+                this.stop = false;
+                Thread.startVirtualThread(this::run);
+            }
+            case RESTART -> {
+                this.hasRestarted = true;
+                this.stop = false;
+                this.globalIteration = 0;
+                this.elapsedTime = 0;
+                this.hasSolution = false;
+            }
+            case STOP -> {
+                this.stop = true;
+            }
+            default -> {
+                Logger.getLogger(this.getClass().getSimpleName())
+                        .log(Level.SEVERE, "{0} is not implemented.", request);
+            }
         }
-        Thread.startVirtualThread(this::run);
-        if (request.code == RequestCode.STOP) {
-        this.stop = true;
-        }   
     }
 
     public int getIteration() {

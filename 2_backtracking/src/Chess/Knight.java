@@ -23,6 +23,8 @@ public class Knight extends Piece {
         super();
         this.imagePath = Helpers.getAssetPath(Config.ASSET_NAME_OF_PIECE_KNIGHT);
         this.symbol = 'K';
+        this.name = Config.ASSET_NAME_OF_PIECE_KNIGHT;
+        this.bgColor = Config.DEFAULT_BACKGROUND_COLOR_KNIGHT;
     }
 
     @Override

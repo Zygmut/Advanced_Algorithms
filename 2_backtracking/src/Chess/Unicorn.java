@@ -14,6 +14,8 @@ public class Unicorn extends Piece {
         super();
         this.imagePath = Helpers.getAssetPath(Config.ASSET_NAME_OF_PIECE_UNICORN);
         this.symbol = 'U';
+        this.name = Config.ASSET_NAME_OF_PIECE_UNICORN;
+        this.bgColor = Config.DEFAULT_BACKGROUND_COLOR_UNICORN;
     }
 
     @Override

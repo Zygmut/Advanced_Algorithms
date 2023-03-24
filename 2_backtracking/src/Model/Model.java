@@ -1,11 +1,12 @@
 package Model;
 
-import java.awt.Point;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.awt.Point;
+import java.time.Duration;
+import java.util.Map.Entry;
 
 import Chess.ChessBoard;
-import Chess.Pieces;
 import Master.MVC;
 import Request.Notify;
 import Request.Request;
@@ -15,39 +16,68 @@ public class Model implements Notify {
 
     private MVC hub;
     private ChessBoard board;
+    private Chess.Piece[][] boardWithMemory;
     private int iteration;
     private int elapsedTime;
+    private boolean hasSolution;
 
     public Model(MVC mvc) {
         this.hub = mvc;
         this.iteration = 0;
         this.elapsedTime = 0;
+        this.hasSolution = false;
         this.board = new ChessBoard(Config.INITIAL_DEFAULT_BOARD_SIZE);
+        this.boardWithMemory = new Chess.Piece[this.board.height][this.board.width];
     }
 
     @Override
     public void notifyRequest(Request request) {
         switch (request.code) {
-            case UPDATEDBOARD:
+            case UPDATEDBOARD -> {
                 this.board = this.hub.getController().getLastBoard();
                 this.iteration = this.hub.getController().getIteration();
-                break;
-            case CHANGEDTABLESIZE:
+            }
+            case UPDATEMEMORYBOARD -> {
+                this.boardWithMemory = this.hub.getController().getBoardWithMemory();
+            }
+            case CHANGEDTABLESIZE -> {
                 this.board = new ChessBoard(this.hub.getView().getBoardWidth());
-                break;
-            case CHANGEDPIECE:
+            }
+            case CHANGEDPIECE -> {
                 this.board.addPiece(this.hub.getView().getLastPiece(), this.hub.getView().getLastPoint());
-                break;
-            case DELETEDPIECE:
+            }
+            case DELETEDPIECE -> {
                 this.board.removePieceAt(this.hub.getView().getLastPoint());
-                break;
-            case HASFINISHED:
+            }
+            case HASFINISHED -> {
                 this.elapsedTime = this.hub.getController().getElapsedTime();
-                break;
-            default:
+                this.hasSolution = this.hub.getController().hasSolution();
+            }
+            case RESTART -> {
+                // Get all the pieces from the board
+                var pieces = this.board.getPieces();
+                this.board = new ChessBoard(this.hub.getView().getBoardWidth());
+                for (Entry<Point, Chess.Piece> entry : pieces) {
+                    this.board.addPiece(entry.getValue(), entry.getKey());
+                }
+                this.boardWithMemory = new Chess.Piece[this.board.height][this.board.width];
+                this.iteration = 0;
+                this.elapsedTime = 0;
+                this.hasSolution = false;
+            }
+            default -> {
                 Logger.getLogger(this.getClass().getSimpleName())
                         .log(Level.SEVERE, "{0} is not implemented.", request);
+            }
         }
+    }
+
+    public Chess.Piece[][] getBoardWithMemory() {
+        return boardWithMemory;
+    }
+
+    public boolean hasSolution() {
+        return hasSolution;
     }
 
     public int getElapsedTime() {
@@ -68,39 +98,6 @@ public class Model implements Notify {
 
     public void setBoard(ChessBoard board) {
         this.board = board;
-
     }
 
-    public void setNewPiece(String piece, Point position) {
-        board = this.hub.getModel().getBoard();
-        switch (piece) {
-            case Config.ASSET_NAME_OF_PIECE_KING:
-                this.board.addPiece(Pieces.KING, position);
-                break;
-            case Config.ASSET_NAME_OF_PIECE_QUEEN:
-                this.board.addPiece(Pieces.QUEEN, position);
-                break;
-            case Config.ASSET_NAME_OF_PIECE_ROOK:
-                this.board.addPiece(Pieces.ROOK, position);
-                break;
-            case Config.ASSET_NAME_OF_PIECE_KNIGHT:
-                this.board.addPiece(Pieces.KNIGHT, position);
-                break;
-            case Config.ASSET_NAME_OF_PIECE_BISHOP:
-                this.board.addPiece(Pieces.BISHOP, position);
-                break;
-            case Config.ASSET_NAME_OF_PIECE_UNICORN:
-                this.board.addPiece(Pieces.UNICORN, position);
-                break;
-            case Config.ASSET_NAME_OF_PIECE_DRAGON:
-                this.board.addPiece(Pieces.DRAGON, position);
-                break;
-            case Config.ASSET_NAME_OF_PIECE_CASTLE:
-                this.board.addPiece(Pieces.CASTLE, position);
-                break;
-            default:
-                Logger.getLogger(this.getClass().getSimpleName())
-                        .log(Level.SEVERE, "{0} is not implemented.", piece);
-        }
-    }
 }

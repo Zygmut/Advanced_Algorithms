@@ -13,6 +13,8 @@ public class Rook extends Piece {
         super();
         this.imagePath = Helpers.getAssetPath(Config.ASSET_NAME_OF_PIECE_ROOK);
         this.symbol = 'R';
+        this.name = Config.ASSET_NAME_OF_PIECE_ROOK;
+        this.bgColor = Config.DEFAULT_BACKGROUND_COLOR_ROOK;
     }
 
     @Override

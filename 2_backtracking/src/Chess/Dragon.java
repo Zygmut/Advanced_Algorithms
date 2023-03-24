@@ -14,6 +14,8 @@ public class Dragon extends Piece {
         super();
         this.imagePath = Helpers.getAssetPath(Config.ASSET_NAME_OF_PIECE_DRAGON);
         this.symbol = 'D';
+        this.name = Config.ASSET_NAME_OF_PIECE_DRAGON;
+        this.bgColor = Config.DEFAULT_BACKGROUND_COLOR_DRAGON;
     }
 
     @Override

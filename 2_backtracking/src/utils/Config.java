@@ -1,5 +1,7 @@
 package utils;
 
+import java.awt.Color;
+
 /**
  * Class that contains all the constants of the project, to avoid magic numbers,
  * strings and make the code more readable and maintainable.
@@ -61,4 +63,40 @@ public class Config {
      * Default board size.
      */
     public static final int INITIAL_DEFAULT_BOARD_SIZE = 8;
+    /**
+     * Number of different pieces.
+     */
+    public static final int NUM_OF_DIFFERENT_PIECES = 8;
+    /**
+     * Default background color of the piece king.
+     */
+    public static final Color DEFAULT_BACKGROUND_COLOR_KING = Color.RED;
+    /**
+     * Default background color of the piece queen.
+     */
+    public static final Color DEFAULT_BACKGROUND_COLOR_QUEEN = Color.BLUE;
+    /**
+     * Default background color of the piece rook.
+     */
+    public static final Color DEFAULT_BACKGROUND_COLOR_ROOK = Color.GREEN;
+    /**
+     * Default background color of the piece knight.
+     */
+    public static final Color DEFAULT_BACKGROUND_COLOR_KNIGHT = Color.YELLOW;
+    /**
+     * Default background color of the piece bishop.
+     */
+    public static final Color DEFAULT_BACKGROUND_COLOR_BISHOP = Color.ORANGE;
+    /**
+     * Default background color of the piece unicorn.
+     */
+    public static final Color DEFAULT_BACKGROUND_COLOR_UNICORN = Color.PINK;
+    /**
+     * Default background color of the piece dragon.
+     */
+    public static final Color DEFAULT_BACKGROUND_COLOR_DRAGON = Color.CYAN;
+    /**
+     * Default background color of the piece castle.
+     */
+    public static final Color DEFAULT_BACKGROUND_COLOR_CASTLE = Color.MAGENTA;
 }

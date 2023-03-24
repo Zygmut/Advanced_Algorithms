@@ -98,6 +98,10 @@ public class ChessBoard {
 				.toArray(String[]::new));
 	}
 
+	public Piece[][] getBoard() {
+		return this.content;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

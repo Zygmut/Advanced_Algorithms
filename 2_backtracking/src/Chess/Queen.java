@@ -13,6 +13,8 @@ public class Queen extends Piece {
 		super();
 		this.imagePath = Helpers.getAssetPath(Config.ASSET_NAME_OF_PIECE_QUEEN);
 		this.symbol = 'Q';
+		this.name = Config.ASSET_NAME_OF_PIECE_QUEEN;
+		this.bgColor = Config.DEFAULT_BACKGROUND_COLOR_QUEEN;
 	}
 
 	@Override
