@@ -2,9 +2,6 @@ package Model;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.awt.Point;
-import java.time.Duration;
-import java.util.Map.Entry;
 
 import Chess.ChessBoard;
 import Master.MVC;
@@ -19,13 +16,14 @@ public class Model implements Notify {
     private Chess.Piece[][] boardWithMemory;
     private int iteration;
     private int elapsedTime;
-    private boolean hasSolution;
+    private boolean hasSolution, hasStarted;
 
     public Model(MVC mvc) {
         this.hub = mvc;
         this.iteration = 0;
         this.elapsedTime = 0;
         this.hasSolution = false;
+        this.hasStarted = false;
         this.board = new ChessBoard(Config.INITIAL_DEFAULT_BOARD_SIZE);
         this.boardWithMemory = new Chess.Piece[this.board.height][this.board.width];
     }
@@ -33,6 +31,9 @@ public class Model implements Notify {
     @Override
     public void notifyRequest(Request request) {
         switch (request.code) {
+            case START -> {
+                this.hasStarted = true;
+            }
             case UPDATEDBOARD -> {
                 this.board = this.hub.getController().getLastBoard();
                 this.iteration = this.hub.getController().getIteration();
@@ -42,6 +43,7 @@ public class Model implements Notify {
             }
             case CHANGEDTABLESIZE -> {
                 this.board = new ChessBoard(this.hub.getView().getBoardWidth());
+                this.boardWithMemory = new Chess.Piece[this.board.height][this.board.width];
             }
             case CHANGEDPIECE -> {
                 this.board.addPiece(this.hub.getView().getLastPiece(), this.hub.getView().getLastPoint());
@@ -54,16 +56,12 @@ public class Model implements Notify {
                 this.hasSolution = this.hub.getController().hasSolution();
             }
             case RESTART -> {
-                // Get all the pieces from the board
-                var pieces = this.board.getPieces();
                 this.board = new ChessBoard(this.hub.getView().getBoardWidth());
-                for (Entry<Point, Chess.Piece> entry : pieces) {
-                    this.board.addPiece(entry.getValue(), entry.getKey());
-                }
                 this.boardWithMemory = new Chess.Piece[this.board.height][this.board.width];
                 this.iteration = 0;
                 this.elapsedTime = 0;
                 this.hasSolution = false;
+                this.hasStarted = false;
             }
             default -> {
                 Logger.getLogger(this.getClass().getSimpleName())
@@ -74,6 +72,10 @@ public class Model implements Notify {
 
     public Chess.Piece[][] getBoardWithMemory() {
         return boardWithMemory;
+    }
+
+    public boolean hasStarted() {
+        return hasStarted;
     }
 
     public boolean hasSolution() {

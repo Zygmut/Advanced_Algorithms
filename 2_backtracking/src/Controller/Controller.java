@@ -144,6 +144,7 @@ public class Controller implements Notify {
         switch (request.code) {
             case START -> {
                 this.stop = false;
+                this.hasRestarted = false;
                 Thread.startVirtualThread(this::run);
             }
             case RESTART -> {

@@ -43,6 +43,7 @@ public class MVC implements Notify {
     public void notifyRequest(Request request) {
         switch (request.code) {
             case START, RESUME, NEXT, STOP -> {
+                this.model.notifyRequest(request);
                 this.controller.notifyRequest(request);
             }
             case RESTART -> {

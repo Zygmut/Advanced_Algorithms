@@ -103,6 +103,10 @@ public class View implements Notify {
      * The label of the number of pieces on the board.
      */
     private JLabel piezasValue;
+    /**
+     * Array of buttons of the view.
+     */
+    private JButton[] buttons;
 
     /**
      * This constructor creates a view with the MVC hub without any configuration
@@ -146,13 +150,13 @@ public class View implements Notify {
             }
             case CHANGEDTABLESIZE -> {
                 this.tamValue.setText(this.boardWidth + "x" + this.boardWidth);
-                this.board.removeAll();
                 this.updateBoard(this.hub.getModel().getBoard(), this.hub.getModel().getBoardWithMemory());
             }
             case HASFINISHED -> {
                 this.tiempoValue.setIcon(null);
                 this.tiempoValue.setText(this.hub.getModel().getElapsedTime() + " ms");
                 this.showResult();
+                this.updateBoard(this.hub.getModel().getBoard(), this.hub.getModel().getBoardWithMemory());
             }
             default -> {
                 Logger.getLogger(this.getClass().getSimpleName())
@@ -204,6 +208,7 @@ public class View implements Notify {
      */
     private void updateBoard(ChessBoard board, Piece[][] memoryBoard) {
         this.progressBar.setValue(getProgressValueToFinish());
+        this.board.removeAll();
         this.board.setBoards(board, memoryBoard);
         this.board.paintComponent(this.board.getGraphics());
         this.board.validate();
@@ -445,7 +450,7 @@ public class View implements Notify {
         Section footer = new Section();
 
         Section buttonsSection = new Section();
-        JButton[] buttons = new JButton[3];
+        this.buttons = new JButton[3];
         final String Startstr = "Iniciar";
         final String Endstr = "Pausar";
         buttons[0] = new JButton(Startstr);
@@ -473,6 +478,7 @@ public class View implements Notify {
             }
         });
         buttons[1] = new JButton("Siguiente iteración");
+        buttons[1].setEnabled(false);
         buttons[1].addActionListener(e -> {
             buttons[2].setEnabled(true);
             this.hub.notifyRequest(new Request(RequestCode.NEXT, this));
@@ -489,6 +495,7 @@ public class View implements Notify {
 
         JPanel boardSizePanel = new JPanel();
         JLabel tableSize = new JLabel("Tamaño del tablero: ");
+        tableSize.setFont(new Font("Arial", Font.ITALIC, 15));
         SpinnerNumberModel size = new SpinnerNumberModel(this.boardWidth, 2, 32, 1);
         JSpinner tableSizeSpinner = new JSpinner(size);
         tableSizeSpinner.addChangeListener(e -> {
@@ -668,7 +675,8 @@ public class View implements Notify {
                     @Override
                     public void mouseClicked(MouseEvent evt) {
                         Board.this.setCursor(Cursor.getDefaultCursor());
-                        if (evt.getButton() == MouseEvent.BUTTON3) {
+                        boolean hasStarted = View.this.hub.getModel().hasStarted();
+                        if (evt.getButton() == MouseEvent.BUTTON3 && !hasStarted) {
                             View.this.lastPoint = new Point(xPos, yPos);
                             View.this.hub.notifyRequest(new Request(RequestCode.DELETEDPIECE, View.this));
                             View.this.numOfPieces = View.this.hub.getModel().getNumberOfPieces();
@@ -677,7 +685,7 @@ public class View implements Notify {
                             setImagePath(Helpers.getAssetPath(Config.ASSET_NAME_OF_PIECE_NONE));
                             repaint();
                         }
-                        if (evt.getButton() == MouseEvent.BUTTON1) {
+                        if (evt.getButton() == MouseEvent.BUTTON1 && !hasStarted) {
                             String imageName = View.this.lastPieceString;
                             if (imageName != null) {
                                 View.this.lastPiece = getLastPiece(imageName);
@@ -706,12 +714,16 @@ public class View implements Notify {
 
                     @Override
                     public void mouseEntered(MouseEvent e) {
-                        BoxBoard.this.setBackground(Color.LIGHT_GRAY);
+                        if (!View.this.hub.getModel().hasStarted()) {
+                            BoxBoard.this.setBackground(Color.LIGHT_GRAY);
+                        }
                     }
 
                     @Override
                     public void mouseExited(MouseEvent e) {
-                        BoxBoard.this.setBackground(color);
+                        if (!View.this.hub.getModel().hasStarted()) {
+                            BoxBoard.this.setBackground(color);
+                        }
                     }
                 };
             }
