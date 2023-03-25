@@ -33,6 +33,7 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
@@ -464,11 +465,16 @@ public class View implements Notify {
         buttons[0].addActionListener(e -> {
             buttons[1].setEnabled(true);
             buttons[0].setEnabled(false);
-            this.hub.notifyRequest(new Request(RequestCode.START, this));
-            this.tiempoValue.setText("");
-            ImageIcon loading = new ImageIcon("./assets/loading.gif");
-            loading.setImage(loading.getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT));
-            this.tiempoValue.setIcon(loading);
+            if (numOfPieces > 0) {
+                this.hub.notifyRequest(new Request(RequestCode.START, this));
+                this.tiempoValue.setText("");
+                ImageIcon loading = new ImageIcon("./assets/loading.gif");
+                loading.setImage(loading.getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT));
+                this.tiempoValue.setIcon(loading);
+            } else {
+                JOptionPane.showMessageDialog(null, "No hay piezas en el tablero", "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         });
         buttons[1] = new JButton("Reiniciar");
         buttons[1].setEnabled(false);
