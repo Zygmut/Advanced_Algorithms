@@ -463,9 +463,9 @@ public class View implements Notify {
         this.buttons = new JButton[2];
         buttons[0] = new JButton("Iniciar");
         buttons[0].addActionListener(e -> {
-            buttons[1].setEnabled(true);
-            buttons[0].setEnabled(false);
             if (numOfPieces > 0) {
+                buttons[1].setEnabled(true);
+                buttons[0].setEnabled(false);
                 this.hub.notifyRequest(new Request(RequestCode.START, this));
                 this.tiempoValue.setText("");
                 ImageIcon loading = new ImageIcon("./assets/loading.gif");
