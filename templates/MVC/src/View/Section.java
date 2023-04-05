@@ -18,6 +18,7 @@ import javax.swing.border.CompoundBorder;
 import javax.swing.border.MatteBorder;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -48,12 +49,12 @@ import org.jfree.data.xy.XYSeriesCollection;
 public class Section {
 
     /**
-     * The panel that will be returned by the getPanel() method if the component 
+     * The panel that will be returned by the getPanel() method if the component
      * does not render HTML.
      */
     private JPanel panel;
     /**
-     * The component that will be returned by the getComponent() method if the 
+     * The component that will be returned by the getComponent() method if the
      * component renders HTML.
      */
     private Component component;
@@ -68,7 +69,7 @@ public class Section {
      */
     public Section() {
         this.panel = new JPanel();
-        this.component = null; 
+        this.component = null;
     }
 
     /**
@@ -100,7 +101,9 @@ public class Section {
      * @param title     The title of the chart
      */
     public void createLineChart(String[] labels, long[][] values, Color[] colors, String[] lineNames, String title) {
-        assert labels.length == 2; // X e Y
+        if(labels.length != 2){
+            throw new IllegalArgumentException("Labels must have 2 values");
+        }
         MultiLineChart chart;
         if (colors == null) {
             checkIfArraysAreValid(lineNames.length, values.length);
@@ -108,8 +111,6 @@ public class Section {
         } else {
             checkIfArraysAreValid(lineNames.length, values.length, colors.length);
             chart = new MultiLineChart(lineNames, labels[0], labels[1], title);
-            // TODO: Allow to set colors
-            //chart = new MultiLineChart(lineNames, labels[0], labels[1], title, colors);
         }
         chart.addLineChart(values);
         this.panel = chart.createChartPanel();
@@ -159,8 +160,8 @@ public class Section {
 
     /**
      * Adds a legend to the section. The Object Section will convert into a JPanel
-     * with the legend in the direction and position specified. The length of the 
-     * labels and colors arrays must be the same. If the iconSize is -1, the icon 
+     * with the legend in the direction and position specified. The length of the
+     * labels and colors arrays must be the same. If the iconSize is -1, the icon
      * size will be the default (10).
      *
      * @param labels          The labels of the legend
@@ -177,10 +178,10 @@ public class Section {
     }
 
     /**
-     * This method allows to add a custom component to the section. The Object will 
-     * be converted into a JPanel. Basically, this method can convert a JPanel or 
+     * This method allows to add a custom component to the section. The Object will
+     * be converted into a JPanel. Basically, this method can convert a JPanel or
      * similars to a Section.
-     * 
+     *
      * @param panel The custom component to add
      */
     public void createSectionOnSection(JPanel panel) {
@@ -188,9 +189,9 @@ public class Section {
     }
 
     /**
-     * Creates a Section from a HTML String. The Object Section will convert into 
+     * Creates a Section from a HTML String. The Object Section will convert into
      * a Component. Some CSS inlines properties are supported.
-     * 
+     *
      * @param html The HTML String
      */
     public void createSectionFromHTML(String html) {
@@ -207,7 +208,7 @@ public class Section {
      * Component. For loading the HTML file, the URL must be valid. If the URL is
      * local, the URL must be like this: "file://path/to/file.html". The content of
      * the html file can support som CSS properties.
-     * 
+     *
      * @param url The URL of the HTML file
      */
     public void createSectionFromHTMLFile(URL url) {
@@ -224,7 +225,7 @@ public class Section {
     }
 
     /**
-     * Creates a free section. The Object Section will convert into a JPanel with 
+     * Creates a free section. The Object Section will convert into a JPanel with
      * the free section. Basically, allows the user to transform a JPanel into a
      * Section.
      *
@@ -237,7 +238,7 @@ public class Section {
     /**
      * This method checks if the arrays have the same length. If not, it throws an
      * IllegalArgumentException.
-     * 
+     *
      * @param lengths The lengths of the arrays
      */
     private void checkIfArraysAreValid(int... lengths) {
@@ -250,7 +251,7 @@ public class Section {
 
     /**
      * Returns the panel of the section.
-     * 
+     *
      * @return The panel of the section
      */
     public JPanel getPanel() {
@@ -259,7 +260,7 @@ public class Section {
 
     /**
      * Returns true if the section is a HTML section.
-     * 
+     *
      * @return True if the section is a HTML section
      */
     public boolean isHTML() {
@@ -268,7 +269,7 @@ public class Section {
 
     /**
      * Returns the component of the section.
-     * 
+     *
      * @return The component of the section
      */
     public Component getComponent() {
@@ -327,29 +328,11 @@ public class Section {
 
         private void addLineChart(long[][] data) {
             XYDataset dataset = createDataSets(data);
-            this.chart = ChartFactory.createXYLineChart(this.title, 
+            this.chart = ChartFactory.createXYLineChart(this.title,
                 this.xLabels, this.yLabels, dataset);
         }
 
         private XYDataset createDataSets(long[][] data) {
-            XYSeriesCollection dataset = new XYSeriesCollection();
-            for (int i = 0; i < data.length; i++) {
-                XYSeries series = new XYSeries(labels[i]);
-                for (int j = 0; j < data[i].length; j++) {
-                    series.add(j, data[i][j]);
-                }
-                dataset.addSeries(series);
-            }
-            return dataset;
-        }
-
-        private void addLineChart(double[][] data) {
-            XYDataset dataset = createDataSets(data);
-            chart = ChartFactory.createXYLineChart(this.title, 
-                this.xLabels, this.yLabels, dataset);
-        }
-
-        private XYDataset createDataSets(double[][] data) {
             XYSeriesCollection dataset = new XYSeriesCollection();
             for (int i = 0; i < data.length; i++) {
                 XYSeries series = new XYSeries(labels[i]);
@@ -375,9 +358,11 @@ public class Section {
         public static final int POSITION_RIGHT = 3;
         public static final int POSITION_CENTER = 4;
 
+				private DirectionAndPosition(){}
+
         /**
          * Returns the direction of the components in the panel.
-         * 
+         *
          * @param position The position of the components in the panel
          * @return The direction of the components in the panel
          */
@@ -402,7 +387,7 @@ public class Section {
     }
 
     private class CustomComponent extends JPanel {
-        
+
         public CustomComponent() {
             super();
             setLayout(new BorderLayout());
@@ -445,7 +430,7 @@ public class Section {
         private JPanel barPanel;
         private JPanel labelPanel;
 
-        private List<Bar> bars = new ArrayList<Bar>();
+        private List<Bar> bars = new ArrayList<>();
 
         public HistogramChart() {
             super();
@@ -474,36 +459,36 @@ public class Section {
             barPanel.removeAll();
             labelPanel.removeAll();
 
-            int maxValue = 0;
+            int maxValue = -1;
 
             for (Bar bar : bars)
                 maxValue = Math.max(maxValue, bar.getValue());
 
             for (Bar bar : bars) {
                 JLabel label = new JLabel(bar.getValue() + "");
-                label.setHorizontalTextPosition(JLabel.CENTER);
-                label.setHorizontalAlignment(JLabel.CENTER);
-                label.setVerticalTextPosition(JLabel.TOP);
-                label.setVerticalAlignment(JLabel.BOTTOM);
+                label.setHorizontalTextPosition(SwingConstants.CENTER);
+                label.setHorizontalAlignment(SwingConstants.CENTER);
+                label.setVerticalTextPosition(SwingConstants.TOP);
+                label.setVerticalAlignment(SwingConstants.BOTTOM);
                 int barHeight = (bar.getValue() * histogramHeight) / maxValue;
                 Icon icon = new ColorIcon(bar.getColor(), barWidth, barHeight, 3);
                 label.setIcon(icon);
                 barPanel.add(label);
 
                 JLabel barLabel = new JLabel(bar.getLabel());
-                barLabel.setHorizontalAlignment(JLabel.CENTER);
+                barLabel.setHorizontalAlignment(SwingConstants.CENTER);
                 labelPanel.add(barLabel);
             }
         }
     }
 
     private class ColorIcon implements Icon {
-    
+
         private Color color;
         private int width = 10;
         private int height = 10;
         private int shadow = 0;
-    
+
         public ColorIcon(Color color) {
             this.color = color;
         }
@@ -520,7 +505,7 @@ public class Section {
             this.height = height;
             this.shadow = shadow;
         }
-    
+
         @Override
         public void paintIcon(Component c, Graphics g, int x, int y) {
             if (shadow > 0) {
@@ -530,15 +515,15 @@ public class Section {
                 g.fillRect(x + width - shadow, y + shadow, shadow, height - shadow);
             } else {
                 g.setColor(color);
-                g.fillRect(x, y, width, height); 
+                g.fillRect(x, y, width, height);
             }
         }
-    
+
         @Override
         public int getIconWidth() {
             return width;
         }
- 
+
         @Override
         public int getIconHeight() {
             return height;
