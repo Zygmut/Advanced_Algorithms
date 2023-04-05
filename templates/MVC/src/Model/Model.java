@@ -1,5 +1,8 @@
 package Model;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import Master.MVC;
 import Request.Notify;
 import Request.Request;
@@ -14,7 +17,12 @@ public class Model implements Notify {
 
     @Override
     public void notifyRequest(Request request) {
-        this.hub.notifyRequest(request);
+        switch (request.code) {
+            default -> {
+                Logger.getLogger(this.getClass().getSimpleName())
+                        .log(Level.SEVERE, "{0} is not implemented.", request);
+            }
+        }
     }
 
 }
