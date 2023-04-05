@@ -31,6 +31,12 @@ public class MVC implements Notify {
 	@Override
 	public void notifyRequest(Request request) {
 		switch (request.code) {
+			case GENERATE_UNIFORM_DATA, GENERATE_GAUSSIAN_DATA -> {
+				this.controller.notifyRequest(request);
+			}
+			case NEW_DATA -> {
+				this.model.notifyRequest(request);
+			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
