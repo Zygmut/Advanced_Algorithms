@@ -8,6 +8,8 @@ import View.View;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.SwingUtilities;
+
 import Controller.Controller;
 
 public class MVC implements Notify {
@@ -28,6 +30,16 @@ public class MVC implements Notify {
 		this.controller = controller;
 	}
 
+	public MVC(String configPath) {
+		this.model = new Model(this);
+		this.controller = new Controller(this);
+		this.view = new View(this, configPath);
+	}
+
+	public void show() {
+		SwingUtilities.invokeLater(() -> this.view.getWindow().start());
+	}
+
 	@Override
 	public void notifyRequest(Request request) {
 		switch (request.code) {
@@ -36,7 +48,6 @@ public class MVC implements Notify {
 						.log(Level.SEVERE, "{0} is not implemented.", request);
 			}
 		}
-
 	}
 
 	public Model getModel() {
