@@ -3,6 +3,7 @@ package Master;
 import Model.Model;
 import Request.Notify;
 import Request.Request;
+import Request.RequestCode;
 import View.View;
 
 import java.util.logging.Level;
@@ -37,6 +38,8 @@ public class MVC implements Notify {
 	}
 
 	public void show() {
+		this.controller.setSeed(27);
+		this.notifyRequest(new Request(RequestCode.GENERATE_UNIFORM_DATA, this));
 		SwingUtilities.invokeLater(() -> this.view.getWindow().start());
 	}
 
@@ -48,6 +51,9 @@ public class MVC implements Notify {
 			}
 			case NEW_DATA -> {
 				this.model.notifyRequest(request);
+			}
+			case SHOW_DATA -> {
+				this.view.notifyRequest(request);
 			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
