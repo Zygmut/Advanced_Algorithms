@@ -8,6 +8,8 @@ import View.View;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.SwingUtilities;
+
 import Controller.Controller;
 
 public class MVC implements Notify {
@@ -26,6 +28,16 @@ public class MVC implements Notify {
 		this.model = model;
 		this.view = view;
 		this.controller = controller;
+	}
+
+	public MVC(String configPath) {
+		this.model = new Model(this);
+		this.controller = new Controller(this);
+		this.view = new View(this, configPath);
+	}
+
+	public void show() {
+		SwingUtilities.invokeLater(() -> this.view.getWindow().start());
 	}
 
 	@Override

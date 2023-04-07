@@ -1,20 +1,15 @@
 package Master;
 
+import mesurament.Mesurament;
 import Request.Request;
 import Request.RequestCode;
-import mesurament.Mesurament;
 import java.awt.Color;
-import java.awt.Dimension;
-import java.util.Random;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartFrame;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.AxisSpace;
-import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.ui.RectangleInsets;
-import org.jfree.data.Range;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -23,15 +18,13 @@ import Model.Point;
 
 public class Main {
 
-	public static void main(String[] args) throws Exception {
-		// Mesurament.mesura();
-		MVC mvc = new MVC();
+	public static void main(String[] args) {
+		Mesurament.mesura();
+		MVC mvc = new MVC("./config.json");
 		mvc.getController().setSeed(27);
+		// mvc.show();
 
-		mvc.getView().initConfig("config.txt");
 		mvc.notifyRequest(new Request(RequestCode.GENERATE_GAUSSIAN_DATA, "Main"));
-		// Generate some random data
-
 		// Create an XYDataset from the data
 		Point[] data = mvc.getModel().getData();
 		XYSeries series = new XYSeries("Random Data");
@@ -67,6 +60,5 @@ public class Main {
 		ChartFrame frame = new ChartFrame("Random Data Plot", chart);
 		frame.pack();
 		frame.setVisible(true);
-
 	}
 }
