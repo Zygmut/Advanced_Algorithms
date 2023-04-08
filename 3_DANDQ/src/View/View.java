@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -174,12 +175,19 @@ public class View implements Notify {
 					.actionPerformed(new ActionEvent(seedSpinner, ActionEvent.ACTION_PERFORMED, selectedValue));
 		});
 
+		// Start button
+		JButton start = new JButton("Start");
+		start.addActionListener(e -> {
+			this.hub.notifyRequest(new Request(RequestCode.START, this));
+		});
+
 		JPanel content = new JPanel();
 		content.add(distributionMenu);
 		content.add(seedLabel);
 		content.add(seedSpinner);
 		content.add(pointLabel);
 		content.add(pointSpinner);
+		content.add(start);
 		Section header = new Section();
 		header.createFreeSection(content);
 		return header;
