@@ -33,6 +33,9 @@ public class Model implements Notify {
 				this.data = this.hub.getController().getData();
 				this.hub.notifyRequest(new Request(RequestCode.SHOW_DATA, this));
 			}
+			case UPDATE_SEED -> {
+				this.seed = this.hub.getView().getSeed();
+			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);

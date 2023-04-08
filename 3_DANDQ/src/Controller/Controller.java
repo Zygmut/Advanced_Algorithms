@@ -56,10 +56,15 @@ public class Controller implements Notify {
 		return point < 1.0 && point > 0.0;
 	}
 
+	private void resetRNG(){
+		this.rng = new Random(this.hub.getModel().getSeed());
+	}
+
 	@Override
 	public void notifyRequest(Request request) {
 		switch (request.code) {
 			case GENERATE_UNIFORM_DATA -> {
+				resetRNG();
 				this.data = generateData(
 						rng::nextDouble,
 						this.hub.getModel().getFrameDimension(),
@@ -67,6 +72,7 @@ public class Controller implements Notify {
 				this.hub.notifyRequest(new Request(RequestCode.NEW_DATA, this));
 			}
 			case GENERATE_GAUSSIAN_DATA -> {
+				resetRNG();
 				this.data = generateData(
 						this::nextBoundedGaussian,
 						this.hub.getModel().getFrameDimension(),

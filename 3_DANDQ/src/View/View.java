@@ -2,12 +2,16 @@ package View;
 
 import java.awt.Color;
 import java.awt.Label;
+import java.awt.event.ActionEvent;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartFrame;
@@ -39,6 +43,7 @@ public class View implements Notify {
 	 * The window of the view.
 	 */
 	private Window window;
+	private int seed;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -131,8 +136,9 @@ public class View implements Notify {
 
 	private Section header() {
 		JComboBox<String> distributionMenu = new JComboBox<>(new String[] { "Uniform", "Gaussian" });
+		distributionMenu.setSelectedItem("Uniform");
 		distributionMenu.addActionListener(e -> {
-			String selectedValue = String.valueOf(distributionMenu.getSelectedItem());
+			String selectedValue = (String) distributionMenu.getSelectedItem();
 			switch (selectedValue) {
 				case "Uniform" -> {
 					this.hub.getController().notifyRequest(new Request(RequestCode.GENERATE_UNIFORM_DATA, this));
@@ -146,8 +152,20 @@ public class View implements Notify {
 				}
 			}
 		});
+		JLabel seedLabel = new JLabel("Seed: ");
+		JSpinner seedSpinner = new JSpinner(
+				new SpinnerNumberModel(this.hub.getModel().getSeed(), Integer.MIN_VALUE, Integer.MAX_VALUE, 1));
+		seedSpinner.addChangeListener(e -> {
+			this.seed = (int) seedSpinner.getValue();
+			this.hub.notifyRequest(new Request(RequestCode.UPDATE_SEED, this));
+			String selectedValue = (String) distributionMenu.getSelectedItem();
+			distributionMenu.getActionListeners()[0]
+					.actionPerformed(new ActionEvent(seedSpinner, ActionEvent.ACTION_PERFORMED, selectedValue));
+		});
 		JPanel content = new JPanel();
 		content.add(distributionMenu);
+		content.add(seedLabel);
+		content.add(seedSpinner);
 		Section header = new Section();
 		header.createFreeSection(content);
 		return header;
@@ -160,6 +178,15 @@ public class View implements Notify {
 	 */
 	public Window getWindow() {
 		return this.window;
+	}
+
+	/**
+	 * Returns the current value of the seed in the UI.
+	 *
+	 * @return the current seed.
+	 */
+	public int getSeed() {
+		return this.seed;
 	}
 
 }

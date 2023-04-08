@@ -55,6 +55,9 @@ public class MVC implements Notify {
 			case SHOW_DATA -> {
 				this.view.notifyRequest(request);
 			}
+			case UPDATE_SEED -> {
+				this.model.notifyRequest(request);
+			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
