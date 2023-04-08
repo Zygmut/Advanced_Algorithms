@@ -41,6 +41,7 @@ public class View implements Notify {
 	 */
 	private Window window;
 	private int seed;
+	private int pointAmount;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -130,6 +131,7 @@ public class View implements Notify {
 	}
 
 	private Section header() {
+		// Distribution dropdown
 		JComboBox<String> distributionMenu = new JComboBox<>(new String[] { "Uniform", "Gaussian" });
 		distributionMenu.setSelectedIndex(0);
 		distributionMenu.addActionListener(e -> {
@@ -147,6 +149,8 @@ public class View implements Notify {
 				}
 			}
 		});
+
+		// Seed controller
 		JLabel seedLabel = new JLabel("Seed: ");
 		JSpinner seedSpinner = new JSpinner(
 				new SpinnerNumberModel(this.hub.getModel().getSeed(), Integer.MIN_VALUE, Integer.MAX_VALUE, 1));
@@ -157,10 +161,25 @@ public class View implements Notify {
 			distributionMenu.getActionListeners()[0]
 					.actionPerformed(new ActionEvent(seedSpinner, ActionEvent.ACTION_PERFORMED, selectedValue));
 		});
+
+		// Points controller
+		JLabel pointLabel = new JLabel("Amount of points: ");
+		JSpinner pointSpinner = new JSpinner(
+				new SpinnerNumberModel(this.hub.getModel().getPointAmount(), Integer.MIN_VALUE, Integer.MAX_VALUE, 1));
+		pointSpinner.addChangeListener(e -> {
+			this.pointAmount = (int) pointSpinner.getValue();
+			this.hub.notifyRequest(new Request(RequestCode.UPDATE_AMOUNT, this));
+			String selectedValue = (String) distributionMenu.getSelectedItem();
+			distributionMenu.getActionListeners()[0]
+					.actionPerformed(new ActionEvent(seedSpinner, ActionEvent.ACTION_PERFORMED, selectedValue));
+		});
+
 		JPanel content = new JPanel();
 		content.add(distributionMenu);
 		content.add(seedLabel);
 		content.add(seedSpinner);
+		content.add(pointLabel);
+		content.add(pointSpinner);
 		Section header = new Section();
 		header.createFreeSection(content);
 		return header;
@@ -182,6 +201,15 @@ public class View implements Notify {
 	 */
 	public int getSeed() {
 		return this.seed;
+	}
+
+	/**
+	 * Returns the current amount of points in the Ui.
+	 *
+	 * @return the current amount of points.
+	 */
+	public int getPointAmount() {
+		return this.pointAmount;
 	}
 
 }

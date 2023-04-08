@@ -55,7 +55,7 @@ public class MVC implements Notify {
 			case SHOW_DATA -> {
 				this.view.notifyRequest(request);
 			}
-			case UPDATE_SEED -> {
+			case UPDATE_SEED, UPDATE_AMOUNT -> {
 				this.model.notifyRequest(request);
 			}
 			default -> {

@@ -36,6 +36,9 @@ public class Model implements Notify {
 			case UPDATE_SEED -> {
 				this.seed = this.hub.getView().getSeed();
 			}
+			case UPDATE_AMOUNT -> {
+				this.pointAmount = this.hub.getView().getPointAmount();
+			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
