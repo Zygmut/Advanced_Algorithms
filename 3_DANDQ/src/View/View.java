@@ -2,6 +2,7 @@ package View;
 
 import java.awt.Color;
 import java.awt.event.ActionEvent;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,6 +24,7 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
 import Master.MVC;
+import Model.Distribution;
 import Model.Point;
 import Request.Notify;
 import Request.Request;
@@ -133,15 +135,16 @@ public class View implements Notify {
 
 	private Section header() {
 		// Distribution dropdown
-		JComboBox<String> distributionMenu = new JComboBox<>(new String[] { "Uniform", "Gaussian" });
+		String[] distributions = Arrays.stream(Distribution.values()).map(Enum::name).toArray(String[]::new);
+		JComboBox<String> distributionMenu = new JComboBox<>(distributions);
 		distributionMenu.setSelectedIndex(0);
 		distributionMenu.addActionListener(e -> {
-			String selectedValue = (String) distributionMenu.getSelectedItem();
+			Distribution selectedValue = Distribution.valueOf((String) distributionMenu.getSelectedItem());
 			switch (selectedValue) {
-				case "Uniform" -> {
+				case UNIFORM -> {
 					this.hub.getController().notifyRequest(new Request(RequestCode.GENERATE_UNIFORM_DATA, this));
 				}
-				case "Gaussian" -> {
+				case GUASSIAN -> {
 					this.hub.getController().notifyRequest(new Request(RequestCode.GENERATE_GAUSSIAN_DATA, this));
 				}
 				default -> {
