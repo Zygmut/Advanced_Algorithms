@@ -1,12 +1,10 @@
 package View;
 
 import java.awt.Color;
-import java.awt.Label;
 import java.awt.event.ActionEvent;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -14,7 +12,6 @@ import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
 import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartFrame;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
@@ -75,15 +72,13 @@ public class View implements Notify {
 
 	@Override
 	public void notifyRequest(Request request) {
-		switch (request.code) {
-			case SHOW_DATA -> {
-				this.window.updateSection(body(), "Body", DirectionAndPosition.POSITION_CENTER);
-			}
-			default -> {
-				Logger.getLogger(this.getClass().getSimpleName())
-						.log(Level.SEVERE, "{0} is not implemented.", request);
-			}
+		if (request.code != RequestCode.SHOW_DATA) {
+			Logger.getLogger(this.getClass().getSimpleName())
+					.log(Level.SEVERE, "{0} is not implemented.", request);
+			return;
 		}
+
+		this.window.updateSection(body(), "Body", DirectionAndPosition.POSITION_CENTER);
 	}
 
 	/**
@@ -136,7 +131,7 @@ public class View implements Notify {
 
 	private Section header() {
 		JComboBox<String> distributionMenu = new JComboBox<>(new String[] { "Uniform", "Gaussian" });
-		distributionMenu.setSelectedItem("Uniform");
+		distributionMenu.setSelectedIndex(0);
 		distributionMenu.addActionListener(e -> {
 			String selectedValue = (String) distributionMenu.getSelectedItem();
 			switch (selectedValue) {
