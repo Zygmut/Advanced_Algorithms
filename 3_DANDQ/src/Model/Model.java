@@ -24,7 +24,7 @@ public class Model implements Notify {
 		this.hub = mvc;
 		this.seed = 27;
 		this.frameDimension = new Dimension(100, 100);
-		this.pointAmount = 10000;
+		this.pointAmount = 333 + 420 + 69 + 333;
 		this.data = new Point[] {};
 	}
 

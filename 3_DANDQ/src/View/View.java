@@ -1,5 +1,6 @@
 package View;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.util.Arrays;
@@ -96,16 +97,44 @@ public class View implements Notify {
 	 *
 	 */
 	private void loadContent() {
-		window.addSection(header(), DirectionAndPosition.POSITION_TOP, "Header");
-		window.addSection(body(new Point[] {}), DirectionAndPosition.POSITION_CENTER, "Body");
+		this.window.addSection(this.header(), DirectionAndPosition.POSITION_TOP, "Header");
+		this.window.addSection(this.body(new Point[] {}), DirectionAndPosition.POSITION_CENTER, "Body");
+		this.window.addSection(this.footer(), DirectionAndPosition.POSITION_BOTTOM, "Footer");
+	}
+
+	private Section footer() {
+		Section buttonSection = new Section();
+		JButton[] buttons = new JButton[3];
+		buttons[0] = new JButton("Distancia Mínima");
+		buttons[0].addActionListener(e -> {
+			// TODO: Implement minimum distance
+			this.hub.notifyRequest(new Request(RequestCode.CALC_MIN_DIS, this, null));
+		});
+		buttons[1] = new JButton("Distancia Máxima");
+		buttons[1].addActionListener(e -> {
+			// TODO: Implement maximum distance
+			this.hub.notifyRequest(new Request(RequestCode.CALC_MAX_DIS, this, null));
+		});
+		buttons[2] = new JButton("Ver estadísticas");
+		// TODO: En prod se debe deshabilitar
+		//buttons[2].setEnabled(false);
+		buttons[2].addActionListener(e -> {
+			// TODO: Implement statistics
+			// La idea es una vez ejecutados los algoritmos, crear una ventana con gráficas
+			// mostrando tiempo de ejecución, etc.
+			this.hub.notifyRequest(new Request(RequestCode.CALC_STATS, this, null));
+		});
+		buttonSection.createButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
+		return buttonSection;
 	}
 
 	private Section body(Point[] data) {
 		ScatterPlot scatterPlot = new ScatterPlot(Color.MAGENTA);
 		// Create a frame to display the chart
 		JPanel content = new JPanel();
+		content.setLayout(new BorderLayout());
 		content.add(new ChartPanel(scatterPlot.createPlot(data, this.hub.getModel().getFrameDimension().width,
-				this.hub.getModel().getFrameDimension().height)));
+				this.hub.getModel().getFrameDimension().height)), BorderLayout.CENTER);
 		Section body = new Section();
 		body.createFreeSection(content);
 		return body;
@@ -162,6 +191,7 @@ public class View implements Notify {
 		});
 
 		// Start button
+		// TODO: Maybe delete this button and use only the footer buttons
 		JButton start = new JButton("Inicio");
 		start.addActionListener(e -> {
 			this.hub.notifyRequest(new Request(RequestCode.START, this, new Body<>(RequestType.POST)));
