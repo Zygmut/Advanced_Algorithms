@@ -4,6 +4,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import Master.MVC;
+import Request.Body;
+import Request.BodyCode;
 import Request.Notify;
 import Request.Request;
 import Request.RequestCode;
@@ -30,14 +32,16 @@ public class Model implements Notify {
 	public void notifyRequest(Request request) {
 		switch (request.code) {
 			case NEW_DATA -> {
-				this.data = this.hub.getController().getData();
-				this.hub.notifyRequest(new Request(RequestCode.SHOW_DATA, this));
+				this.data = (Point[]) request.body.get(BodyCode.DATA);
+				Body<Point[]> body = new Body<>(null);
+				body.add(BodyCode.DATA, this.data);
+				this.hub.notifyRequest(new Request(RequestCode.SHOW_DATA, this, body));
 			}
 			case UPDATE_SEED -> {
-				this.seed = this.hub.getView().getSeed();
+				this.seed = (int) request.body.get(BodyCode.SEED);
 			}
 			case UPDATE_AMOUNT -> {
-				this.pointAmount = this.hub.getView().getPointAmount();
+				this.pointAmount = (int) request.body.get(BodyCode.POINT_AMOUNT);
 			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())

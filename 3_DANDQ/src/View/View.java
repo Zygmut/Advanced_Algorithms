@@ -26,9 +26,12 @@ import org.jfree.data.xy.XYSeriesCollection;
 import Master.MVC;
 import Model.Distribution;
 import Model.Point;
+import Request.Body;
+import Request.BodyCode;
 import Request.Notify;
 import Request.Request;
 import Request.RequestCode;
+import Request.RequestType;
 import betterSwing.Section;
 import betterSwing.Window;
 import betterSwing.utils.DirectionAndPosition;
@@ -76,13 +79,16 @@ public class View implements Notify {
 
 	@Override
 	public void notifyRequest(Request request) {
-		if (request.code != RequestCode.SHOW_DATA) {
-			Logger.getLogger(this.getClass().getSimpleName())
-					.log(Level.SEVERE, "{0} is not implemented.", request);
-			return;
+		switch (request.code) {
+			case SHOW_DATA -> {
+				this.window.updateSection(body((Point[]) request.body.get(BodyCode.DATA)), "Body",
+						DirectionAndPosition.POSITION_CENTER);
+			}
+			default -> {
+				Logger.getLogger(this.getClass().getSimpleName())
+						.log(Level.SEVERE, "{0} is not implemented.", request);
+			}
 		}
-
-		this.window.updateSection(body(), "Body", DirectionAndPosition.POSITION_CENTER);
 	}
 
 	/**
@@ -91,43 +97,15 @@ public class View implements Notify {
 	 */
 	private void loadContent() {
 		window.addSection(header(), DirectionAndPosition.POSITION_TOP, "Header");
-		window.addSection(body(), DirectionAndPosition.POSITION_CENTER, "Body");
+		window.addSection(body(new Point[] {}), DirectionAndPosition.POSITION_CENTER, "Body");
 	}
 
-	private Section body() {
-		Point[] data = this.hub.getModel().getData();
-		XYSeries series = new XYSeries("Random Data");
-		for (Point point : data) {
-			series.add(point.x(), point.y());
-		}
-
-		XYDataset dataset = new XYSeriesCollection(series);
-
-		// Create the chart
-		JFreeChart chart = ChartFactory.createScatterPlot(
-				"",
-				"X",
-				"Y",
-				dataset);
-
-		// Customize the plot and renderer
-		XYPlot plot = chart.getXYPlot();
-		plot.setInsets(new RectangleInsets(0, 0, 0, 0));
-		plot.setBackgroundPaint(Color.WHITE);
-		plot.setDomainGridlinePaint(Color.LIGHT_GRAY);
-		plot.setRangeGridlinePaint(Color.LIGHT_GRAY);
-		plot.setDomainZeroBaselineVisible(true);
-		plot.setRangeZeroBaselineVisible(true);
-		XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(false, true);
-		renderer.setSeriesPaint(0, Color.BLUE);
-		plot.setRenderer(renderer);
-
-		plot.getDomainAxis().setFixedAutoRange(this.hub.getModel().getFrameDimension().width);
-		plot.getRangeAxis().setFixedAutoRange(this.hub.getModel().getFrameDimension().height);
-
+	private Section body(Point[] data) {
+		ScatterPlot scatterPlot = new ScatterPlot(Color.MAGENTA);
 		// Create a frame to display the chart
 		JPanel content = new JPanel();
-		content.add(new ChartPanel(chart));
+		content.add(new ChartPanel(scatterPlot.createPlot(data, this.hub.getModel().getFrameDimension().width,
+				this.hub.getModel().getFrameDimension().height)));
 		Section body = new Section();
 		body.createFreeSection(content);
 		return body;
@@ -135,6 +113,7 @@ public class View implements Notify {
 
 	private Section header() {
 		// Distribution dropdown
+		JLabel distLabel = new JLabel("Distribución: ");
 		String[] distributions = Arrays.stream(Distribution.values()).map(Enum::name).toArray(String[]::new);
 		JComboBox<String> distributionMenu = new JComboBox<>(distributions);
 		distributionMenu.setSelectedIndex(0);
@@ -142,10 +121,10 @@ public class View implements Notify {
 			Distribution selectedValue = Distribution.valueOf((String) distributionMenu.getSelectedItem());
 			switch (selectedValue) {
 				case UNIFORM -> {
-					this.hub.getController().notifyRequest(new Request(RequestCode.GENERATE_UNIFORM_DATA, this));
+					this.hub.getController().notifyRequest(new Request(RequestCode.GENERATE_UNIFORM_DATA, this, null));
 				}
 				case GUASSIAN -> {
-					this.hub.getController().notifyRequest(new Request(RequestCode.GENERATE_GAUSSIAN_DATA, this));
+					this.hub.getController().notifyRequest(new Request(RequestCode.GENERATE_GAUSSIAN_DATA, this, null));
 				}
 				default -> {
 					Logger.getLogger(this.getClass().getSimpleName())
@@ -155,36 +134,41 @@ public class View implements Notify {
 		});
 
 		// Seed controller
-		JLabel seedLabel = new JLabel("Seed: ");
+		JLabel seedLabel = new JLabel("Semilla: ");
 		JSpinner seedSpinner = new JSpinner(
 				new SpinnerNumberModel(this.hub.getModel().getSeed(), Integer.MIN_VALUE, Integer.MAX_VALUE, 1));
 		seedSpinner.addChangeListener(e -> {
 			this.seed = (int) seedSpinner.getValue();
-			this.hub.notifyRequest(new Request(RequestCode.UPDATE_SEED, this));
+			Body<Integer> body = new Body<>(RequestType.POST);
+			body.add(BodyCode.SEED, this.seed);
+			this.hub.notifyRequest(new Request(RequestCode.UPDATE_SEED, this, body));
 			String selectedValue = (String) distributionMenu.getSelectedItem();
 			distributionMenu.getActionListeners()[0]
 					.actionPerformed(new ActionEvent(seedSpinner, ActionEvent.ACTION_PERFORMED, selectedValue));
 		});
 
 		// Points controller
-		JLabel pointLabel = new JLabel("Amount of points: ");
+		JLabel pointLabel = new JLabel("Número de puntos: ");
 		JSpinner pointSpinner = new JSpinner(
 				new SpinnerNumberModel(this.hub.getModel().getPointAmount(), Integer.MIN_VALUE, Integer.MAX_VALUE, 1));
 		pointSpinner.addChangeListener(e -> {
 			this.pointAmount = (int) pointSpinner.getValue();
-			this.hub.notifyRequest(new Request(RequestCode.UPDATE_AMOUNT, this));
+			Body<Integer> body = new Body<>(RequestType.POST);
+			body.add(BodyCode.POINT_AMOUNT, this.pointAmount);
+			this.hub.notifyRequest(new Request(RequestCode.UPDATE_AMOUNT, this, body));
 			String selectedValue = (String) distributionMenu.getSelectedItem();
 			distributionMenu.getActionListeners()[0]
 					.actionPerformed(new ActionEvent(seedSpinner, ActionEvent.ACTION_PERFORMED, selectedValue));
 		});
 
 		// Start button
-		JButton start = new JButton("Start");
+		JButton start = new JButton("Inicio");
 		start.addActionListener(e -> {
-			this.hub.notifyRequest(new Request(RequestCode.START, this));
+			this.hub.notifyRequest(new Request(RequestCode.START, this, new Body<>(RequestType.POST)));
 		});
 
 		JPanel content = new JPanel();
+		content.add(distLabel);
 		content.add(distributionMenu);
 		content.add(seedLabel);
 		content.add(seedSpinner);
@@ -221,6 +205,52 @@ public class View implements Notify {
 	 */
 	public int getPointAmount() {
 		return this.pointAmount;
+	}
+
+	private class ScatterPlot {
+
+		private Color seriesColor;
+
+		public ScatterPlot(Color seriesColor) {
+			this.seriesColor = seriesColor;
+		}
+
+		public ScatterPlot() {
+			this.seriesColor = Color.BLUE;
+		}
+
+		private JFreeChart createPlot(Point[] data, int width, int height) {
+			XYSeries series = new XYSeries("Random Data");
+			for (Point point : data) {
+				series.add(point.x(), point.y());
+			}
+
+			XYDataset dataset = new XYSeriesCollection(series);
+
+			// Create the chart
+			JFreeChart chart = ChartFactory.createScatterPlot(
+					"",
+					"X",
+					"Y",
+					dataset);
+
+			// Customize the plot and renderer
+			XYPlot plot = chart.getXYPlot();
+			plot.setInsets(new RectangleInsets(0, 0, 0, 0));
+			plot.setBackgroundPaint(Color.WHITE);
+			plot.setDomainGridlinePaint(Color.LIGHT_GRAY);
+			plot.setRangeGridlinePaint(Color.LIGHT_GRAY);
+			plot.setDomainZeroBaselineVisible(true);
+			plot.setRangeZeroBaselineVisible(true);
+			XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(false, true);
+			renderer.setSeriesPaint(0, this.seriesColor);
+			plot.setRenderer(renderer);
+
+			plot.getDomainAxis().setFixedAutoRange(width);
+			plot.getRangeAxis().setFixedAutoRange(height);
+
+			return chart;
+		}
 	}
 
 }

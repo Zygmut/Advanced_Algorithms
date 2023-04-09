@@ -39,7 +39,7 @@ public class MVC implements Notify {
 
 	public void show() {
 		this.controller.setSeed(27);
-		this.notifyRequest(new Request(RequestCode.GENERATE_UNIFORM_DATA, this));
+		this.notifyRequest(new Request(RequestCode.GENERATE_UNIFORM_DATA, this, null));
 		SwingUtilities.invokeLater(() -> this.view.getWindow().start());
 	}
 

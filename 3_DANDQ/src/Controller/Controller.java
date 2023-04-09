@@ -7,6 +7,8 @@ import java.util.logging.Logger;
 
 import Master.MVC;
 import Model.Point;
+import Request.Body;
+import Request.BodyCode;
 import Request.Notify;
 import Request.Request;
 import Request.RequestCode;
@@ -56,7 +58,7 @@ public class Controller implements Notify {
 		return point < 1.0 && point > 0.0;
 	}
 
-	private void resetRNG(){
+	private void resetRNG() {
 		this.rng = new Random(this.hub.getModel().getSeed());
 	}
 
@@ -69,7 +71,9 @@ public class Controller implements Notify {
 						rng::nextDouble,
 						this.hub.getModel().getFrameDimension(),
 						this.hub.getModel().getPointAmount());
-				this.hub.notifyRequest(new Request(RequestCode.NEW_DATA, this));
+				Body<Point[]> body = new Body<>(null);
+				body.add(BodyCode.DATA, this.data);
+				this.hub.notifyRequest(new Request(RequestCode.NEW_DATA, this, body));
 			}
 			case GENERATE_GAUSSIAN_DATA -> {
 				resetRNG();
@@ -77,7 +81,9 @@ public class Controller implements Notify {
 						this::nextBoundedGaussian,
 						this.hub.getModel().getFrameDimension(),
 						this.hub.getModel().getPointAmount());
-				this.hub.notifyRequest(new Request(RequestCode.NEW_DATA, this));
+				Body<Point[]> body = new Body<>(null);
+				body.add(BodyCode.DATA, this.data);
+				this.hub.notifyRequest(new Request(RequestCode.NEW_DATA, this, body));
 			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
