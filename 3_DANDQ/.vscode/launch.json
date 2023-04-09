@@ -9,6 +9,13 @@
             "name": "Main",
             "request": "launch",
             "mainClass": "Master.Main",
+            "projectName": "3_DANDQ_4c1b177b"
+        },
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "Master.Main",
             "projectName": "3_DANDQ_3d103715"
         },
         {
