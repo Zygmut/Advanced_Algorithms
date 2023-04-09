@@ -79,17 +79,15 @@ public class View implements Notify {
 	}
 
 	@Override
-	public void notifyRequest(Request request) {
-		switch (request.code) {
-			case SHOW_DATA -> {
-				this.window.updateSection(body((Point[]) request.body.get(BodyCode.DATA)), "Body",
-						DirectionAndPosition.POSITION_CENTER);
-			}
-			default -> {
-				Logger.getLogger(this.getClass().getSimpleName())
-						.log(Level.SEVERE, "{0} is not implemented.", request);
-			}
+	public void notifyRequest(Request<?> request) {
+		if (request.code != RequestCode.SHOW_DATA) {
+			Logger.getLogger(this.getClass().getSimpleName())
+					.log(Level.SEVERE, "{0} is not implemented.", request);
+			return;
 		}
+
+		this.window.updateSection(body((Point[]) request.body.get(BodyCode.DATA)), "Body",
+				DirectionAndPosition.POSITION_CENTER);
 	}
 
 	/**
@@ -106,23 +104,14 @@ public class View implements Notify {
 		Section buttonSection = new Section();
 		JButton[] buttons = new JButton[3];
 		buttons[0] = new JButton("Distancia Mínima");
-		buttons[0].addActionListener(e -> {
-			// TODO: Implement minimum distance
-			this.hub.notifyRequest(new Request(RequestCode.CALC_MIN_DIS, this, null));
-		});
+		buttons[0].addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CALC_MIN_DIS, this)));
 		buttons[1] = new JButton("Distancia Máxima");
-		buttons[1].addActionListener(e -> {
-			// TODO: Implement maximum distance
-			this.hub.notifyRequest(new Request(RequestCode.CALC_MAX_DIS, this, null));
-		});
+		buttons[1].addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CALC_MAX_DIS, this)));
 		buttons[2] = new JButton("Ver estadísticas");
-		// TODO: En prod se debe deshabilitar
-		// buttons[2].setEnabled(false);
 		buttons[2].addActionListener(e -> {
-			// TODO: Implement statistics
 			// La idea es una vez ejecutados los algoritmos, crear una ventana con gráficas
 			// mostrando tiempo de ejecución, etc.
-			this.hub.notifyRequest(new Request(RequestCode.CALC_STATS, this, null));
+			this.hub.notifyRequest(new Request<>(RequestCode.CALC_STATS, this));
 			// Create a window with the statistics
 			String[] stats = {
 					"Tiempo de ejecución: ",
@@ -171,10 +160,12 @@ public class View implements Notify {
 			Distribution selectedValue = Distribution.valueOf((String) distributionMenu.getSelectedItem());
 			switch (selectedValue) {
 				case UNIFORM -> {
-					this.hub.getController().notifyRequest(new Request(RequestCode.GENERATE_UNIFORM_DATA, this, null));
+					this.hub.getController()
+							.notifyRequest(new Request<>(RequestCode.GENERATE_UNIFORM_DATA, this));
 				}
 				case GUASSIAN -> {
-					this.hub.getController().notifyRequest(new Request(RequestCode.GENERATE_GAUSSIAN_DATA, this, null));
+					this.hub.getController()
+							.notifyRequest(new Request<>(RequestCode.GENERATE_GAUSSIAN_DATA, this));
 				}
 				default -> {
 					Logger.getLogger(this.getClass().getSimpleName())
@@ -191,7 +182,7 @@ public class View implements Notify {
 			this.seed = (int) seedSpinner.getValue();
 			Body<Integer> body = new Body<>(RequestType.POST);
 			body.add(BodyCode.SEED, this.seed);
-			this.hub.notifyRequest(new Request(RequestCode.UPDATE_SEED, this, body));
+			this.hub.notifyRequest(new Request<>(RequestCode.UPDATE_SEED, this, body));
 			String selectedValue = (String) distributionMenu.getSelectedItem();
 			distributionMenu.getActionListeners()[0]
 					.actionPerformed(new ActionEvent(seedSpinner, ActionEvent.ACTION_PERFORMED, selectedValue));
@@ -205,18 +196,17 @@ public class View implements Notify {
 			this.pointAmount = (int) pointSpinner.getValue();
 			Body<Integer> body = new Body<>(RequestType.POST);
 			body.add(BodyCode.POINT_AMOUNT, this.pointAmount);
-			this.hub.notifyRequest(new Request(RequestCode.UPDATE_AMOUNT, this, body));
+			this.hub.notifyRequest(new Request<>(RequestCode.UPDATE_AMOUNT, this, body));
 			String selectedValue = (String) distributionMenu.getSelectedItem();
 			distributionMenu.getActionListeners()[0]
 					.actionPerformed(new ActionEvent(seedSpinner, ActionEvent.ACTION_PERFORMED, selectedValue));
 		});
 
 		// Start button
-		// TODO: Maybe delete this button and use only the footer buttons
+		// Maybe delete this button and use only the footer buttons
 		JButton start = new JButton("Inicio");
-		start.addActionListener(e -> {
-			this.hub.notifyRequest(new Request(RequestCode.START, this, new Body<>(RequestType.POST)));
-		});
+		start.addActionListener(e -> this.hub
+				.notifyRequest(new Request<>(RequestCode.START, this, new Body<>(RequestType.POST))));
 
 		JPanel content = new JPanel();
 		content.add(distLabel);
@@ -264,10 +254,6 @@ public class View implements Notify {
 
 		public ScatterPlot(Color seriesColor) {
 			this.seriesColor = seriesColor;
-		}
-
-		public ScatterPlot() {
-			this.seriesColor = Color.BLUE;
 		}
 
 		private JFreeChart createPlot(Point[] data, int width, int height) {

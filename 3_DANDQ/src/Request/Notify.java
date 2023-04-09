@@ -6,5 +6,5 @@ public interface Notify {
      *
      * @param request
      */
-    public void notifyRequest(Request request);
+    public void notifyRequest(Request<?> request);
 }

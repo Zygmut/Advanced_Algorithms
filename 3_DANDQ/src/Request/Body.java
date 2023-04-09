@@ -1,31 +1,32 @@
 package Request;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class Body<T> {
 
-	private HashMap<BodyCode, T> body;
+	private HashMap<BodyCode, T> content;
 	private final RequestType type;
 
 	public Body(RequestType type) {
-		this.body = new HashMap<>();
+		this.content = new HashMap<>();
 		this.type = type;
 	}
 
 	public void add(BodyCode code, T value) {
-		this.body.put(code, value);
+		this.content.put(code, value);
 	}
 
 	public T get(BodyCode code) {
-		return this.body.get(code);
+		return this.content.get(code);
 	}
 
-	public HashMap<BodyCode, T> getBody() {
-		return this.body;
+	public Map<BodyCode, T> getContent() {
+		return this.content;
 	}
 
-	public void setBody(HashMap<BodyCode, T> body) {
-		this.body = body;
+	public void setContent(Map<BodyCode, T> body) {
+		this.content = (HashMap<BodyCode, T>) body;
 	}
 
 	public RequestType getType() {
@@ -35,7 +36,7 @@ public class Body<T> {
 	@Override
 	public String toString() {
 		return "Body{" +
-				"body=" + body +
+				"body=" + content +
 				", type=" + type +
 				'}';
 	}

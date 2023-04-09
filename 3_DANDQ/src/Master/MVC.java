@@ -39,12 +39,12 @@ public class MVC implements Notify {
 
 	public void show() {
 		this.controller.setSeed(27);
-		this.notifyRequest(new Request(RequestCode.GENERATE_UNIFORM_DATA, this, null));
+		this.notifyRequest(new Request<>(RequestCode.GENERATE_UNIFORM_DATA, this));
 		SwingUtilities.invokeLater(() -> this.view.getWindow().start());
 	}
 
 	@Override
-	public void notifyRequest(Request request) {
+	public void notifyRequest(Request<?> request) {
 		switch (request.code) {
 			case GENERATE_UNIFORM_DATA, GENERATE_GAUSSIAN_DATA, START -> {
 				this.controller.notifyRequest(request);
@@ -63,7 +63,6 @@ public class MVC implements Notify {
 						.log(Level.SEVERE, "{0} is not implemented.", request);
 			}
 		}
-
 	}
 
 	public Model getModel() {

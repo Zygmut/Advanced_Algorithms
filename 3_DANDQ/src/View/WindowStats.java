@@ -28,7 +28,7 @@ public class WindowStats {
 	}
 
 	private Section sectionStats() {
-		// TODO: Create a section with the stats.
+		// TODO: #37 Create a section with the stats.
 		Section section = new Section();
 		section.createHistogramChart(labels, values, color);
 		return section;

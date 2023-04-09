@@ -29,13 +29,13 @@ public class Model implements Notify {
 	}
 
 	@Override
-	public void notifyRequest(Request request) {
+	public void notifyRequest(Request<?> request) {
 		switch (request.code) {
 			case NEW_DATA -> {
 				this.data = (Point[]) request.body.get(BodyCode.DATA);
 				Body<Point[]> body = new Body<>(null);
 				body.add(BodyCode.DATA, this.data);
-				this.hub.notifyRequest(new Request(RequestCode.SHOW_DATA, this, body));
+				this.hub.notifyRequest(new Request<>(RequestCode.SHOW_DATA, this, body));
 			}
 			case UPDATE_SEED -> {
 				this.seed = (int) request.body.get(BodyCode.SEED);
