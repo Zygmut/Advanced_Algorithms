@@ -117,12 +117,33 @@ public class View implements Notify {
 		});
 		buttons[2] = new JButton("Ver estadísticas");
 		// TODO: En prod se debe deshabilitar
-		//buttons[2].setEnabled(false);
+		// buttons[2].setEnabled(false);
 		buttons[2].addActionListener(e -> {
 			// TODO: Implement statistics
 			// La idea es una vez ejecutados los algoritmos, crear una ventana con gráficas
 			// mostrando tiempo de ejecución, etc.
 			this.hub.notifyRequest(new Request(RequestCode.CALC_STATS, this, null));
+			// Create a window with the statistics
+			String[] stats = {
+					"Tiempo de ejecución: ",
+					"Distancia mínima: ",
+					"Distancia máxima: ",
+			};
+
+			int[] values = {
+					(int) (Math.random() * 1000),
+					(int) (Math.random() * 1000),
+					(int) (Math.random() * 1000),
+			};
+
+			Color[] colors = {
+					Color.RED,
+					Color.GREEN,
+					Color.BLUE,
+			};
+
+			WindowStats windowStats = new WindowStats(stats, values, colors);
+			windowStats.show();
 		});
 		buttonSection.createButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
 		return buttonSection;
