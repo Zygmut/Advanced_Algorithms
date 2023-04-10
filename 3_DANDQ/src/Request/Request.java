@@ -1,5 +1,11 @@
 package Request;
 
+import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import Model.Point;
+
 public class Request<T> {
 	public final RequestCode code;
 	public final String origin;
@@ -31,6 +37,51 @@ public class Request<T> {
 
 	@Override
 	public String toString() {
-		return "Request " + code + " from " + origin;
+		StringBuilder sb = new StringBuilder();
+		if (body != null) {
+			sb.append(body.getType()).append(" ");
+		}
+		sb.append("Request ")
+				.append(code)
+				.append(" from ")
+				.append(origin);
+		if (body != null) {
+			sb.append(" containing ");
+			for (Entry<BodyCode, ?> entry : body.getContent().entrySet()) {
+				switch (entry.getKey()) {
+					case DATA -> {
+						Point[] data = (Point[]) entry.getValue();
+						sb.append(entry.getKey())
+								.append(" [")
+								.append(data[0])
+								.append(", ")
+								.append(data[1])
+								.append(" ··· ")
+								.append(data[data.length-2])
+								.append(", ")
+								.append(data[data.length-1])
+								.append("]")
+								.append(" of length ")
+								.append(data.length);
+					}
+					case POINT_AMOUNT -> {
+						sb.append(entry.getKey())
+								.append(" = ")
+								.append(entry.getValue());
+					}
+					case SEED -> {
+						sb.append(entry.getKey())
+								.append(" = ")
+								.append(entry.getValue());
+					}
+					default -> {
+						Logger.getLogger(this.getClass().getSimpleName())
+								.log(Level.SEVERE, "{0} is not a valid body code.",
+										entry.getKey());
+					}
+				}
+			}
+		}
+		return sb.toString();
 	}
 }

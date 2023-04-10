@@ -13,6 +13,12 @@ public class Body<T> {
 		this.type = type;
 	}
 
+	public Body(RequestType type, BodyCode code, T value) {
+		this.content = new HashMap<>();
+		this.content.put(code, value);
+		this.type = type;
+	}
+
 	public void add(BodyCode code, T value) {
 		this.content.put(code, value);
 	}

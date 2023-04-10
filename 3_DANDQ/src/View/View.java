@@ -180,8 +180,8 @@ public class View implements Notify {
 				new SpinnerNumberModel(this.hub.getModel().getSeed(), Integer.MIN_VALUE, Integer.MAX_VALUE, 1));
 		seedSpinner.addChangeListener(e -> {
 			this.seed = (int) seedSpinner.getValue();
-			Body<Integer> body = new Body<>(RequestType.POST);
-			body.add(BodyCode.SEED, this.seed);
+
+			Body<Integer> body = new Body<>(RequestType.POST, BodyCode.SEED, this.seed);
 			this.hub.notifyRequest(new Request<>(RequestCode.UPDATE_SEED, this, body));
 			String selectedValue = (String) distributionMenu.getSelectedItem();
 			distributionMenu.getActionListeners()[0]
@@ -194,8 +194,7 @@ public class View implements Notify {
 				new SpinnerNumberModel(this.hub.getModel().getPointAmount(), Integer.MIN_VALUE, Integer.MAX_VALUE, 1));
 		pointSpinner.addChangeListener(e -> {
 			this.pointAmount = (int) pointSpinner.getValue();
-			Body<Integer> body = new Body<>(RequestType.POST);
-			body.add(BodyCode.POINT_AMOUNT, this.pointAmount);
+			Body<Integer> body = new Body<>(RequestType.POST, BodyCode.POINT_AMOUNT, this.pointAmount);
 			this.hub.notifyRequest(new Request<>(RequestCode.UPDATE_AMOUNT, this, body));
 			String selectedValue = (String) distributionMenu.getSelectedItem();
 			distributionMenu.getActionListeners()[0]
@@ -205,8 +204,7 @@ public class View implements Notify {
 		// Start button
 		// Maybe delete this button and use only the footer buttons
 		JButton start = new JButton("Inicio");
-		start.addActionListener(e -> this.hub
-				.notifyRequest(new Request<>(RequestCode.START, this, new Body<>(RequestType.POST))));
+		start.addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.START, this)));
 
 		JPanel content = new JPanel();
 		content.add(distLabel);

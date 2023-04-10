@@ -9,6 +9,7 @@ import Request.BodyCode;
 import Request.Notify;
 import Request.Request;
 import Request.RequestCode;
+import Request.RequestType;
 
 import java.awt.Dimension;
 
@@ -33,8 +34,7 @@ public class Model implements Notify {
 		switch (request.code) {
 			case NEW_DATA -> {
 				this.data = (Point[]) request.body.get(BodyCode.DATA);
-				Body<Point[]> body = new Body<>(null);
-				body.add(BodyCode.DATA, this.data);
+				Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, this.data);
 				this.hub.notifyRequest(new Request<>(RequestCode.SHOW_DATA, this, body));
 			}
 			case UPDATE_SEED -> {

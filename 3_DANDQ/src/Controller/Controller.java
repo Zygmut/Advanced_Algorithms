@@ -12,6 +12,8 @@ import Request.BodyCode;
 import Request.Notify;
 import Request.Request;
 import Request.RequestCode;
+import Request.RequestType;
+
 import java.awt.Dimension;
 
 public class Controller implements Notify {
@@ -64,32 +66,28 @@ public class Controller implements Notify {
 
 	@Override
 	public void notifyRequest(Request<?> request) {
+		resetRNG();
 		switch (request.code) {
 			case GENERATE_UNIFORM_DATA -> {
-				resetRNG();
 				this.data = generateData(
 						rng::nextDouble,
 						this.hub.getModel().getFrameDimension(),
 						this.hub.getModel().getPointAmount());
-				Body<Point[]> body = new Body<>(null);
-				body.add(BodyCode.DATA, this.data);
-				this.hub.notifyRequest(new Request<>(RequestCode.NEW_DATA, this, body));
 			}
 			case GENERATE_GAUSSIAN_DATA -> {
-				resetRNG();
 				this.data = generateData(
 						this::nextBoundedGaussian,
 						this.hub.getModel().getFrameDimension(),
 						this.hub.getModel().getPointAmount());
-				Body<Point[]> body = new Body<>(null);
-				body.add(BodyCode.DATA, this.data);
-				this.hub.notifyRequest(new Request<>(RequestCode.NEW_DATA, this, body));
 			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
+				return;
 			}
 		}
+		Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, this.data);
+		this.hub.notifyRequest(new Request<>(RequestCode.NEW_DATA, this, body));
 	}
 
 	public Point[] getData() {
