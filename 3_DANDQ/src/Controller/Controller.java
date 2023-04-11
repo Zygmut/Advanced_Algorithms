@@ -19,7 +19,6 @@ import java.awt.Dimension;
 public class Controller implements Notify {
 
 	private MVC hub;
-	private Point[] data;
 	private Random rng;
 
 	public Controller(MVC mvc) {
@@ -67,15 +66,16 @@ public class Controller implements Notify {
 	@Override
 	public void notifyRequest(Request<?> request) {
 		resetRNG();
+		Point[] data;
 		switch (request.code) {
 			case GENERATE_UNIFORM_DATA -> {
-				this.data = generateData(
+				data = generateData(
 						rng::nextDouble,
 						this.hub.getModel().getFrameDimension(),
 						this.hub.getModel().getPointAmount());
 			}
 			case GENERATE_GAUSSIAN_DATA -> {
-				this.data = generateData(
+				data = generateData(
 						this::nextBoundedGaussian,
 						this.hub.getModel().getFrameDimension(),
 						this.hub.getModel().getPointAmount());
@@ -86,12 +86,8 @@ public class Controller implements Notify {
 				return;
 			}
 		}
-		Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, this.data);
+		Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, data);
 		this.hub.notifyRequest(new Request<>(RequestCode.NEW_DATA, this, body));
-	}
-
-	public Point[] getData() {
-		return data;
 	}
 
 }
