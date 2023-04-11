@@ -46,7 +46,7 @@ public class MVC implements Notify {
 	@Override
 	public void notifyRequest(Request<?> request) {
 		switch (request.code) {
-			case GENERATE_UNIFORM_DATA, GENERATE_GAUSSIAN_DATA -> {
+			case GENERATE_UNIFORM_DATA, GENERATE_GAUSSIAN_DATA, CALC_MIN_DIS, CALC_MAX_DIS -> {
 				this.controller.notifyRequest(request);
 			}
 			case NEW_DATA -> {
