@@ -66,7 +66,7 @@ public class Controller implements Notify {
 	@Override
 	public void notifyRequest(Request<?> request) {
 		resetRNG();
-		Point[] data;
+		Point[] data = null;
 		switch (request.code) {
 			case GENERATE_UNIFORM_DATA -> {
 				data = generateData(
@@ -80,6 +80,9 @@ public class Controller implements Notify {
 						this.hub.getModel().getFrameDimension(),
 						this.hub.getModel().getPointAmount());
 			}
+			case CALC_MIN_DIS -> {
+				Thread.startVirtualThread(this::calculateMinDistance);
+			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
@@ -88,6 +91,9 @@ public class Controller implements Notify {
 		}
 		Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, data);
 		this.hub.notifyRequest(new Request<>(RequestCode.NEW_DATA, this, body));
+	}
+
+	private void calculateMinDistance() {
 	}
 
 }
