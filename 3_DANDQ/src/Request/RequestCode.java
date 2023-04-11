@@ -7,7 +7,6 @@ public enum RequestCode {
 	SHOW_DATA,
 	UPDATE_SEED,
 	UPDATE_AMOUNT,
-	START,
 	CALC_MIN_DIS,
 	CALC_MAX_DIS,
 	CALC_STATS

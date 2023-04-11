@@ -201,11 +201,6 @@ public class View implements Notify {
 					.actionPerformed(new ActionEvent(seedSpinner, ActionEvent.ACTION_PERFORMED, selectedValue));
 		});
 
-		// Start button
-		// Maybe delete this button and use only the footer buttons
-		JButton start = new JButton("Inicio");
-		start.addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.START, this)));
-
 		JPanel content = new JPanel();
 		content.add(distLabel);
 		content.add(distributionMenu);
@@ -213,7 +208,6 @@ public class View implements Notify {
 		content.add(seedSpinner);
 		content.add(pointLabel);
 		content.add(pointSpinner);
-		content.add(start);
 		Section header = new Section();
 		header.createFreeSection(content);
 		return header;
