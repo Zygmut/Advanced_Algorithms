@@ -43,6 +43,10 @@ public class Model implements Notify {
 			case UPDATE_AMOUNT -> {
 				this.pointAmount = (int) request.body.get(BodyCode.POINT_AMOUNT);
 			}
+			case GET_DATA -> {
+				Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, this.data);
+				this.hub.notifyRequest(new Request<>(RequestCode.SEND_DATA, this, body));
+			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);

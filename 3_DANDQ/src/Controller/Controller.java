@@ -20,6 +20,7 @@ public class Controller implements Notify {
 
 	private MVC hub;
 	private Random rng;
+	private Point[] data;
 
 	public Controller(MVC mvc) {
 		this.hub = mvc;
@@ -65,32 +66,37 @@ public class Controller implements Notify {
 
 	@Override
 	public void notifyRequest(Request<?> request) {
-		resetRNG();
-		Point[] data = null;
 		switch (request.code) {
 			case GENERATE_UNIFORM_DATA -> {
-				data = generateData(
+				resetRNG();
+				Point[] points = generateData(
 						rng::nextDouble,
 						this.hub.getModel().getFrameDimension(),
 						this.hub.getModel().getPointAmount());
+				Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, points);
+				this.hub.notifyRequest(new Request<>(RequestCode.NEW_DATA, this, body));
 			}
 			case GENERATE_GAUSSIAN_DATA -> {
-				data = generateData(
+				resetRNG();
+				Point[] points = generateData(
 						this::nextBoundedGaussian,
 						this.hub.getModel().getFrameDimension(),
 						this.hub.getModel().getPointAmount());
+				Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, points);
+				this.hub.notifyRequest(new Request<>(RequestCode.NEW_DATA, this, body));
+			}
+			case SEND_DATA -> {
+				this.data = (Point[]) request.body.get(BodyCode.DATA);
 			}
 			case CALC_MIN_DIS -> {
+				this.hub.notifyRequest(new Request<>(RequestCode.GET_DATA, this));
 				Thread.startVirtualThread(this::calculateMinDistance);
 			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
-				return;
 			}
 		}
-		Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, data);
-		this.hub.notifyRequest(new Request<>(RequestCode.NEW_DATA, this, body));
 	}
 
 	private void calculateMinDistance() {

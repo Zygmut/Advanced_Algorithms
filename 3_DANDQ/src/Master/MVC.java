@@ -46,7 +46,7 @@ public class MVC implements Notify {
 	@Override
 	public void notifyRequest(Request<?> request) {
 		switch (request.code) {
-			case GENERATE_UNIFORM_DATA, GENERATE_GAUSSIAN_DATA, CALC_MIN_DIS, CALC_MAX_DIS -> {
+			case GENERATE_UNIFORM_DATA, GENERATE_GAUSSIAN_DATA, SEND_DATA, CALC_MIN_DIS, CALC_MAX_DIS -> {
 				this.controller.notifyRequest(request);
 			}
 			case NEW_DATA -> {
@@ -55,7 +55,7 @@ public class MVC implements Notify {
 			case SHOW_DATA -> {
 				this.view.notifyRequest(request);
 			}
-			case UPDATE_SEED, UPDATE_AMOUNT -> {
+			case UPDATE_SEED, UPDATE_AMOUNT, GET_DATA -> {
 				this.model.notifyRequest(request);
 			}
 			default -> {
