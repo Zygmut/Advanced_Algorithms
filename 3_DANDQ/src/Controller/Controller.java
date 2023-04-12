@@ -15,6 +15,8 @@ import Request.RequestCode;
 import Request.RequestType;
 
 import java.awt.Dimension;
+import java.time.Duration;
+import java.time.Instant;
 
 public class Controller implements Notify {
 
@@ -55,7 +57,7 @@ public class Controller implements Notify {
 		}
 		return result;
 	}
-	
+
 	private double getPoisson(double lambda) {
 		double L = Math.exp(-lambda);
 		int k = 0;
@@ -110,13 +112,13 @@ public class Controller implements Notify {
 			}
 			case CALC_MIN_DIS -> {
 				this.hub.notifyRequest(new Request<>(RequestCode.GET_DATA, this));
-				Thread.startVirtualThread(this::calculateMinDistance);
+				Thread.startVirtualThread(this::calculateMinDistanceNN);
 			}
 			case CALC_MAX_DIS -> {
 				this.hub.notifyRequest(new Request<>(RequestCode.GET_DATA, this));
-				Thread.startVirtualThread(this::calculateMaxDistance);
+				Thread.startVirtualThread(this::calculateMaxDistanceNN);
 			}
-			
+
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
@@ -124,39 +126,50 @@ public class Controller implements Notify {
 		}
 	}
 
-	private void calculateMinDistance() {
-		//Calcular la minima distancia entre dos puntos.
-		//Se calculará mediante los puntos x e y de cada punto.
-
+	private void calculateMinDistanceNN() {
 		double minDistance = Double.MAX_VALUE;
+		Point[] minDistancePoints = new Point[2];
+		Instant start = Instant.now();
 		for (int i = 0; i < data.length; i++) {
 			for (int j = i + 1; j < data.length; j++) {
-				double distance = Math.sqrt(Math.pow(data[i].x() - data[j].x(), 2) + Math.pow(data[i].y() - data[j].y(), 2));
-				System.out.println("Distancia entre " + i + " y " + j + ": " + distance);
-				if (distance < minDistance) {
-					minDistance = distance;
+				double tempDistance = data[i].euclideanDistanceTo(data[j]);
+				if (tempDistance < minDistance) {
+					minDistancePoints[0] = data[i];
+					minDistancePoints[1] = data[j];
+					minDistance = tempDistance;
 				}
 			}
 		}
-		System.out.println("La distancia mínima entre dos puntos es: " + minDistance);
+
+		long time = Duration.between(start, Instant.now()).toMillis();
+		// TODO: Create request to Model to save this. Check Issue #39
+		Logger.getLogger(this.getClass().getSimpleName())
+				.log(Level.INFO, "Minimum distance found is {0} between points {1} and {2} under {3} milliseconds.",
+						new Object[] { minDistance, minDistancePoints[0], minDistancePoints[1], time });
 
 	}
 
-	private void calculateMaxDistance() {
-		//Calcular la maxima distancia entre dos puntos.
-		//Se calculará mediante los puntos x e y de cada punto.
-
+	private void calculateMaxDistanceNN() {
 		double maxDistance = Double.MIN_VALUE;
+		Point[] maxDistancePoints = new Point[2];
+		Instant start = Instant.now();
 		for (int i = 0; i < data.length; i++) {
 			for (int j = i + 1; j < data.length; j++) {
-				double distance = Math.sqrt(Math.pow(data[i].x() - data[j].x(), 2) + Math.pow(data[i].y() - data[j].y(), 2));
-				System.out.println("Distancia entre " + i + " y " + j + ": " + distance);
-				if (distance > maxDistance) {
-					maxDistance = distance;
+				double tempDistance = data[i].euclideanDistanceTo(data[j]);
+				if (tempDistance > maxDistance) {
+					maxDistancePoints[0] = data[i];
+					maxDistancePoints[1] = data[j];
+					maxDistance = tempDistance;
 				}
 			}
 		}
-		System.out.println("La distancia máxima entre dos puntos es: " + maxDistance);
+		long time = Duration.between(start, Instant.now()).toMillis();
+		// TODO: Create request to Model to save this. Check Issue #39
+
+		Logger.getLogger(this.getClass().getSimpleName())
+				.log(Level.INFO, "Maximum distance found is {0} between points {1} and {2} under {3} milliseconds.",
+						new Object[] { maxDistance, maxDistancePoints[0], maxDistancePoints[1], time });
+
 	}
 
 }
