@@ -1,5 +1,5 @@
 package Model;
 
 public enum Distribution {
-	UNIFORM, GUASSIAN
+	UNIFORM, GUASSIAN, POISSON
 }

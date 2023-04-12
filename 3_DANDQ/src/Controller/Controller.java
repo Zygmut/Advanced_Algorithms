@@ -55,6 +55,17 @@ public class Controller implements Notify {
 		}
 		return result;
 	}
+	
+	private double getPoisson(double lambda) {
+		double L = Math.exp(-lambda);
+		int k = 0;
+		double p = 1.0;
+		do {
+			k++;
+			p *= rng.nextDouble();
+		} while (p > L);
+		return k - 1;
+	}
 
 	private boolean bounded(double point) {
 		return point < 1.0 && point > 0.0;
@@ -85,6 +96,15 @@ public class Controller implements Notify {
 				Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, points);
 				this.hub.notifyRequest(new Request<>(RequestCode.NEW_DATA, this, body));
 			}
+			case GENERATE_POISSON_DATA -> {
+				resetRNG();
+				Point[] points = generateData(
+						() -> getPoisson(0.5),
+						this.hub.getModel().getFrameDimension(),
+						this.hub.getModel().getPointAmount());
+				Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, points);
+				this.hub.notifyRequest(new Request<>(RequestCode.NEW_DATA, this, body));
+			}
 			case SEND_DATA -> {
 				this.data = (Point[]) request.body.get(BodyCode.DATA);
 			}
@@ -100,6 +120,21 @@ public class Controller implements Notify {
 	}
 
 	private void calculateMinDistance() {
+		//Calcular la minima distancia entre dos puntos.
+		//Se calculará mediante los puntos x e y de cada punto.
+
+		double minDistance = Double.MAX_VALUE;
+		for (int i = 0; i < data.length; i++) {
+			for (int j = i + 1; j < data.length; j++) {
+				double distance = Math.sqrt(Math.pow(data[i].x() - data[j].x(), 2) + Math.pow(data[i].y() - data[j].y(), 2));
+				System.out.println("Distancia entre " + i + " y " + j + ": " + distance);
+				if (distance < minDistance) {
+					minDistance = distance;
+				}
+			}
+		}
+		System.out.println("La distancia mínima entre dos puntos es: " + minDistance);
+
 	}
 
 }

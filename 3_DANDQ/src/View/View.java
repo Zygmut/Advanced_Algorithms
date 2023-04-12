@@ -3,6 +3,7 @@ package View;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
+import java.time.chrono.IsoChronology;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -85,7 +86,6 @@ public class View implements Notify {
 					.log(Level.SEVERE, "{0} is not implemented.", request);
 			return;
 		}
-
 		this.window.updateSection(body((Point[]) request.body.get(BodyCode.DATA)), "Body",
 				DirectionAndPosition.POSITION_CENTER);
 	}
@@ -166,6 +166,10 @@ public class View implements Notify {
 				case GUASSIAN -> {
 					this.hub.getController()
 							.notifyRequest(new Request<>(RequestCode.GENERATE_GAUSSIAN_DATA, this));
+				}
+				case POISSON -> {
+					this.hub.getController()
+							.notifyRequest(new Request<>(RequestCode.GENERATE_POISSON_DATA, this));
 				}
 				default -> {
 					Logger.getLogger(this.getClass().getSimpleName())
