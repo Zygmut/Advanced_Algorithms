@@ -112,6 +112,11 @@ public class Controller implements Notify {
 				this.hub.notifyRequest(new Request<>(RequestCode.GET_DATA, this));
 				Thread.startVirtualThread(this::calculateMinDistance);
 			}
+			case CALC_MAX_DIS -> {
+				this.hub.notifyRequest(new Request<>(RequestCode.GET_DATA, this));
+				Thread.startVirtualThread(this::calculateMaxDistance);
+			}
+			
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
@@ -135,6 +140,23 @@ public class Controller implements Notify {
 		}
 		System.out.println("La distancia mínima entre dos puntos es: " + minDistance);
 
+	}
+
+	private void calculateMaxDistance() {
+		//Calcular la maxima distancia entre dos puntos.
+		//Se calculará mediante los puntos x e y de cada punto.
+
+		double maxDistance = Double.MIN_VALUE;
+		for (int i = 0; i < data.length; i++) {
+			for (int j = i + 1; j < data.length; j++) {
+				double distance = Math.sqrt(Math.pow(data[i].x() - data[j].x(), 2) + Math.pow(data[i].y() - data[j].y(), 2));
+				System.out.println("Distancia entre " + i + " y " + j + ": " + distance);
+				if (distance > maxDistance) {
+					maxDistance = distance;
+				}
+			}
+		}
+		System.out.println("La distancia máxima entre dos puntos es: " + maxDistance);
 	}
 
 }
