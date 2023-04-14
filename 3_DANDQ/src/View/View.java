@@ -115,13 +115,15 @@ public class View implements Notify {
 
 	private Section footer() {
 		Section buttonSection = new Section();
-		JButton[] buttons = new JButton[3];
+		JButton[] buttons = new JButton[4];
 		buttons[0] = new JButton("Distancia Mínima");
 		buttons[0].addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CALC_MIN_DIS, this)));
 		buttons[1] = new JButton("Distancia Máxima");
 		buttons[1].addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CALC_MAX_DIS, this)));
-		buttons[2] = new JButton("Ver estadísticas");
-		buttons[2].addActionListener(e -> {
+		buttons[2] = new JButton("Borrar datos");
+		buttons[2].addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CLEAR_DATA, this)));
+		buttons[3] = new JButton("Ver estadísticas");
+		buttons[3].addActionListener(e -> {
 			// La idea es una vez ejecutados los algoritmos, crear una ventana con gráficas
 			// mostrando tiempo de ejecución, etc.
 			this.hub.notifyRequest(new Request<>(RequestCode.CALC_STATS, this));

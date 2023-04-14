@@ -46,18 +46,16 @@ public class MVC implements Notify {
 	@Override
 	public void notifyRequest(Request<?> request) {
 		switch (request.code) {
-			case GENERATE_UNIFORM_DATA, GENERATE_GAUSSIAN_DATA, GENERATE_POISSON_DATA, SEND_DATA, CALC_MIN_DIS,
-					CALC_MAX_DIS -> {
+			case GENERATE_UNIFORM_DATA, GENERATE_GAUSSIAN_DATA,
+				GENERATE_POISSON_DATA, SEND_DATA, CALC_MIN_DIS, CALC_MAX_DIS -> {
 				this.controller.notifyRequest(request);
 			}
-			case NEW_DATA, NEW_PAIR_DATA_MIN, NEW_PAIR_DATA_MAX -> {
+			case NEW_DATA, NEW_PAIR_DATA_MIN, NEW_PAIR_DATA_MAX,
+				UPDATE_SEED, UPDATE_AMOUNT, GET_DATA, CLEAR_DATA -> {
 				this.model.notifyRequest(request);
 			}
 			case SHOW_DATA, RESULT_MIN_DIS, RESULT_MAX_DIS -> {
 				this.view.notifyRequest(request);
-			}
-			case UPDATE_SEED, UPDATE_AMOUNT, GET_DATA -> {
-				this.model.notifyRequest(request);
 			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())

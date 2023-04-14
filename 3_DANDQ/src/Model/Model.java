@@ -60,6 +60,13 @@ public class Model implements Notify {
 				PairPoint parPairPoint = (PairPoint) request.body.get(BodyCode.PAIR_POINTS);
 				this.minPairPointsList.add(parPairPoint);
 			}
+			case CLEAR_DATA -> {
+				this.data = new Point[] {};
+				this.maxPairPointsList = new ArrayList<>();
+				this.minPairPointsList = new ArrayList<>();
+				Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, this.data);
+				this.hub.notifyRequest(new Request<>(RequestCode.SHOW_DATA, this, body));
+			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
