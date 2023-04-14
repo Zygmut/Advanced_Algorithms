@@ -14,7 +14,6 @@ import Request.Notify;
 import Request.Request;
 import Request.RequestCode;
 import Request.RequestType;
-import utils.Config;
 
 import java.awt.Dimension;
 import java.time.Duration;
@@ -128,14 +127,26 @@ public class Controller implements Notify {
 		}
 	}
 
+	private boolean isNotInPairList(Point point1, Point point2, boolean isMin) {
+		PairPoint[] pairPointsList = isMin ? this.hub.getModel().getMinPairPointsList()
+				: this.hub.getModel().getMaxPairPointsList();
+		for (PairPoint pairPoint : pairPointsList) {
+			if (pairPoint.p1().equals(point1) && pairPoint.p2().equals(point2)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	private void calculateMinDistanceNN() {
 		double minDistance = Double.MAX_VALUE;
 		Point[] minDistancePoints = new Point[2];
 		Instant start = Instant.now();
+
 		for (int i = 0; i < data.length; i++) {
 			for (int j = i + 1; j < data.length; j++) {
 				double tempDistance = data[i].euclideanDistanceTo(data[j]);
-				if (tempDistance < minDistance) {
+				if (tempDistance < minDistance && isNotInPairList(data[i], data[j], true)) {
 					minDistancePoints[0] = data[i];
 					minDistancePoints[1] = data[j];
 					minDistance = tempDistance;
@@ -144,20 +155,16 @@ public class Controller implements Notify {
 		}
 
 		long time = Duration.between(start, Instant.now()).toMillis();
-		// TODO: Create request to Model to save this. Check Issue #39
+		PairPoint pairPoint = new PairPoint(minDistancePoints[0], minDistancePoints[1]);
+		Body<PairPoint> body1 = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, pairPoint);
+		this.hub.notifyRequest(new Request<>(RequestCode.NEW_PAIR_DATA_MIN, this, body1));
+
 		Logger.getLogger(this.getClass().getSimpleName())
 				.log(Level.INFO, "Minimum distance found is {0} between points {1} and {2} under {3} milliseconds.",
 						new Object[] { minDistance, minDistancePoints[0], minDistancePoints[1], time });
 
-		PairPoint[] points = new PairPoint[1];
-		points[0] = new PairPoint(minDistancePoints[0], minDistancePoints[1]);
-		// points[1] = new PairPoint(minDistancePoints[1], minDistancePoints[0]);
-		// TODO: When points are added to the model, get from there.
-		// La idea es que el modelo tenga una lista de PairPoint y cada vez que se hace
-		// el algoritmo añadir los puntos para luego recuperarlos aqui y enviarlos al
-		// view
 		Object[] objects = new Object[2];
-		objects[0] = points;
+		objects[0] = this.hub.getModel().getMinPairPointsList();
 		objects[1] = this.hub.getModel().getData();
 		Body<Object[]> body = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, objects);
 		this.hub.notifyRequest(new Request<>(RequestCode.RESULT_MAX_DIS, this, body));
@@ -167,32 +174,29 @@ public class Controller implements Notify {
 		double maxDistance = Double.MIN_VALUE;
 		Point[] maxDistancePoints = new Point[2];
 		Instant start = Instant.now();
+
 		for (int i = 0; i < data.length; i++) {
 			for (int j = i + 1; j < data.length; j++) {
 				double tempDistance = data[i].euclideanDistanceTo(data[j]);
-				if (tempDistance > maxDistance) {
+				if (tempDistance > maxDistance && isNotInPairList(data[i], data[j], false)) {
 					maxDistancePoints[0] = data[i];
 					maxDistancePoints[1] = data[j];
 					maxDistance = tempDistance;
 				}
 			}
 		}
+
 		long time = Duration.between(start, Instant.now()).toMillis();
-		// TODO: Create request to Model to save this. Check Issue #39
+		PairPoint pairPoint = new PairPoint(maxDistancePoints[0], maxDistancePoints[1]);
+		Body<PairPoint> body1 = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, pairPoint);
+		this.hub.notifyRequest(new Request<>(RequestCode.NEW_PAIR_DATA_MAX, this, body1));
 
 		Logger.getLogger(this.getClass().getSimpleName())
 				.log(Level.INFO, "Maximum distance found is {0} between points {1} and {2} under {3} milliseconds.",
 						new Object[] { maxDistance, maxDistancePoints[0], maxDistancePoints[1], time });
 
-		PairPoint[] points = new PairPoint[1];
-		points[0] = new PairPoint(maxDistancePoints[0], maxDistancePoints[1]);
-		// points[1] = new PairPoint(maxDistancePoints[1], maxDistancePoints[0]);
 		Object[] objects = new Object[2];
-		// TODO: When points are added to the model, get from there.
-		// La idea es que el modelo tenga una lista de PairPoint y cada vez que se hace
-		// el algoritmo añadir los puntos para luego recuperarlos aqui y enviarlos al
-		// view
-		objects[0] = points;
+		objects[0] = this.hub.getModel().getMaxPairPointsList();
 		objects[1] = this.hub.getModel().getData();
 		Body<Object[]> body = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, objects);
 		this.hub.notifyRequest(new Request<>(RequestCode.RESULT_MAX_DIS, this, body));

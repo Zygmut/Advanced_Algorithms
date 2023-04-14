@@ -1,5 +1,6 @@
 package Model;
 
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,6 +21,8 @@ public class Model implements Notify {
 	private Dimension frameDimension;
 	private int pointAmount;
 	private Point[] data;
+	private ArrayList<PairPoint> maxPairPointsList;
+	private ArrayList<PairPoint> minPairPointsList;
 
 	public Model(MVC mvc) {
 		this.hub = mvc;
@@ -27,6 +30,8 @@ public class Model implements Notify {
 		this.frameDimension = new Dimension(100, 100);
 		this.pointAmount = 333 + 420 + 69 + 333;
 		this.data = new Point[] {};
+		this.maxPairPointsList = new ArrayList<>();
+		this.minPairPointsList = new ArrayList<>();
 	}
 
 	@Override
@@ -47,11 +52,37 @@ public class Model implements Notify {
 				Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, this.data);
 				this.hub.notifyRequest(new Request<>(RequestCode.SEND_DATA, this, body));
 			}
+			case NEW_PAIR_DATA_MAX -> {
+				PairPoint parPairPoint = (PairPoint) request.body.get(BodyCode.PAIR_POINTS);
+				this.maxPairPointsList.add(parPairPoint);
+			}
+			case NEW_PAIR_DATA_MIN -> {
+				PairPoint parPairPoint = (PairPoint) request.body.get(BodyCode.PAIR_POINTS);
+				this.minPairPointsList.add(parPairPoint);
+			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
 			}
 		}
+	}
+
+	public PairPoint[] getMaxPairPointsList() {
+		Object[] objects = maxPairPointsList.toArray();
+		PairPoint[] pairPoints = new PairPoint[objects.length];
+		for (int i = 0; i < objects.length; i++) {
+			pairPoints[i] = (PairPoint) objects[i];
+		}
+		return pairPoints;
+	}
+
+	public PairPoint[] getMinPairPointsList() {
+		Object[] objects = minPairPointsList.toArray();
+		PairPoint[] pairPoints = new PairPoint[objects.length];
+		for (int i = 0; i < objects.length; i++) {
+			pairPoints[i] = (PairPoint) objects[i];
+		}
+		return pairPoints;
 	}
 
 	public int getSeed() {
