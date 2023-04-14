@@ -1,9 +1,9 @@
 package View;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
-import java.time.chrono.IsoChronology;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,6 +18,7 @@ import javax.swing.SpinnerNumberModel;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.annotations.XYLineAnnotation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.ui.RectangleInsets;
@@ -27,6 +28,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 import Master.MVC;
 import Model.Distribution;
+import Model.PairPoint;
 import Model.Point;
 import Request.Body;
 import Request.BodyCode;
@@ -81,13 +83,23 @@ public class View implements Notify {
 
 	@Override
 	public void notifyRequest(Request<?> request) {
-		if (request.code != RequestCode.SHOW_DATA) {
-			Logger.getLogger(this.getClass().getSimpleName())
-					.log(Level.SEVERE, "{0} is not implemented.", request);
-			return;
+		switch (request.code) {
+			case SHOW_DATA -> {
+				this.window.updateSection(
+						body((Point[]) request.body.get(BodyCode.DATA),
+								new PairPoint[] {}),
+						"Body", DirectionAndPosition.POSITION_CENTER);
+			}
+			case RESULT_MIN_DIS, RESULT_MAX_DIS -> {
+				Object[] data = (Object[]) request.body.get(BodyCode.PAIR_POINTS);
+				this.window.updateSection(body((Point[]) data[1], (PairPoint[]) data[0]), "Body",
+						DirectionAndPosition.POSITION_CENTER);
+			}
+			default -> {
+				Logger.getLogger(this.getClass().getSimpleName())
+						.log(Level.SEVERE, "{0} is not implemented.", request);
+			}
 		}
-		this.window.updateSection(body((Point[]) request.body.get(BodyCode.DATA)), "Body",
-				DirectionAndPosition.POSITION_CENTER);
 	}
 
 	/**
@@ -96,7 +108,8 @@ public class View implements Notify {
 	 */
 	private void loadContent() {
 		this.window.addSection(this.header(), DirectionAndPosition.POSITION_TOP, "Header");
-		this.window.addSection(this.body(new Point[] {}), DirectionAndPosition.POSITION_CENTER, "Body");
+		this.window.addSection(this.body(new Point[] {}, new PairPoint[] {}),
+				DirectionAndPosition.POSITION_CENTER, "Body");
 		this.window.addSection(this.footer(), DirectionAndPosition.POSITION_BOTTOM, "Footer");
 	}
 
@@ -138,13 +151,13 @@ public class View implements Notify {
 		return buttonSection;
 	}
 
-	private Section body(Point[] data) {
+	private Section body(Point[] data, PairPoint[] pairPoints) {
 		ScatterPlot scatterPlot = new ScatterPlot(Color.MAGENTA);
-		// Create a frame to display the chart
 		JPanel content = new JPanel();
 		content.setLayout(new BorderLayout());
-		content.add(new ChartPanel(scatterPlot.createPlot(data, this.hub.getModel().getFrameDimension().width,
-				this.hub.getModel().getFrameDimension().height)), BorderLayout.CENTER);
+		int width = this.hub.getModel().getFrameDimension().width;
+		int height = this.hub.getModel().getFrameDimension().height;
+		content.add(new ChartPanel(scatterPlot.createPlot(data, width, height, pairPoints)), BorderLayout.CENTER);
 		Section body = new Section();
 		body.createFreeSection(content);
 		return body;
@@ -252,7 +265,7 @@ public class View implements Notify {
 			this.seriesColor = seriesColor;
 		}
 
-		private JFreeChart createPlot(Point[] data, int width, int height) {
+		private JFreeChart createPlot(Point[] data, int width, int height, PairPoint[] pairs) {
 			XYSeries series = new XYSeries("Random Data");
 			for (Point point : data) {
 				series.add(point.x(), point.y());
@@ -278,7 +291,13 @@ public class View implements Notify {
 			XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(false, true);
 			renderer.setSeriesPaint(0, this.seriesColor);
 			plot.setRenderer(renderer);
-
+			for (PairPoint pairPoint : pairs) {
+				XYLineAnnotation line = new XYLineAnnotation(
+						pairPoint.p1().x(), pairPoint.p1().y(), // x and y coordinates of point 1
+						pairPoint.p2().x(), pairPoint.p2().y() // x and y coordinates of point 2
+				);
+				plot.addAnnotation(line);
+			}
 			plot.getDomainAxis().setFixedAutoRange(width);
 			plot.getRangeAxis().setFixedAutoRange(height);
 

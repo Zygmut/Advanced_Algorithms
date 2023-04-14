@@ -6,6 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import Master.MVC;
+import Model.PairPoint;
 import Model.Point;
 import Request.Body;
 import Request.BodyCode;
@@ -13,6 +14,7 @@ import Request.Notify;
 import Request.Request;
 import Request.RequestCode;
 import Request.RequestType;
+import utils.Config;
 
 import java.awt.Dimension;
 import java.time.Duration;
@@ -147,6 +149,18 @@ public class Controller implements Notify {
 				.log(Level.INFO, "Minimum distance found is {0} between points {1} and {2} under {3} milliseconds.",
 						new Object[] { minDistance, minDistancePoints[0], minDistancePoints[1], time });
 
+		PairPoint[] points = new PairPoint[1];
+		points[0] = new PairPoint(minDistancePoints[0], minDistancePoints[1]);
+		// points[1] = new PairPoint(minDistancePoints[1], minDistancePoints[0]);
+		// TODO: When points are added to the model, get from there.
+		// La idea es que el modelo tenga una lista de PairPoint y cada vez que se hace
+		// el algoritmo añadir los puntos para luego recuperarlos aqui y enviarlos al
+		// view
+		Object[] objects = new Object[2];
+		objects[0] = points;
+		objects[1] = this.hub.getModel().getData();
+		Body<Object[]> body = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, objects);
+		this.hub.notifyRequest(new Request<>(RequestCode.RESULT_MAX_DIS, this, body));
 	}
 
 	private void calculateMaxDistanceNN() {
@@ -170,6 +184,18 @@ public class Controller implements Notify {
 				.log(Level.INFO, "Maximum distance found is {0} between points {1} and {2} under {3} milliseconds.",
 						new Object[] { maxDistance, maxDistancePoints[0], maxDistancePoints[1], time });
 
+		PairPoint[] points = new PairPoint[1];
+		points[0] = new PairPoint(maxDistancePoints[0], maxDistancePoints[1]);
+		// points[1] = new PairPoint(maxDistancePoints[1], maxDistancePoints[0]);
+		Object[] objects = new Object[2];
+		// TODO: When points are added to the model, get from there.
+		// La idea es que el modelo tenga una lista de PairPoint y cada vez que se hace
+		// el algoritmo añadir los puntos para luego recuperarlos aqui y enviarlos al
+		// view
+		objects[0] = points;
+		objects[1] = this.hub.getModel().getData();
+		Body<Object[]> body = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, objects);
+		this.hub.notifyRequest(new Request<>(RequestCode.RESULT_MAX_DIS, this, body));
 	}
 
 }

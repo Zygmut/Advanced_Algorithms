@@ -52,7 +52,7 @@ public class MVC implements Notify {
 			case NEW_DATA -> {
 				this.model.notifyRequest(request);
 			}
-			case SHOW_DATA, RESULT_MIN_DIS -> {
+			case SHOW_DATA, RESULT_MIN_DIS, RESULT_MAX_DIS -> {
 				this.view.notifyRequest(request);
 			}
 			case UPDATE_SEED, UPDATE_AMOUNT, GET_DATA -> {
