@@ -21,8 +21,8 @@ public class Model implements Notify {
 	private Dimension frameDimension;
 	private int pointAmount;
 	private Point[] data;
-	private ArrayList<PairPoint> maxPairPointsList;
-	private ArrayList<PairPoint> minPairPointsList;
+	private ArrayList<Solution> solutionsForMax;
+	private ArrayList<Solution> solutionsForMin;
 
 	public Model(MVC mvc) {
 		this.hub = mvc;
@@ -30,8 +30,8 @@ public class Model implements Notify {
 		this.frameDimension = new Dimension(100, 100);
 		this.pointAmount = 333 + 420 + 69 + 333;
 		this.data = new Point[] {};
-		this.maxPairPointsList = new ArrayList<>();
-		this.minPairPointsList = new ArrayList<>();
+		this.solutionsForMax = new ArrayList<>();
+		this.solutionsForMin = new ArrayList<>();
 	}
 
 	@Override
@@ -53,17 +53,17 @@ public class Model implements Notify {
 				this.hub.notifyRequest(new Request<>(RequestCode.SEND_DATA, this, body));
 			}
 			case NEW_PAIR_DATA_MAX -> {
-				PairPoint parPairPoint = (PairPoint) request.body.get(BodyCode.PAIR_POINTS);
-				this.maxPairPointsList.add(parPairPoint);
+				Solution sol = (Solution) request.body.get(BodyCode.PAIR_POINTS);
+				this.solutionsForMax.add(sol);
 			}
 			case NEW_PAIR_DATA_MIN -> {
-				PairPoint parPairPoint = (PairPoint) request.body.get(BodyCode.PAIR_POINTS);
-				this.minPairPointsList.add(parPairPoint);
+				Solution sol = (Solution) request.body.get(BodyCode.PAIR_POINTS);
+				this.solutionsForMin.add(sol);
 			}
 			case CLEAR_DATA -> {
 				this.data = new Point[] {};
-				this.maxPairPointsList = new ArrayList<>();
-				this.minPairPointsList = new ArrayList<>();
+				this.solutionsForMax = new ArrayList<>();
+				this.solutionsForMin = new ArrayList<>();
 				Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, this.data);
 				this.hub.notifyRequest(new Request<>(RequestCode.SHOW_DATA, this, body));
 			}
@@ -75,21 +75,29 @@ public class Model implements Notify {
 	}
 
 	public PairPoint[] getMaxPairPointsList() {
-		Object[] objects = maxPairPointsList.toArray();
+		Object[] objects = this.solutionsForMax.toArray();
 		PairPoint[] pairPoints = new PairPoint[objects.length];
 		for (int i = 0; i < objects.length; i++) {
-			pairPoints[i] = (PairPoint) objects[i];
+			pairPoints[i] = ((Solution) objects[i]).pair();
 		}
 		return pairPoints;
 	}
 
 	public PairPoint[] getMinPairPointsList() {
-		Object[] objects = minPairPointsList.toArray();
+		Object[] objects = this.solutionsForMin.toArray();
 		PairPoint[] pairPoints = new PairPoint[objects.length];
 		for (int i = 0; i < objects.length; i++) {
-			pairPoints[i] = (PairPoint) objects[i];
+			pairPoints[i] = ((Solution) objects[i]).pair();
 		}
 		return pairPoints;
+	}
+
+	public ArrayList<Solution> getSolutionsForMax() {
+		return solutionsForMax;
+	}
+
+	public ArrayList<Solution> getSolutionsForMin() {
+		return solutionsForMin;
 	}
 
 	public int getSeed() {

@@ -95,6 +95,11 @@ public class View implements Notify {
 				this.window.updateSection(body((Point[]) data[1], (PairPoint[]) data[0]), "Body",
 						DirectionAndPosition.POSITION_CENTER);
 			}
+			case STATS_DATA -> {
+				Object[] data = (Object[]) request.body.get(BodyCode.DATA);
+				WindowStats windowStats = new WindowStats(data);
+				windowStats.show();
+			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
@@ -124,30 +129,7 @@ public class View implements Notify {
 		buttons[2].addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CLEAR_DATA, this)));
 		buttons[3] = new JButton("Ver estadísticas");
 		buttons[3].addActionListener(e -> {
-			// La idea es una vez ejecutados los algoritmos, crear una ventana con gráficas
-			// mostrando tiempo de ejecución, etc.
 			this.hub.notifyRequest(new Request<>(RequestCode.CALC_STATS, this));
-			// Create a window with the statistics
-			String[] stats = {
-					"Tiempo de ejecución: ",
-					"Distancia mínima: ",
-					"Distancia máxima: ",
-			};
-
-			int[] values = {
-					(int) (Math.random() * 1000),
-					(int) (Math.random() * 1000),
-					(int) (Math.random() * 1000),
-			};
-
-			Color[] colors = {
-					Color.RED,
-					Color.GREEN,
-					Color.BLUE,
-			};
-
-			WindowStats windowStats = new WindowStats(stats, values, colors);
-			windowStats.show();
 		});
 		buttonSection.createButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
 		return buttonSection;

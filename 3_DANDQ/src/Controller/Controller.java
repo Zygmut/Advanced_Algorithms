@@ -1,5 +1,6 @@
 package Controller;
 
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.function.DoubleSupplier;
 import java.util.logging.Level;
@@ -8,6 +9,7 @@ import java.util.logging.Logger;
 import Master.MVC;
 import Model.PairPoint;
 import Model.Point;
+import Model.Solution;
 import Request.Body;
 import Request.BodyCode;
 import Request.Notify;
@@ -119,12 +121,28 @@ public class Controller implements Notify {
 				this.hub.notifyRequest(new Request<>(RequestCode.GET_DATA, this));
 				Thread.startVirtualThread(this::calculateMaxDistanceNN);
 			}
-
+			case CALC_STATS -> {
+				// TODO: Change this to the request body system
+				// this.hub.notifyRequest(new Request<>(RequestCode.GET_STATS_DATA, this));
+				Thread.startVirtualThread(this::calculateStats);
+			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
 			}
 		}
+	}
+
+	private void calculateStats() {
+		Object[] statsData = new Object[2];
+		ArrayList<Solution> max = this.hub.getModel().getSolutionsForMax();
+		ArrayList<Solution> min = this.hub.getModel().getSolutionsForMin();
+		// TODO
+		statsData[0] = max.stream().mapToDouble(Solution::distance).average().orElse(0);
+		statsData[1] = min.stream().mapToDouble(Solution::distance).average().orElse(0);
+
+		Body<Object[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, statsData);
+		this.hub.notifyRequest(new Request<>(RequestCode.STATS_DATA, this, body));
 	}
 
 	private boolean isNotInPairList(Point point1, Point point2, boolean isMin) {
@@ -156,7 +174,8 @@ public class Controller implements Notify {
 
 		long time = Duration.between(start, Instant.now()).toMillis();
 		PairPoint pairPoint = new PairPoint(minDistancePoints[0], minDistancePoints[1]);
-		Body<PairPoint> body1 = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, pairPoint);
+		Solution solution = new Solution(pairPoint, minDistance, time);
+		Body<Solution> body1 = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, solution);
 		this.hub.notifyRequest(new Request<>(RequestCode.NEW_PAIR_DATA_MIN, this, body1));
 
 		Logger.getLogger(this.getClass().getSimpleName())
@@ -164,6 +183,7 @@ public class Controller implements Notify {
 						new Object[] { minDistance, minDistancePoints[0], minDistancePoints[1], time });
 
 		Object[] objects = new Object[2];
+		// TODO: Change this to the request body system
 		objects[0] = this.hub.getModel().getMinPairPointsList();
 		objects[1] = this.hub.getModel().getData();
 		Body<Object[]> body = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, objects);
@@ -188,7 +208,8 @@ public class Controller implements Notify {
 
 		long time = Duration.between(start, Instant.now()).toMillis();
 		PairPoint pairPoint = new PairPoint(maxDistancePoints[0], maxDistancePoints[1]);
-		Body<PairPoint> body1 = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, pairPoint);
+		Solution solution = new Solution(pairPoint, maxDistance, time);
+		Body<Solution> body1 = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, solution);
 		this.hub.notifyRequest(new Request<>(RequestCode.NEW_PAIR_DATA_MAX, this, body1));
 
 		Logger.getLogger(this.getClass().getSimpleName())
@@ -196,6 +217,7 @@ public class Controller implements Notify {
 						new Object[] { maxDistance, maxDistancePoints[0], maxDistancePoints[1], time });
 
 		Object[] objects = new Object[2];
+		// TODO: Change this to the request body system
 		objects[0] = this.hub.getModel().getMaxPairPointsList();
 		objects[1] = this.hub.getModel().getData();
 		Body<Object[]> body = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, objects);
