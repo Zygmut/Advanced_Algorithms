@@ -76,6 +76,10 @@ public class Model implements Notify {
 				Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, this.data);
 				this.hub.notifyRequest(new Request<>(RequestCode.SHOW_DATA, this, body));
 			}
+			case CLEAR_SOLUTIONS -> {
+				this.solutionsForMax = new ArrayList<>();
+				this.solutionsForMin = new ArrayList<>();
+			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);

@@ -161,26 +161,23 @@ public class View implements Notify {
 			Distribution selectedValue = Distribution.valueOf((String) distributionMenu.getSelectedItem());
 			switch (selectedValue) {
 				case UNIFORM -> {
-					this.hub.getController()
-							.notifyRequest(new Request<>(RequestCode.GENERATE_UNIFORM_DATA, this));
+					this.hub.notifyRequest(new Request<>(RequestCode.GENERATE_UNIFORM_DATA, this));
 				}
 				case GUASSIAN -> {
-					this.hub.getController()
-							.notifyRequest(new Request<>(RequestCode.GENERATE_GAUSSIAN_DATA, this));
+					this.hub.notifyRequest(new Request<>(RequestCode.GENERATE_GAUSSIAN_DATA, this));
 				}
 				case POISSON -> {
-					this.hub.getController()
-							.notifyRequest(new Request<>(RequestCode.GENERATE_POISSON_DATA, this));
+					this.hub.notifyRequest(new Request<>(RequestCode.GENERATE_POISSON_DATA, this));
 				}
 				case EXPONENTIAL -> {
-					this.hub.getController()
-							.notifyRequest(new Request<>(RequestCode.GENERATE_EXPONENTIAL_DATA, this));
+					this.hub.notifyRequest(new Request<>(RequestCode.GENERATE_EXPONENTIAL_DATA, this));
 				}
 				default -> {
 					Logger.getLogger(this.getClass().getSimpleName())
 							.log(Level.SEVERE, "{0} is not implemented under the distribution menu.", selectedValue);
 				}
 			}
+			this.hub.notifyRequest(new Request<>(RequestCode.CLEAR_SOLUTIONS, this));
 		});
 
 		// Seed controller
