@@ -9,7 +9,10 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -52,6 +55,7 @@ import Request.RequestType;
 import betterSwing.Section;
 import betterSwing.Window;
 import betterSwing.utils.DirectionAndPosition;
+import utils.Config;
 
 public class View implements Notify {
 
@@ -124,6 +128,7 @@ public class View implements Notify {
 	 *
 	 */
 	private void loadContent() {
+		this.window.addMenuBar(this.menu());
 		this.window.addSection(this.header(), DirectionAndPosition.POSITION_TOP, "Header");
 		this.window.addSection(this.body(new Point[] {}, new PairPoint[] {}, new PairPoint[] {}),
 				DirectionAndPosition.POSITION_CENTER, "Body");
@@ -133,40 +138,91 @@ public class View implements Notify {
 	private JMenuBar menu() {
 		JMenuBar menuBar = new JMenuBar();
 		JMenu options = new JMenu("Opciones");
-		JMenuItem stats = new JMenuItem("Estadísticas");
-		stats.addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.STATS_DATA, this)));
+		JMenu stats = new JMenu("Estadisticas");
+		JMenuItem alg = new JMenuItem("Algoritmos");
+		// stats.setIcon(new ImageIcon(Config.ICON_TO_DISPLAY_MENU_OPTION));
+		alg.addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CALC_STATS, this)));
+		JMenuItem jvm = new JMenuItem("Memoria");
+		// jvm.setIcon(new ImageIcon(Config.ICON_TO_DISPLAY_MENU_OPTION));
+		jvm.addActionListener(e -> {
+			// TODO: Implementar
+		});
+		JMenuItem cleanData = new JMenuItem("Limpiar Datos");
+		// cleanData.setIcon(new ImageIcon(Config.ICON_TO_DISPLAY_MENU_OPTION));
+		cleanData.addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CLEAR_DATA, this)));
+		JMenuItem exit = new JMenuItem("Salir");
+		// exit.setIcon(new ImageIcon(Config.ICON_TO_DISPLAY_MENU_OPTION));
+		exit.addActionListener(e -> System.exit(0));
+		stats.add(alg);
+		stats.add(jvm);
 		options.add(stats);
+		options.addSeparator();
+		options.add(cleanData);
+		options.addSeparator();
+		options.add(exit);
 		menuBar.add(options);
+
+		JMenu algorit = new JMenu("Algoritmos");
+		// Create a checkbox menu item
+		JCheckBoxMenuItem bruteForce = new JCheckBoxMenuItem("N^2");
+		bruteForce.setSelected(true);
+		bruteForce.addActionListener(e -> {
+			this.hub.notifyRequest(new Request<>(RequestCode.CHANGE_ALGORITHM, this,
+					new Body<>(RequestType.PUT, BodyCode.DATA, false)));
+			this.hub.notifyRequest(new Request<>(RequestCode.CLEAR_SOLUTIONS, this));
+		});
+		JCheckBoxMenuItem divideAndConquer = new JCheckBoxMenuItem("NlogN");
+		divideAndConquer.addActionListener(e -> {
+			this.hub.notifyRequest(new Request<>(RequestCode.CHANGE_ALGORITHM, this,
+					new Body<>(RequestType.PUT, BodyCode.DATA, true)));
+			this.hub.notifyRequest(new Request<>(RequestCode.CLEAR_SOLUTIONS, this));
+		});
+		// Set that only one checkbox can be selected
+		ButtonGroup group = new ButtonGroup();
+		group.add(bruteForce);
+		group.add(divideAndConquer);
+		algorit.add(bruteForce);
+		algorit.add(divideAndConquer);
+		algorit.addSeparator();
+
+		JCheckBoxMenuItem autoOnMax = new JCheckBoxMenuItem("Auto en Máx");
+		JCheckBoxMenuItem autoOnMin = new JCheckBoxMenuItem("Auto en Mín");
+		autoOnMin.setSelected(true);
+		ButtonGroup group2 = new ButtonGroup();
+		group2.add(autoOnMax);
+		group2.add(autoOnMin);
+		algorit.add(autoOnMax);
+		algorit.add(autoOnMin);
+
+		menuBar.add(algorit);
+
+		JMenu help = new JMenu("Ayuda");
+		JMenuItem about = new JMenuItem("Manual de Usuario");
+		// about.setIcon(new ImageIcon(Config.ICON_TO_DISPLAY_MENU_OPTION));
+		about.addActionListener(e -> {
+			// TODO
+		});
+		help.add(about);
+		menuBar.add(help);
+
 		return menuBar;
 	}
 
 	private Section footer() {
 		Section buttonSection = new Section();
-		JButton[] buttons = new JButton[7];
-		buttons[0] = new JButton("Dist Min N^2");
+		JButton[] buttons = new JButton[3];
+		buttons[0] = new JButton("Distancia Mínima");
 		buttons[0].addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CALC_MIN_DIS, this)));
-		buttons[1] = new JButton("Dist Máx N^2");
+		buttons[1] = new JButton("Dist Máxima");
 		buttons[1].addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CALC_MAX_DIS, this)));
-		buttons[2] = new JButton("Dist Min NlogN");
-		buttons[2].addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CALC_MIN_DIS_NLOGN, this)));
-		buttons[3] = new JButton("Dist Máx NlogN");
-		buttons[3].addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CALC_MAX_DIS_NLOGN, this)));
-		buttons[4] = new JButton("Borrar datos");
-		buttons[4].addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CLEAR_DATA, this)));
-		buttons[5] = new JButton("Ver estadísticas");
-		buttons[5].addActionListener(e -> {
-			this.hub.notifyRequest(new Request<>(RequestCode.CALC_STATS, this));
-		});
-		buttons[6] = new JButton("Auto");
-		buttons[6].addActionListener(e -> {
-			// TODO: Adapt to all the algorithms
-			String txt = buttons[6].getText();
-			System.out.println(txt);
+		buttons[2] = new JButton("Auto");
+		buttons[2].addActionListener(e -> {
+			String txt = buttons[2].getText();
 			if (txt.equals("Auto")) {
-				buttons[6].setText("Stop");
+				buttons[2].setText("Stop");
 				this.hub.notifyRequest(new Request<>(RequestCode.CALC_AUTO, this));
 			} else {
-				buttons[6].setText("Auto");
+				buttons[2].setText("Auto");
 				this.hub.notifyRequest(new Request<>(RequestCode.STOP_AUTO, this));
 			}
 		});
@@ -273,6 +329,7 @@ public class View implements Notify {
 		content.add(pointSpinner);
 		content.add(solutionLabel);
 		content.add(solutionSpinner);
+		content.setBackground(Color.WHITE);
 		Section header = new Section();
 		header.createFreeSection(content);
 		return header;

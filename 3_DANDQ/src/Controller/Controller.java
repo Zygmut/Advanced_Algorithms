@@ -29,6 +29,7 @@ public class Controller implements Notify {
 	private Point[] data;
 	private int nSolutions;
 	private boolean stop;
+	private boolean useNLogNAlgorithm;
 
 	public Controller(MVC mvc) {
 		this.hub = mvc;
@@ -132,16 +133,32 @@ public class Controller implements Notify {
 			case SEND_DATA -> {
 				this.data = (Point[]) request.body.get(BodyCode.DATA);
 			}
+			case SEND_ALGORITHM -> {
+				this.useNLogNAlgorithm = (Boolean) request.body.get(BodyCode.DATA);
+				System.out.println("Use NLogN Algorithm: " + this.useNLogNAlgorithm);
+			}
 			case SEND_SOLUTION_AMOUNT -> {
 				this.nSolutions = (Integer) request.body.get(BodyCode.SOLUTION_AMOUNT);
 			}
 			case CALC_MIN_DIS -> {
 				this.hub.notifyRequest(new Request<>(RequestCode.GET_DATA, this));
-				Thread.startVirtualThread(this::calculateMinDistanceNN);
+				this.hub.notifyRequest(new Request<>(RequestCode.GET_ALGORITHM, this));
+				if (this.useNLogNAlgorithm) {
+					// TODO: Implement this
+					System.out.println("Not implemented yet");
+				} else {
+					Thread.startVirtualThread(this::calculateMinDistanceNN);
+				}
 			}
 			case CALC_MAX_DIS -> {
 				this.hub.notifyRequest(new Request<>(RequestCode.GET_DATA, this));
-				Thread.startVirtualThread(this::calculateMaxDistanceNN);
+				this.hub.notifyRequest(new Request<>(RequestCode.GET_ALGORITHM, this));
+				if (this.useNLogNAlgorithm) {
+					// TODO: Implement this
+					System.out.println("Not implemented yet");
+				} else {
+					Thread.startVirtualThread(this::calculateMaxDistanceNN);
+				}
 			}
 			case CALC_STATS -> {
 				// TODO: Change this to the request body system
@@ -150,7 +167,10 @@ public class Controller implements Notify {
 			}
 			case CALC_AUTO -> {
 				this.stop = false;
+				this.hub.notifyRequest(new Request<>(RequestCode.GET_ALGORITHM, this));
+				// TODO: Get if it's max or min
 				Thread.startVirtualThread(this::calculateAuto);
+				// TODO: Change button text to "Auto"
 			}
 			case STOP_AUTO -> {
 				this.stop = true;
@@ -174,7 +194,6 @@ public class Controller implements Notify {
 			}
 			this.calculateMinDistanceNN();
 		}
-		// TODO: Change button text to "Auto"
 	}
 
 	private void calculateStats() {

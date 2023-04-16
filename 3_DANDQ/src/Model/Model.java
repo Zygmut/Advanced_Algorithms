@@ -24,6 +24,7 @@ public class Model implements Notify {
 	private ArrayList<Solution> solutionsForMax;
 	private ArrayList<Solution> solutionsForMin;
 	private int nSolutions;
+	private boolean useNLogNAlgorithm;
 
 	public Model(MVC mvc) {
 		this.hub = mvc;
@@ -34,6 +35,7 @@ public class Model implements Notify {
 		this.data = new Point[] {};
 		this.solutionsForMax = new ArrayList<>();
 		this.solutionsForMin = new ArrayList<>();
+		this.useNLogNAlgorithm = false;
 	}
 
 	@Override
@@ -79,6 +81,13 @@ public class Model implements Notify {
 			case CLEAR_SOLUTIONS -> {
 				this.solutionsForMax = new ArrayList<>();
 				this.solutionsForMin = new ArrayList<>();
+			}
+			case CHANGE_ALGORITHM -> {
+				this.useNLogNAlgorithm = (boolean) request.body.get(BodyCode.DATA);
+			}
+			case GET_ALGORITHM -> {
+				Body<Boolean> body = new Body<>(RequestType.PUT, BodyCode.DATA, this.useNLogNAlgorithm);
+				this.hub.notifyRequest(new Request<>(RequestCode.SEND_ALGORITHM, this, body));
 			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
