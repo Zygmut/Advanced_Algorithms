@@ -212,10 +212,12 @@ public class Controller implements Notify {
 			this.hub.notifyRequest(new Request<>(RequestCode.NEW_PAIR_DATA_MIN, this, body1));
 		}
 
-		Object[] objects = new Object[2];
+		Object[] objects = new Object[3];
 		// TODO: Change this to the request body system
-		objects[0] = this.hub.getModel().getMinPairPointsList();
-		objects[1] = this.hub.getModel().getData();
+		objects[0] = this.hub.getModel().getData();
+		objects[1] = this.hub.getModel().getMinPairPointsList();
+		objects[2] = this.hub.getModel().getMaxPairPointsList();
+
 		Body<Object[]> body = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, objects);
 		this.hub.notifyRequest(new Request<>(RequestCode.RESULT_MIN_DIS, this, body));
 	}
@@ -248,10 +250,11 @@ public class Controller implements Notify {
 			this.hub.notifyRequest(new Request<>(RequestCode.NEW_PAIR_DATA_MAX, this, body1));
 		}
 
-		Object[] objects = new Object[2];
+		Object[] objects = new Object[3];
 		// TODO: Change this to the request body system
-		objects[0] = this.hub.getModel().getMaxPairPointsList();
-		objects[1] = this.hub.getModel().getData();
+		objects[0] = this.hub.getModel().getData();
+		objects[1] = this.hub.getModel().getMinPairPointsList();
+		objects[2] = this.hub.getModel().getMaxPairPointsList();
 		Body<Object[]> body = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, objects);
 		this.hub.notifyRequest(new Request<>(RequestCode.RESULT_MAX_DIS, this, body));
 	}
