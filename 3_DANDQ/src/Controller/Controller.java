@@ -65,15 +65,18 @@ public class Controller implements Notify {
 		return result;
 	}
 
-	private double getPoisson(double lambda) {
-		double L = Math.exp(-lambda);
-		int k = 0;
-		double p = 1.0;
-		do {
-			k++;
-			p *= rng.nextDouble();
-		} while (p > L);
-		return k - 1;
+	// Distribucion de poisson que devuelva valores entre 0 y 1
+	private double getPoisson() {
+		return 0;
+	}
+
+	private double getExponential() {
+		double lambda = 0.5;
+		double result = Math.log(1 - rng.nextDouble()) / (-lambda);
+		while (!bounded(result)) {
+			result = getExponential();
+		}
+		return result;
 	}
 
 	private boolean bounded(double point) {
@@ -108,12 +111,23 @@ public class Controller implements Notify {
 			case GENERATE_POISSON_DATA -> {
 				resetRNG();
 				Point[] points = generateData(
-						() -> getPoisson(0.5),
+						this::getPoisson,
 						this.hub.getModel().getFrameDimension(),
 						this.hub.getModel().getPointAmount());
 				Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, points);
 				this.hub.notifyRequest(new Request<>(RequestCode.NEW_DATA, this, body));
 			}
+
+			case GENERATE_EXPONENTIAL_DATA -> {
+				resetRNG();
+				Point[] points = generateData(
+						this::getExponential,
+						this.hub.getModel().getFrameDimension(),
+						this.hub.getModel().getPointAmount());
+				Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, points);
+				this.hub.notifyRequest(new Request<>(RequestCode.NEW_DATA, this, body));
+			}
+
 			case SEND_DATA -> {
 				this.data = (Point[]) request.body.get(BodyCode.DATA);
 			}

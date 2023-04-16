@@ -47,7 +47,7 @@ public class MVC implements Notify {
 	public void notifyRequest(Request<?> request) {
 		switch (request.code) {
 			case GENERATE_UNIFORM_DATA, GENERATE_GAUSSIAN_DATA,
-					GENERATE_POISSON_DATA, SEND_DATA, CALC_MIN_DIS,
+					GENERATE_POISSON_DATA, GENERATE_EXPONENTIAL_DATA, SEND_DATA, CALC_MIN_DIS,
 					CALC_MAX_DIS, CALC_STATS -> {
 				this.controller.notifyRequest(request);
 			}

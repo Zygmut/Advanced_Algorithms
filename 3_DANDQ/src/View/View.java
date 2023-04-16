@@ -168,6 +168,10 @@ public class View implements Notify {
 					this.hub.getController()
 							.notifyRequest(new Request<>(RequestCode.GENERATE_POISSON_DATA, this));
 				}
+				case EXPONENTIAL -> {
+					this.hub.getController()
+							.notifyRequest(new Request<>(RequestCode.GENERATE_EXPONENTIAL_DATA, this));
+				}
 				default -> {
 					Logger.getLogger(this.getClass().getSimpleName())
 							.log(Level.SEVERE, "{0} is not implemented under the distribution menu.", selectedValue);
