@@ -27,6 +27,7 @@ public class Controller implements Notify {
 	private MVC hub;
 	private Random rng;
 	private Point[] data;
+	private int nSolutions;
 
 	public Controller(MVC mvc) {
 		this.hub = mvc;
@@ -128,6 +129,9 @@ public class Controller implements Notify {
 			case SEND_DATA -> {
 				this.data = (Point[]) request.body.get(BodyCode.DATA);
 			}
+			case SEND_SOLUTION_AMOUNT -> {
+				this.nSolutions = (Integer) request.body.get(BodyCode.SOLUTION_AMOUNT);
+			}
 			case CALC_MIN_DIS -> {
 				this.hub.notifyRequest(new Request<>(RequestCode.GET_DATA, this));
 				Thread.startVirtualThread(this::calculateMinDistanceNN);
@@ -171,8 +175,9 @@ public class Controller implements Notify {
 		return true;
 	}
 
-	private Solution[] initSolutions(int n, boolean isMin) {
-		Solution[] solutions = new Solution[n];
+	private Solution[] initSolutions(boolean isMin) {
+		this.hub.notifyRequest(new Request<>(RequestCode.GET_SOLUTION_AMOUNT, this));
+		Solution[] solutions = new Solution[this.nSolutions];
 		for (int i = 0; i < solutions.length; i++) {
 			solutions[i] = new Solution(null, isMin ? Double.MAX_VALUE : Double.MIN_VALUE, 0);
 		}
@@ -181,7 +186,7 @@ public class Controller implements Notify {
 
 	private void calculateMinDistanceNN() {
 		// TODO?: Create a button to set the number of solutions
-		Solution[] solutions = initSolutions(3, true);
+		Solution[] solutions = initSolutions(true);
 		Instant start = Instant.now();
 		for (int i = 0; i < data.length; i++) {
 			for (int j = i + 1; j < data.length; j++) {
@@ -217,7 +222,7 @@ public class Controller implements Notify {
 
 	private void calculateMaxDistanceNN() {
 		// TODO?: Create a button to set the number of solutions
-		Solution[] solutions = initSolutions(3, false);
+		Solution[] solutions = initSolutions(false);
 		Instant start = Instant.now();
 		for (int i = 0; i < data.length; i++) {
 			for (int j = i + 1; j < data.length; j++) {

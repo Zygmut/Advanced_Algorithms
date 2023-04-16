@@ -2,6 +2,7 @@ package View;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -9,9 +10,11 @@ import java.util.logging.Logger;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
+import javax.swing.JTabbedPane;
 import javax.swing.SpinnerNumberModel;
 
 import org.jfree.chart.ChartFactory;
@@ -49,8 +52,6 @@ public class View implements Notify {
 	 * The window of the view.
 	 */
 	private Window window;
-	private int seed;
-	private int pointAmount;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -119,15 +120,19 @@ public class View implements Notify {
 
 	private Section footer() {
 		Section buttonSection = new Section();
-		JButton[] buttons = new JButton[4];
-		buttons[0] = new JButton("Distancia Mínima");
+		JButton[] buttons = new JButton[6];
+		buttons[0] = new JButton("Dist Min N^2");
 		buttons[0].addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CALC_MIN_DIS, this)));
-		buttons[1] = new JButton("Distancia Máxima");
+		buttons[1] = new JButton("Dist Máx N^2");
 		buttons[1].addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CALC_MAX_DIS, this)));
-		buttons[2] = new JButton("Borrar datos");
-		buttons[2].addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CLEAR_DATA, this)));
-		buttons[3] = new JButton("Ver estadísticas");
-		buttons[3].addActionListener(e -> {
+		buttons[2] = new JButton("Dist Min NlogN");
+		buttons[2].addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CALC_MIN_DIS_NLOGN, this)));
+		buttons[3] = new JButton("Dist Máx NlogN");
+		buttons[3].addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CALC_MAX_DIS_NLOGN, this)));
+		buttons[4] = new JButton("Borrar datos");
+		buttons[4].addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CLEAR_DATA, this)));
+		buttons[5] = new JButton("Ver estadísticas");
+		buttons[5].addActionListener(e -> {
 			this.hub.notifyRequest(new Request<>(RequestCode.CALC_STATS, this));
 		});
 		buttonSection.createButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
@@ -183,27 +188,48 @@ public class View implements Notify {
 		JSpinner seedSpinner = new JSpinner(
 				new SpinnerNumberModel(this.hub.getModel().getSeed(), Integer.MIN_VALUE, Integer.MAX_VALUE, 1));
 		seedSpinner.addChangeListener(e -> {
-			this.seed = (int) seedSpinner.getValue();
 
-			Body<Integer> body = new Body<>(RequestType.POST, BodyCode.SEED, this.seed);
+			Body<Integer> body = new Body<>(RequestType.POST, BodyCode.SEED, (int) seedSpinner.getValue());
 			this.hub.notifyRequest(new Request<>(RequestCode.UPDATE_SEED, this, body));
 			String selectedValue = (String) distributionMenu.getSelectedItem();
 			distributionMenu.getActionListeners()[0]
 					.actionPerformed(new ActionEvent(seedSpinner, ActionEvent.ACTION_PERFORMED, selectedValue));
 		});
+		JComponent editor = seedSpinner.getEditor();
+		Dimension ps = editor.getPreferredSize();
+		ps.width = 100;
+		editor.setPreferredSize(ps);
 
 		// Points controller
 		JLabel pointLabel = new JLabel("Número de puntos: ");
 		JSpinner pointSpinner = new JSpinner(
 				new SpinnerNumberModel(this.hub.getModel().getPointAmount(), Integer.MIN_VALUE, Integer.MAX_VALUE, 1));
 		pointSpinner.addChangeListener(e -> {
-			this.pointAmount = (int) pointSpinner.getValue();
-			Body<Integer> body = new Body<>(RequestType.POST, BodyCode.POINT_AMOUNT, this.pointAmount);
+			Body<Integer> body = new Body<>(RequestType.POST, BodyCode.POINT_AMOUNT, (int) pointSpinner.getValue());
 			this.hub.notifyRequest(new Request<>(RequestCode.UPDATE_AMOUNT, this, body));
 			String selectedValue = (String) distributionMenu.getSelectedItem();
 			distributionMenu.getActionListeners()[0]
 					.actionPerformed(new ActionEvent(seedSpinner, ActionEvent.ACTION_PERFORMED, selectedValue));
 		});
+
+		editor = pointSpinner.getEditor();
+		ps = editor.getPreferredSize();
+		ps.width = 100;
+		editor.setPreferredSize(ps);
+
+		// N solutions
+		JLabel solutionLabel = new JLabel("Número de Soluciones: ");
+		JSpinner solutionSpinner = new JSpinner(
+				new SpinnerNumberModel(this.hub.getModel().getNSolutions(), 0, Integer.MAX_VALUE, 1));
+		solutionSpinner.addChangeListener(e -> {
+			Body<Integer> body = new Body<>(RequestType.POST, BodyCode.SOLUTION_AMOUNT,
+					(int) solutionSpinner.getValue());
+			this.hub.notifyRequest(new Request<>(RequestCode.UPDATE_SOLUTIONS, this, body));
+		});
+		editor = solutionSpinner.getEditor();
+		ps = editor.getPreferredSize();
+		ps.width = 100;
+		editor.setPreferredSize(ps);
 
 		JPanel content = new JPanel();
 		content.add(distLabel);
@@ -212,6 +238,8 @@ public class View implements Notify {
 		content.add(seedSpinner);
 		content.add(pointLabel);
 		content.add(pointSpinner);
+		content.add(solutionLabel);
+		content.add(solutionSpinner);
 		Section header = new Section();
 		header.createFreeSection(content);
 		return header;
@@ -224,24 +252,6 @@ public class View implements Notify {
 	 */
 	public Window getWindow() {
 		return this.window;
-	}
-
-	/**
-	 * Returns the current value of the seed in the UI.
-	 *
-	 * @return the current seed.
-	 */
-	public int getSeed() {
-		return this.seed;
-	}
-
-	/**
-	 * Returns the current amount of points in the Ui.
-	 *
-	 * @return the current amount of points.
-	 */
-	public int getPointAmount() {
-		return this.pointAmount;
 	}
 
 	private class ScatterPlot {

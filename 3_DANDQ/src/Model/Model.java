@@ -23,12 +23,14 @@ public class Model implements Notify {
 	private Point[] data;
 	private ArrayList<Solution> solutionsForMax;
 	private ArrayList<Solution> solutionsForMin;
+	private int nSolutions;
 
 	public Model(MVC mvc) {
 		this.hub = mvc;
 		this.seed = 27;
 		this.frameDimension = new Dimension(100, 100);
 		this.pointAmount = 333 + 420 + 69 + 333;
+		this.nSolutions = 3;
 		this.data = new Point[] {};
 		this.solutionsForMax = new ArrayList<>();
 		this.solutionsForMin = new ArrayList<>();
@@ -52,6 +54,10 @@ public class Model implements Notify {
 				Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, this.data);
 				this.hub.notifyRequest(new Request<>(RequestCode.SEND_DATA, this, body));
 			}
+			case GET_SOLUTION_AMOUNT -> {
+				Body<Integer> body = new Body<>(RequestType.PUT, BodyCode.SOLUTION_AMOUNT, this.nSolutions);
+				this.hub.notifyRequest(new Request<>(RequestCode.SEND_SOLUTION_AMOUNT, this, body));
+			}
 			case NEW_PAIR_DATA_MAX -> {
 				Solution sol = (Solution) request.body.get(BodyCode.PAIR_POINTS);
 				this.solutionsForMax.add(sol);
@@ -59,6 +65,9 @@ public class Model implements Notify {
 			case NEW_PAIR_DATA_MIN -> {
 				Solution sol = (Solution) request.body.get(BodyCode.PAIR_POINTS);
 				this.solutionsForMin.add(sol);
+			}
+			case UPDATE_SOLUTIONS -> {
+				this.nSolutions = (int) request.body.get(BodyCode.SOLUTION_AMOUNT);
 			}
 			case CLEAR_DATA -> {
 				this.data = new Point[] {};
@@ -114,6 +123,10 @@ public class Model implements Notify {
 
 	public Point[] getData() {
 		return data;
+	}
+
+	public int getNSolutions() {
+		return nSolutions;
 	}
 
 }
