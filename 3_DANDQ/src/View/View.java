@@ -10,7 +10,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
@@ -21,22 +20,14 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
-import javax.swing.JTabbedPane;
 import javax.swing.SpinnerNumberModel;
 
-import org.jfree.chart.ChartColor;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.LegendItem;
-import org.jfree.chart.LegendItemCollection;
-import org.jfree.chart.LegendItemSource;
 import org.jfree.chart.annotations.XYLineAnnotation;
-import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
-import org.jfree.chart.title.LegendTitle;
-import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
@@ -55,7 +46,6 @@ import Request.RequestType;
 import betterSwing.Section;
 import betterSwing.Window;
 import betterSwing.utils.DirectionAndPosition;
-import utils.Config;
 
 public class View implements Notify {
 
@@ -145,7 +135,9 @@ public class View implements Notify {
 		JMenuItem jvm = new JMenuItem("Memoria");
 		// jvm.setIcon(new ImageIcon(Config.ICON_TO_DISPLAY_MENU_OPTION));
 		jvm.addActionListener(e -> {
-			// TODO: Implementar
+			WindowJVMStats jvmStats =  new WindowJVMStats();
+			jvmStats.show();
+			jvmStats.start();
 		});
 		JMenuItem cleanData = new JMenuItem("Limpiar Datos");
 		// cleanData.setIcon(new ImageIcon(Config.ICON_TO_DISPLAY_MENU_OPTION));
