@@ -28,15 +28,18 @@ public class Controller implements Notify {
 	private Random rng;
 	private Point[] data;
 	private int nSolutions;
+	private boolean stop;
 
 	public Controller(MVC mvc) {
 		this.hub = mvc;
 		this.rng = new Random();
+		this.stop = false;
 	}
 
 	public Controller(MVC mvc, int seed) {
 		this.hub = mvc;
 		this.rng = new Random(seed);
+		this.stop = false;
 	}
 
 	public void setSeed(int seed) {
@@ -145,11 +148,33 @@ public class Controller implements Notify {
 				// this.hub.notifyRequest(new Request<>(RequestCode.GET_STATS_DATA, this));
 				Thread.startVirtualThread(this::calculateStats);
 			}
+			case CALC_AUTO -> {
+				this.stop = false;
+				Thread.startVirtualThread(this::calculateAuto);
+			}
+			case STOP_AUTO -> {
+				this.stop = true;
+			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
 			}
 		}
+	}
+
+	private void calculateAuto() {
+		int numOfCalcs = this.hub.getModel().getData().length;
+		numOfCalcs = numOfCalcs * numOfCalcs;
+		for (int k = 0; k < numOfCalcs - 1 && !this.stop; k++) {
+			this.data = this.hub.getModel().getData();
+			try {
+				Thread.sleep(200);
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+			this.calculateMinDistanceNN();
+		}
+		// TODO: Change button text to "Auto"
 	}
 
 	private void calculateStats() {
@@ -200,7 +225,7 @@ public class Controller implements Notify {
 				}
 			}
 		}
-
+		System.out.println(Arrays.deepToString(solutions));
 		for (Solution solution : solutions) {
 			Logger.getLogger(this.getClass().getSimpleName())
 					.log(Level.INFO,

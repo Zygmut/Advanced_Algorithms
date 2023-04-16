@@ -13,6 +13,9 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
@@ -127,9 +130,19 @@ public class View implements Notify {
 		this.window.addSection(this.footer(), DirectionAndPosition.POSITION_BOTTOM, "Footer");
 	}
 
+	private JMenuBar menu() {
+		JMenuBar menuBar = new JMenuBar();
+		JMenu options = new JMenu("Opciones");
+		JMenuItem stats = new JMenuItem("Estadísticas");
+		stats.addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.STATS_DATA, this)));
+		options.add(stats);
+		menuBar.add(options);
+		return menuBar;
+	}
+
 	private Section footer() {
 		Section buttonSection = new Section();
-		JButton[] buttons = new JButton[6];
+		JButton[] buttons = new JButton[7];
 		buttons[0] = new JButton("Dist Min N^2");
 		buttons[0].addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CALC_MIN_DIS, this)));
 		buttons[1] = new JButton("Dist Máx N^2");
@@ -143,6 +156,19 @@ public class View implements Notify {
 		buttons[5] = new JButton("Ver estadísticas");
 		buttons[5].addActionListener(e -> {
 			this.hub.notifyRequest(new Request<>(RequestCode.CALC_STATS, this));
+		});
+		buttons[6] = new JButton("Auto");
+		buttons[6].addActionListener(e -> {
+			// TODO: Adapt to all the algorithms
+			String txt = buttons[6].getText();
+			System.out.println(txt);
+			if (txt.equals("Auto")) {
+				buttons[6].setText("Stop");
+				this.hub.notifyRequest(new Request<>(RequestCode.CALC_AUTO, this));
+			} else {
+				buttons[6].setText("Auto");
+				this.hub.notifyRequest(new Request<>(RequestCode.STOP_AUTO, this));
+			}
 		});
 		buttonSection.createButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
 		return buttonSection;
