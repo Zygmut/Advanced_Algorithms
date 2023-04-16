@@ -1,6 +1,10 @@
 package Controller;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 import java.util.function.DoubleSupplier;
 import java.util.logging.Level;
@@ -156,65 +160,77 @@ public class Controller implements Notify {
 		return true;
 	}
 
-	private void calculateMinDistanceNN() {
-		double minDistance = Double.MAX_VALUE;
-		Point[] minDistancePoints = new Point[2];
-		Instant start = Instant.now();
+	private Solution[] initSolutions(int n, boolean isMin) {
+		Solution[] solutions = new Solution[5];
+		for (int i = 0; i < solutions.length; i++) {
+			solutions[i] = new Solution(null, isMin ? Double.MAX_VALUE : Double.MIN_VALUE, 0);
+		}
+		return solutions;
+	}
 
+	private void calculateMinDistanceNN() {
+		// TODO: Create a button to set the number of solutions
+		Solution[] solutions = initSolutions(5, true);
+		Instant start = Instant.now();
 		for (int i = 0; i < data.length; i++) {
 			for (int j = i + 1; j < data.length; j++) {
 				double tempDistance = data[i].euclideanDistanceTo(data[j]);
-				if (tempDistance < minDistance && isNotInPairList(data[i], data[j], true)) {
-					minDistancePoints[0] = data[i];
-					minDistancePoints[1] = data[j];
-					minDistance = tempDistance;
+				if (tempDistance < solutions[0].distance() && isNotInPairList(data[i], data[j], true)) {
+					solutions[0] = new Solution(new PairPoint(data[i], data[j]),
+							tempDistance,
+							Duration.between(start, Instant.now()).toMillis());
+					Arrays.sort(solutions,
+							(solution1, solution2) -> Double.compare(solution2.distance(), solution1.distance()));
 				}
 			}
 		}
 
-		long time = Duration.between(start, Instant.now()).toMillis();
-		PairPoint pairPoint = new PairPoint(minDistancePoints[0], minDistancePoints[1]);
-		Solution solution = new Solution(pairPoint, minDistance, time);
-		Body<Solution> body1 = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, solution);
-		this.hub.notifyRequest(new Request<>(RequestCode.NEW_PAIR_DATA_MIN, this, body1));
+		for (Solution solution : solutions) {
+			Logger.getLogger(this.getClass().getSimpleName())
+					.log(Level.INFO,
+							"Minimum distance found is {0} between points {1} and {2} under {3} milliseconds.",
+							new Object[] { solution.distance(), solution.pair().p1(), solution.pair().p2(),
+									solution.time() });
 
-		Logger.getLogger(this.getClass().getSimpleName())
-				.log(Level.INFO, "Minimum distance found is {0} between points {1} and {2} under {3} milliseconds.",
-						new Object[] { minDistance, minDistancePoints[0], minDistancePoints[1], time });
+			Body<Solution> body1 = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, solution);
+			this.hub.notifyRequest(new Request<>(RequestCode.NEW_PAIR_DATA_MIN, this, body1));
+		}
 
 		Object[] objects = new Object[2];
 		// TODO: Change this to the request body system
 		objects[0] = this.hub.getModel().getMinPairPointsList();
 		objects[1] = this.hub.getModel().getData();
 		Body<Object[]> body = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, objects);
-		this.hub.notifyRequest(new Request<>(RequestCode.RESULT_MAX_DIS, this, body));
+		this.hub.notifyRequest(new Request<>(RequestCode.RESULT_MIN_DIS, this, body));
 	}
 
 	private void calculateMaxDistanceNN() {
-		double maxDistance = Double.MIN_VALUE;
-		Point[] maxDistancePoints = new Point[2];
+		// TODO: Create a button to set the number of solutions
+		Solution[] solutions = initSolutions(5, false);
 		Instant start = Instant.now();
-
 		for (int i = 0; i < data.length; i++) {
 			for (int j = i + 1; j < data.length; j++) {
 				double tempDistance = data[i].euclideanDistanceTo(data[j]);
-				if (tempDistance > maxDistance && isNotInPairList(data[i], data[j], false)) {
-					maxDistancePoints[0] = data[i];
-					maxDistancePoints[1] = data[j];
-					maxDistance = tempDistance;
+				if (tempDistance > solutions[0].distance() && isNotInPairList(data[i], data[j], false)) {
+					solutions[0] = new Solution(new PairPoint(data[i], data[j]),
+							tempDistance,
+							Duration.between(start, Instant.now()).toMillis());
+					Arrays.sort(solutions,
+							(solution1, solution2) -> Double.compare(solution1.distance(), solution2.distance()));
 				}
 			}
 		}
 
-		long time = Duration.between(start, Instant.now()).toMillis();
-		PairPoint pairPoint = new PairPoint(maxDistancePoints[0], maxDistancePoints[1]);
-		Solution solution = new Solution(pairPoint, maxDistance, time);
-		Body<Solution> body1 = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, solution);
-		this.hub.notifyRequest(new Request<>(RequestCode.NEW_PAIR_DATA_MAX, this, body1));
+		for (Solution solution : solutions) {
+			Logger.getLogger(this.getClass().getSimpleName())
+					.log(Level.INFO,
+							"Maximum distance found is {0} between points {1} and {2} under {3} milliseconds.",
+							new Object[] { solution.distance(), solution.pair().p1(), solution.pair().p2(),
+									solution.time() });
 
-		Logger.getLogger(this.getClass().getSimpleName())
-				.log(Level.INFO, "Maximum distance found is {0} between points {1} and {2} under {3} milliseconds.",
-						new Object[] { maxDistance, maxDistancePoints[0], maxDistancePoints[1], time });
+			Body<Solution> body1 = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, solution);
+			this.hub.notifyRequest(new Request<>(RequestCode.NEW_PAIR_DATA_MAX, this, body1));
+		}
 
 		Object[] objects = new Object[2];
 		// TODO: Change this to the request body system
