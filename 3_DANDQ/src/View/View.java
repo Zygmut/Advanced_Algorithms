@@ -1,6 +1,5 @@
 package View;
 
-import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
@@ -286,8 +285,9 @@ public class View implements Notify {
 				);
 				plot.addAnnotation(line);
 			}
-			plot.getDomainAxis().setFixedAutoRange(width);
-			plot.getRangeAxis().setFixedAutoRange(height);
+			plot.getDomainAxis().setRange(0, width);
+			plot.getRangeAxis().setRange(0, height);
+			chart.removeLegend();
 
 			return chart;
 		}

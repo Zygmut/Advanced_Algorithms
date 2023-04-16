@@ -2,9 +2,6 @@ package Controller;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.Random;
 import java.util.function.DoubleSupplier;
 import java.util.logging.Level;
@@ -175,7 +172,7 @@ public class Controller implements Notify {
 	}
 
 	private Solution[] initSolutions(int n, boolean isMin) {
-		Solution[] solutions = new Solution[5];
+		Solution[] solutions = new Solution[n];
 		for (int i = 0; i < solutions.length; i++) {
 			solutions[i] = new Solution(null, isMin ? Double.MAX_VALUE : Double.MIN_VALUE, 0);
 		}
@@ -183,8 +180,8 @@ public class Controller implements Notify {
 	}
 
 	private void calculateMinDistanceNN() {
-		// TODO: Create a button to set the number of solutions
-		Solution[] solutions = initSolutions(5, true);
+		// TODO?: Create a button to set the number of solutions
+		Solution[] solutions = initSolutions(3, true);
 		Instant start = Instant.now();
 		for (int i = 0; i < data.length; i++) {
 			for (int j = i + 1; j < data.length; j++) {
@@ -219,8 +216,8 @@ public class Controller implements Notify {
 	}
 
 	private void calculateMaxDistanceNN() {
-		// TODO: Create a button to set the number of solutions
-		Solution[] solutions = initSolutions(5, false);
+		// TODO?: Create a button to set the number of solutions
+		Solution[] solutions = initSolutions(3, false);
 		Instant start = Instant.now();
 		for (int i = 0; i < data.length; i++) {
 			for (int j = i + 1; j < data.length; j++) {
