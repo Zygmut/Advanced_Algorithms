@@ -5,6 +5,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.geom.Ellipse2D;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -392,6 +393,7 @@ public class View implements Notify {
 			plot.setRangeZeroBaselineVisible(true);
 			XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(false, true);
 			renderer.setSeriesPaint(0, this.seriesColor);
+			renderer.setSeriesShape(0, new Ellipse2D.Double(-2, -2, 4, 4));
 			plot.setRenderer(renderer);
 			for (PairPoint pairPoint : minPairPoints) {
 				XYLineAnnotation line = new XYLineAnnotation(
