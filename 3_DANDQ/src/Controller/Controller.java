@@ -399,7 +399,61 @@ public class Controller implements Notify {
 	}
 
 	private void calculateMinDistanceNLogN() {
-		System.out.println("Not implemented yet");
+		Solution[] solutions = initSolutions(true);
+		Instant start = Instant.now();
+		// Sort the points by x coordinate
+		Arrays.sort(data, (point1, point2) -> Double.compare(point1.x(), point2.x()));
+		// Find the maximum distance in the sorted array in O(n) recursive calls
+		findMinDistance(data, 0, data.length - 1, solutions, start);
+		System.out.println(Arrays.deepToString(solutions));
+		
 	}
+
+	private void findMinDistance(Point[] points, int left, int right, Solution[] solutions, Instant start) {
+		if (right - left <= 3) {
+			return;
+		}
+		int mid = (left + right) / 2;
+		findMinDistance(points, left, mid, solutions, start);
+		findMinDistance(points, mid + 1, right, solutions, start);
+		orden(points, left, mid, right, solutions, start);
+	}
+
+	private double orden(Point[] points, int left, int mid, int right, Solution[] solutions, Instant start) {
+		// Encontrar puntos cercanos a la línea de división y actualizar la distancia mínima
+        Point[] strip = new Point[right - left + 1];
+        int stripSize = 0;
+		double minDistance = Double.MAX_VALUE;
+        for (int i = left; i <= right; i++) {
+            if (Math.abs(points[i].x() - points[mid].x()) < minDistance) {
+                strip[stripSize++] = points[i];
+            }
+        }
+
+        Arrays.sort(strip, 0, stripSize, (a, b) -> a.y - b.y); // Ordenar los puntos cercanos por coordenada y
+
+        // Comprobar si hay puntos más cercanos en la franja
+        for (int i = 0; i < stripSize; i++) {
+            for (int j = i + 1; j < stripSize && strip[j].y() - strip[i].y() < minDistance; j++) {
+				
+                double distance = euclideanDistance(strip[i], strip[j]);
+                minDistance = Math.min(minDistance, distance);
+            }
+        }
+
+        return minDistance;
+	}
+    static double euclideanDistance(Point p1, Point p2) {
+        double dx = p1.x() - p2.x();
+        double dy = p1.y() - p2.y();
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+
+
+
+		
+
+	
 
 }
