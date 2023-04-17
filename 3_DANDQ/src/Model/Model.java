@@ -25,7 +25,7 @@ public class Model implements Notify {
 	private ArrayList<Solution> solutionsForMin;
 	private int nSolutions;
 	private boolean useNLogNAlgorithm;
-	private boolean useMaxOnAuto;
+	private Boolean useMaxOnAuto;
 
 	public Model(MVC mvc) {
 		this.hub = mvc;
@@ -88,7 +88,7 @@ public class Model implements Notify {
 				this.useNLogNAlgorithm = (boolean) request.body.get(BodyCode.DATA);
 			}
 			case CHANGE_AUTO_MODE -> {
-				this.useMaxOnAuto = (boolean) request.body.get(BodyCode.DATA);
+				this.useMaxOnAuto = (Boolean) request.body.get(BodyCode.DATA);
 				System.out.println(this.useMaxOnAuto);
 			}
 			case GET_ALGORITHM -> {

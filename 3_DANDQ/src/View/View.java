@@ -195,11 +195,18 @@ public class View implements Notify {
 					new Body<>(RequestType.PUT, BodyCode.DATA, false)));
 		});
 		autoOnMin.setSelected(true);
+		JCheckBoxMenuItem autoOnBenchMark = new JCheckBoxMenuItem("Auto en Benchmark");
+		autoOnBenchMark.addActionListener(e -> {
+			this.hub.notifyRequest(new Request<>(RequestCode.CHANGE_AUTO_MODE, this,
+					new Body<>(RequestType.PUT, BodyCode.DATA, null)));
+		});
 		ButtonGroup group2 = new ButtonGroup();
 		group2.add(autoOnMax);
 		group2.add(autoOnMin);
+		group2.add(autoOnBenchMark);
 		algorit.add(autoOnMax);
 		algorit.add(autoOnMin);
+		algorit.add(autoOnBenchMark);
 
 		menuBar.add(algorit);
 

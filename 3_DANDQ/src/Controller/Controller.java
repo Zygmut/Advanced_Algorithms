@@ -30,7 +30,7 @@ public class Controller implements Notify {
 	private int nSolutions;
 	private boolean stop;
 	private boolean useNLogNAlgorithm;
-	private boolean useMaxOnAuto;
+	private Boolean useMaxOnAuto;
 
 	public Controller(MVC mvc) {
 		this.hub = mvc;
@@ -138,7 +138,7 @@ public class Controller implements Notify {
 				this.useNLogNAlgorithm = (Boolean) request.body.get(BodyCode.DATA);
 			}
 			case SEND_AUTO_MODE -> {
-				this.useMaxOnAuto = (boolean) request.body.get(BodyCode.DATA);
+				this.useMaxOnAuto = (Boolean) request.body.get(BodyCode.DATA);
 			}
 			case SEND_SOLUTION_AMOUNT -> {
 				this.nSolutions = (Integer) request.body.get(BodyCode.SOLUTION_AMOUNT);
@@ -172,8 +172,12 @@ public class Controller implements Notify {
 				this.stop = false;
 				this.hub.notifyRequest(new Request<>(RequestCode.GET_ALGORITHM, this));
 				this.hub.notifyRequest(new Request<>(RequestCode.GET_AUTO_MODE, this));
-				Thread.startVirtualThread(this::calculateAuto);
-				// TODO: Change button text to "Auto"
+				if (this.useMaxOnAuto == null) {
+					Thread.startVirtualThread(this::calculateAutoBechmark);
+				} else {
+					Thread.startVirtualThread(this::calculateAuto);
+					// TODO: Change button text to "Auto"
+				}
 			}
 			case STOP_AUTO -> {
 				this.stop = true;
@@ -191,7 +195,6 @@ public class Controller implements Notify {
 	private void calculateAuto() {
 		int numOfCalcs = this.hub.getModel().getData().length;
 		numOfCalcs = numOfCalcs * numOfCalcs;
-		System.out.println(this.useMaxOnAuto);
 		for (int k = 0; k < numOfCalcs - 1 && !this.stop; k++) {
 			this.data = this.hub.getModel().getData();
 			try {
@@ -316,6 +319,21 @@ public class Controller implements Notify {
 
 	private void generateDataWithAnimation() {
 		// TODO
+	}
+
+	private void calculateAutoBechmark() {
+		int numOfCalcs = this.hub.getModel().getData().length;
+		numOfCalcs = numOfCalcs * numOfCalcs;
+		for (int k = 0; k < numOfCalcs - 1 && !this.stop; k++) {
+			this.data = this.hub.getModel().getData();
+			try {
+				Thread.sleep(200);
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+			this.calculateMaxDistanceNN();
+			this.calculateMinDistanceNN();
+		}
 	}
 
 }
