@@ -151,6 +151,13 @@ public class View implements Notify {
 		options.addSeparator();
 		options.add(cleanData);
 		options.addSeparator();
+		JMenuItem genData = new JMenuItem("Generar Datos");
+		// genData.setIcon(new ImageIcon(Config.ICON_TO_DISPLAY_MENU_OPTION));
+		genData.addActionListener(e -> {
+			this.hub.notifyRequest(new Request<>(RequestCode.GENERATE_DATA_WITH_ANIMATION, this));
+		});
+		options.add(genData);
+		options.addSeparator();
 		options.add(exit);
 		menuBar.add(options);
 
