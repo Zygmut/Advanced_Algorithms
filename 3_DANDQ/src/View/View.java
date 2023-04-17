@@ -135,7 +135,7 @@ public class View implements Notify {
 		JMenuItem jvm = new JMenuItem("Memoria");
 		// jvm.setIcon(new ImageIcon(Config.ICON_TO_DISPLAY_MENU_OPTION));
 		jvm.addActionListener(e -> {
-			WindowJVMStats jvmStats =  new WindowJVMStats();
+			WindowJVMStats jvmStats = new WindowJVMStats();
 			jvmStats.show();
 			jvmStats.start();
 		});

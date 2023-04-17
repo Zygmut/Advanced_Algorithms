@@ -307,27 +307,7 @@ public class Controller implements Notify {
 	}
 
 	private void generateDataWithAnimation() {
-		int pointAmount = this.hub.getModel().getPointAmount();
-		Dimension frameDimension = this.hub.getModel().getFrameDimension();
-		int last = 0;
-		final int setp = 100;
-		for (int i = 0; i < pointAmount; i++) {
-			resetRNG();
-			last = (last + setp / 2 > pointAmount) ? last + 1 : last + setp / 2;
-			last = (last + setp > pointAmount) ? last + 1 : last + setp;
-			Point[] points = generateData(
-					rng::nextDouble,
-					frameDimension,
-					last);
-			Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, points);
-			this.hub.notifyRequest(new Request<>(RequestCode.NEW_DATA, this, body));
-			try {
-				Thread.sleep(1);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-		System.out.println("Done");
+		// TODO
 	}
 
 }
