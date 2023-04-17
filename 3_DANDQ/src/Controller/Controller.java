@@ -147,8 +147,7 @@ public class Controller implements Notify {
 				this.hub.notifyRequest(new Request<>(RequestCode.GET_DATA, this));
 				this.hub.notifyRequest(new Request<>(RequestCode.GET_ALGORITHM, this));
 				if (this.useNLogNAlgorithm) {
-					// TODO: Implement this
-					System.out.println("Not implemented yet");
+					Thread.startVirtualThread(this::calculateMinDistanceNLogN);
 				} else {
 					Thread.startVirtualThread(this::calculateMinDistanceNN);
 				}
@@ -157,8 +156,7 @@ public class Controller implements Notify {
 				this.hub.notifyRequest(new Request<>(RequestCode.GET_DATA, this));
 				this.hub.notifyRequest(new Request<>(RequestCode.GET_ALGORITHM, this));
 				if (this.useNLogNAlgorithm) {
-					// TODO: Implement this
-					System.out.println("Not implemented yet");
+					Thread.startVirtualThread(this::calculateMaxDistanceNLogN);
 				} else {
 					Thread.startVirtualThread(this::calculateMaxDistanceNN);
 				}
@@ -176,7 +174,6 @@ public class Controller implements Notify {
 					Thread.startVirtualThread(this::calculateAutoBechmark);
 				} else {
 					Thread.startVirtualThread(this::calculateAuto);
-					// TODO: Change button text to "Auto"
 				}
 			}
 			case STOP_AUTO -> {
@@ -203,9 +200,17 @@ public class Controller implements Notify {
 				// TODO: handle exception
 			}
 			if (this.useMaxOnAuto) {
-				this.calculateMaxDistanceNN();
+				if (this.useNLogNAlgorithm) {
+					this.calculateMaxDistanceNLogN();
+				} else {
+					this.calculateMaxDistanceNN();
+				}
 			} else {
-				this.calculateMinDistanceNN();
+				if (this.useNLogNAlgorithm) {
+					this.calculateMinDistanceNLogN();
+				} else {
+					this.calculateMinDistanceNN();
+				}
 			}
 		}
 	}
@@ -243,7 +248,6 @@ public class Controller implements Notify {
 	}
 
 	private void calculateMinDistanceNN() {
-		// TODO?: Create a button to set the number of solutions
 		Solution[] solutions = initSolutions(true);
 		Instant start = Instant.now();
 		for (int i = 0; i < data.length; i++) {
@@ -334,6 +338,68 @@ public class Controller implements Notify {
 			this.calculateMaxDistanceNN();
 			this.calculateMinDistanceNN();
 		}
+	}
+
+	private void calculateMaxDistanceNLogN() {
+		Solution[] solutions = initSolutions(false);
+		Instant start = Instant.now();
+		// Sort the points by x coordinate
+		Arrays.sort(data, (point1, point2) -> Double.compare(point1.x(), point2.x()));
+		// Find the maximum distance in the sorted array in O(n) recursive calls
+		findMaxDistance(data, 0, data.length - 1, solutions, start);
+
+		System.out.println(Arrays.deepToString(solutions));
+	}
+
+	private void findMaxDistance(Point[] points, int left, int right, Solution[] solutions, Instant start) {
+		if (left >= right) {
+			return;
+		}
+		int mid = (left + right) / 2;
+		findMaxDistance(points, left, mid, solutions, start);
+		findMaxDistance(points, mid + 1, right, solutions, start);
+		merge(points, left, mid, right, solutions, start);
+	}
+
+	private void merge(Point[] points, int left, int mid, int right, Solution[] solutions, Instant start) {
+		int n1 = mid - left + 1;
+		int n2 = right - mid;
+		Point[] leftPoints = new Point[n1];
+		Point[] rightPoints = new Point[n2];
+		for (int i = 0; i < n1; i++) {
+			leftPoints[i] = points[left + i];
+		}
+		for (int i = 0; i < n2; i++) {
+			rightPoints[i] = points[mid + 1 + i];
+		}
+		int i = 0, j = 0, k = left;
+		while (i < n1 && j < n2) {
+			if (leftPoints[i].x() < rightPoints[j].x()) {
+				points[k] = leftPoints[i];
+				i++;
+			} else {
+				points[k] = rightPoints[j];
+				j++;
+			}
+			k++;
+		}
+		while (i < n1) {
+			points[k] = leftPoints[i];
+			i++;
+			k++;
+		}
+		while (j < n2) {
+			points[k] = rightPoints[j];
+			j++;
+			k++;
+		}
+		// Find the maximum distance in the sorted array in O(n) recursive calls
+		findMaxDistance(points, left, mid, solutions, start);
+		findMaxDistance(points, mid + 1, right, solutions, start);
+	}
+
+	private void calculateMinDistanceNLogN() {
+		System.out.println("Not implemented yet");
 	}
 
 }
