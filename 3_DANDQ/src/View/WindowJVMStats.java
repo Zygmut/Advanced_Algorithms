@@ -53,7 +53,6 @@ public class WindowJVMStats {
 		TimeSeries series = new TimeSeries("Memoria usada");
 		TimeSeries series2 = new TimeSeries("Memoria libre");
 		TimeSeries series3 = new TimeSeries("Memoria total");
-		TimeSeries series4 = new TimeSeries("Memoria máxima");
 
 		for (int i = 0; i < this.memoryUsed.size(); i++) {
 			series.add(
@@ -75,7 +74,6 @@ public class WindowJVMStats {
 		dataset.addSeries(series);
 		dataset.addSeries(series2);
 		dataset.addSeries(series3);
-		dataset.addSeries(series4);
 
 		JFreeChart chart = ChartFactory.createTimeSeriesChart(
 				"Estadísticas JVM (Java Virtual Machine)", // chart title
