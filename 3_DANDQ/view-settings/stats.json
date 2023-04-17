@@ -1,15 +1,15 @@
 {
-	"width": "500",
+	"width": "600",
 	"height": "500",
 	"x": "0",
 	"y": "0",
 	"title": "CAPÍTULO 3 - DIVIDE & CONQUER - ESTADÍSTICAS",
 	"lookAndFeel": "Nimbus",
-	"windowOnCenter": "true",
+	"windowOnCenter": "false",
 	"windowResizable": "true",
 	"windowCloseOperation": "DISPOSE_ON_CLOSE",
 	"windowIcon": "",
-	"windowWidthCenter": "true",
+	"windowWidthCenter": "false",
 	"windowOnLoadVisible": "true",
 	"bgColor": "black"
 }

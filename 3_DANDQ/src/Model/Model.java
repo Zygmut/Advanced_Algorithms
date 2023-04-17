@@ -25,6 +25,7 @@ public class Model implements Notify {
 	private ArrayList<Solution> solutionsForMin;
 	private int nSolutions;
 	private boolean useNLogNAlgorithm;
+	private boolean useMaxOnAuto;
 
 	public Model(MVC mvc) {
 		this.hub = mvc;
@@ -36,6 +37,7 @@ public class Model implements Notify {
 		this.solutionsForMax = new ArrayList<>();
 		this.solutionsForMin = new ArrayList<>();
 		this.useNLogNAlgorithm = false;
+		this.useMaxOnAuto = false;
 	}
 
 	@Override
@@ -85,9 +87,17 @@ public class Model implements Notify {
 			case CHANGE_ALGORITHM -> {
 				this.useNLogNAlgorithm = (boolean) request.body.get(BodyCode.DATA);
 			}
+			case CHANGE_AUTO_MODE -> {
+				this.useMaxOnAuto = (boolean) request.body.get(BodyCode.DATA);
+				System.out.println(this.useMaxOnAuto);
+			}
 			case GET_ALGORITHM -> {
 				Body<Boolean> body = new Body<>(RequestType.PUT, BodyCode.DATA, this.useNLogNAlgorithm);
 				this.hub.notifyRequest(new Request<>(RequestCode.SEND_ALGORITHM, this, body));
+			}
+			case GET_AUTO_MODE -> {
+				Body<Boolean> body = new Body<>(RequestType.PUT, BodyCode.DATA, this.useMaxOnAuto);
+				this.hub.notifyRequest(new Request<>(RequestCode.SEND_AUTO_MODE, this, body));
 			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())

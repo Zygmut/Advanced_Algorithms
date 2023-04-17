@@ -132,7 +132,7 @@ public class View implements Notify {
 		JMenuItem alg = new JMenuItem("Algoritmos");
 		// stats.setIcon(new ImageIcon(Config.ICON_TO_DISPLAY_MENU_OPTION));
 		alg.addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CALC_STATS, this)));
-		JMenuItem jvm = new JMenuItem("Memoria");
+		JMenuItem jvm = new JMenuItem("JVM");
 		// jvm.setIcon(new ImageIcon(Config.ICON_TO_DISPLAY_MENU_OPTION));
 		jvm.addActionListener(e -> {
 			WindowJVMStats jvmStats = new WindowJVMStats();
@@ -185,7 +185,15 @@ public class View implements Notify {
 		algorit.addSeparator();
 
 		JCheckBoxMenuItem autoOnMax = new JCheckBoxMenuItem("Auto en Máx");
+		autoOnMax.addActionListener(e -> {
+			this.hub.notifyRequest(new Request<>(RequestCode.CHANGE_AUTO_MODE, this,
+					new Body<>(RequestType.PUT, BodyCode.DATA, true)));
+		});
 		JCheckBoxMenuItem autoOnMin = new JCheckBoxMenuItem("Auto en Mín");
+		autoOnMin.addActionListener(e -> {
+			this.hub.notifyRequest(new Request<>(RequestCode.CHANGE_AUTO_MODE, this,
+					new Body<>(RequestType.PUT, BodyCode.DATA, false)));
+		});
 		autoOnMin.setSelected(true);
 		ButtonGroup group2 = new ButtonGroup();
 		group2.add(autoOnMax);

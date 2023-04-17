@@ -30,6 +30,7 @@ public class Controller implements Notify {
 	private int nSolutions;
 	private boolean stop;
 	private boolean useNLogNAlgorithm;
+	private boolean useMaxOnAuto;
 
 	public Controller(MVC mvc) {
 		this.hub = mvc;
@@ -135,7 +136,9 @@ public class Controller implements Notify {
 			}
 			case SEND_ALGORITHM -> {
 				this.useNLogNAlgorithm = (Boolean) request.body.get(BodyCode.DATA);
-				System.out.println("Use NLogN Algorithm: " + this.useNLogNAlgorithm);
+			}
+			case SEND_AUTO_MODE -> {
+				this.useMaxOnAuto = (boolean) request.body.get(BodyCode.DATA);
 			}
 			case SEND_SOLUTION_AMOUNT -> {
 				this.nSolutions = (Integer) request.body.get(BodyCode.SOLUTION_AMOUNT);
@@ -168,7 +171,7 @@ public class Controller implements Notify {
 			case CALC_AUTO -> {
 				this.stop = false;
 				this.hub.notifyRequest(new Request<>(RequestCode.GET_ALGORITHM, this));
-				// TODO: Get if it's max or min
+				this.hub.notifyRequest(new Request<>(RequestCode.GET_AUTO_MODE, this));
 				Thread.startVirtualThread(this::calculateAuto);
 				// TODO: Change button text to "Auto"
 			}
@@ -188,6 +191,7 @@ public class Controller implements Notify {
 	private void calculateAuto() {
 		int numOfCalcs = this.hub.getModel().getData().length;
 		numOfCalcs = numOfCalcs * numOfCalcs;
+		System.out.println(this.useMaxOnAuto);
 		for (int k = 0; k < numOfCalcs - 1 && !this.stop; k++) {
 			this.data = this.hub.getModel().getData();
 			try {
@@ -195,7 +199,11 @@ public class Controller implements Notify {
 			} catch (Exception e) {
 				// TODO: handle exception
 			}
-			this.calculateMinDistanceNN();
+			if (this.useMaxOnAuto) {
+				this.calculateMaxDistanceNN();
+			} else {
+				this.calculateMinDistanceNN();
+			}
 		}
 	}
 
