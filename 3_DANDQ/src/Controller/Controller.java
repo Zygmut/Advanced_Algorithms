@@ -183,9 +183,6 @@ public class Controller implements Notify {
 			case STOP_AUTO -> {
 				this.stop = true;
 			}
-			case GENERATE_DATA_WITH_ANIMATION -> {
-				Thread.startVirtualThread(this::generateDataWithAnimation);
-			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
@@ -323,10 +320,6 @@ public class Controller implements Notify {
 		objects[2] = this.hub.getModel().getMaxPairPointsList();
 		Body<Object[]> body = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, objects);
 		this.hub.notifyRequest(new Request<>(RequestCode.RESULT_MAX_DIS, this, body));
-	}
-
-	private void generateDataWithAnimation() {
-		// TODO
 	}
 
 	private void calculateAutoBechmark() {

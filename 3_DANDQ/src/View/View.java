@@ -152,11 +152,41 @@ public class View implements Notify {
 		options.addSeparator();
 		options.add(cleanData);
 		options.addSeparator();
-		JMenuItem genData = new JMenuItem("Generar Datos");
+		JMenu genData = new JMenu("Generar Datos");
 		// genData.setIcon(new ImageIcon(Config.ICON_TO_DISPLAY_MENU_OPTION));
-		genData.addActionListener(e -> {
-			this.hub.notifyRequest(new Request<>(RequestCode.GENERATE_DATA_WITH_ANIMATION, this));
-		});
+		String[] distributions = Arrays.stream(Distribution.values()).map(Enum::name).toArray(String[]::new);
+		ButtonGroup grou = new ButtonGroup();
+		for (String string : distributions) {
+			JCheckBoxMenuItem item = new JCheckBoxMenuItem(string);
+			if (string.equals(Distribution.UNIFORM.name())) {
+				item.setSelected(true);
+			}
+			item.addActionListener(e -> {
+				Distribution selectedValue = Distribution.valueOf(item.getText());
+				switch (selectedValue) {
+					case UNIFORM -> {
+						this.hub.notifyRequest(new Request<>(RequestCode.GENERATE_UNIFORM_DATA, this));
+					}
+					case GUASSIAN -> {
+						this.hub.notifyRequest(new Request<>(RequestCode.GENERATE_GAUSSIAN_DATA, this));
+					}
+					case POISSON -> {
+						this.hub.notifyRequest(new Request<>(RequestCode.GENERATE_POISSON_DATA, this));
+					}
+					case EXPONENTIAL -> {
+						this.hub.notifyRequest(new Request<>(RequestCode.GENERATE_EXPONENTIAL_DATA, this));
+					}
+					default -> {
+						Logger.getLogger(this.getClass().getSimpleName())
+								.log(Level.SEVERE, "{0} is not implemented under the distribution menu.",
+										selectedValue);
+					}
+				}
+			});
+			genData.add(item);
+			grou.add(item);
+		}
+
 		options.add(genData);
 		options.addSeparator();
 		options.add(exit);
