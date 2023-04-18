@@ -286,7 +286,6 @@ public class Controller implements Notify {
 	}
 
 	private void calculateMaxDistanceNN() {
-		// TODO?: Create a button to set the number of solutions
 		Solution[] solutions = initSolutions(false);
 		Instant start = Instant.now();
 		for (int i = 0; i < data.length; i++) {
@@ -330,7 +329,7 @@ public class Controller implements Notify {
 			try {
 				Thread.sleep(200);
 			} catch (Exception e) {
-				// TODO: handle exception
+				// Do nothing
 			}
 			this.calculateMaxDistanceNN();
 			this.calculateMinDistanceNN();
@@ -403,7 +402,7 @@ public class Controller implements Notify {
 		for (int i = 0; i < strip.size(); i++) {
 			for (int j = i + 1; j < strip.size() && j <= i + 15; j++) {
 				double dist = euclideanDistance(strip.get(i), strip.get(j));
-				if (dist < d) {
+				if (dist < d && isNotInPairList(strip.get(i), strip.get(j), true)) {
 					if (closestPairs.size() < this.nSolutions) {
 						closestPairs.add(new Solution(new PairPoint(strip.get(i), strip.get(j)), dist, 0));
 						Collections.sort(closestPairs, Comparator.comparingDouble(p -> p.distance()));
@@ -423,7 +422,7 @@ public class Controller implements Notify {
 		for (int i = low; i < high; i++) {
 			for (int j = i + 1; j <= high; j++) {
 				double dist = euclideanDistance(points[i], points[j]);
-				if (dist < minDist) {
+				if (dist < minDist && isNotInPairList(points[i], points[j], true)) {
 					if (closestPairs.size() < this.nSolutions) {
 						closestPairs.add(new Solution(new PairPoint(points[i], points[j]), dist, 0));
 						Collections.sort(closestPairs, Comparator.comparingDouble(p -> p.distance()));
@@ -467,7 +466,7 @@ public class Controller implements Notify {
 		for (int i = 0; i < j; i++) {
 			for (int k = i + 1; k < j && (strip[k].y() - strip[i].y()) < d; k++) {
 				double dist = euclideanDistance(strip[i], strip[k]);
-				if (dist > d) {
+				if (dist > d && this.isNotInPairList(strip[i], strip[k], false)) {
 					if (farthestPairs.size() < this.nSolutions) {
 						farthestPairs.add(new Solution(new PairPoint(strip[i], strip[k]), dist, 0));
 						farthestPairs.sort(Comparator.comparingDouble(Solution::distance).reversed());
@@ -488,13 +487,16 @@ public class Controller implements Notify {
 		for (int i = low; i <= high; i++) {
 			for (int j = i + 1; j <= high; j++) {
 				double dist = euclideanDistance(points[i], points[j]);
-				if (farthestPairs.size() < this.nSolutions) {
-					farthestPairs.add(new Solution(new PairPoint(points[i], points[j]), dist, 0));
-					farthestPairs.sort(Comparator.comparingDouble(Solution::distance).reversed());
-				} else if (dist > farthestPairs.get(this.nSolutions - 1).distance()) {
-					farthestPairs.remove(this.nSolutions - 1);
-					farthestPairs.add(new Solution(new PairPoint(points[i], points[j]), dist, 0));
-					farthestPairs.sort(Comparator.comparingDouble(Solution::distance).reversed());
+				// Only add if not in the list
+				if (this.isNotInPairList(points[i], points[j], false)) {
+					if (farthestPairs.size() < this.nSolutions) {
+						farthestPairs.add(new Solution(new PairPoint(points[i], points[j]), dist, 0));
+						farthestPairs.sort(Comparator.comparingDouble(Solution::distance).reversed());
+					} else if (dist > farthestPairs.get(this.nSolutions - 1).distance()) {
+						farthestPairs.remove(this.nSolutions - 1);
+						farthestPairs.add(new Solution(new PairPoint(points[i], points[j]), dist, 0));
+						farthestPairs.sort(Comparator.comparingDouble(Solution::distance).reversed());
+					}
 				}
 				maxDist = Math.max(maxDist, dist);
 			}
