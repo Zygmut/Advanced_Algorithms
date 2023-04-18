@@ -218,11 +218,11 @@ public class Controller implements Notify {
 
 	private void calculateStats() {
 		Object[] statsData = new Object[12];
-		// TODO: Guardar los datos de max y min de los dos tipos de algoritmos
-		ArrayList<Solution> max = this.hub.getModel().getSolutionsForMax();
-		ArrayList<Solution> min = this.hub.getModel().getSolutionsForMin();
 
 		// ------ N^2 -----------
+		ArrayList<Solution> max = this.hub.getModel().getSolutionsForMaxNN();
+		ArrayList<Solution> min = this.hub.getModel().getSolutionsForMinNN();
+
 		// Media de las distancias
 		statsData[0] = max.stream().mapToDouble(Solution::distance).average().orElse(0);
 		statsData[1] = min.stream().mapToDouble(Solution::distance).average().orElse(0);
@@ -235,11 +235,10 @@ public class Controller implements Notify {
 		statsData[4] = min.stream().mapToDouble(Solution::distance).min().orElse(0);
 		statsData[5] = min.stream().mapToDouble(Solution::distance).max().orElse(0);
 
-		// TODO
-		// max = this.hub.getModel().getSolutionsForMaxNLogN();
-		// min = this.hub.getModel().getSolutionsForMinNLogN();
-
 		// ------ NLogN -----------
+		max = this.hub.getModel().getSolutionsForMaxNLogN();
+		min = this.hub.getModel().getSolutionsForMinNLogN();
+
 		// Media de las distancias
 		statsData[6] = max.stream().mapToDouble(Solution::distance).average().orElse(0);
 		statsData[7] = min.stream().mapToDouble(Solution::distance).average().orElse(0);
@@ -256,9 +255,24 @@ public class Controller implements Notify {
 		this.hub.notifyRequest(new Request<>(RequestCode.STATS_DATA, this, body));
 	}
 
-	private boolean isNotInPairList(Point point1, Point point2, boolean isMin) {
-		PairPoint[] pairPointsList = isMin ? this.hub.getModel().getMinPairPointsList()
-				: this.hub.getModel().getMaxPairPointsList();
+	private PairPoint[] getList(boolean isMin, boolean isNLogN) {
+		if (isMin) {
+			if (isNLogN) {
+				return this.hub.getModel().getMinPairPointsListNLogN();
+			} else {
+				return this.hub.getModel().getMinPairPointsListNN();
+			}
+		} else {
+			if (isNLogN) {
+				return this.hub.getModel().getMaxPairPointsListNLogN();
+			} else {
+				return this.hub.getModel().getMaxPairPointsListNN();
+			}
+		}
+	}
+
+	private boolean isNotInPairList(Point point1, Point point2, boolean isMin, boolean isNLogN) {
+		PairPoint[] pairPointsList = getList(isMin, isNLogN);
 		for (PairPoint pairPoint : pairPointsList) {
 			if (pairPoint.p1().equals(point1) && pairPoint.p2().equals(point2)) {
 				return false;
@@ -282,7 +296,7 @@ public class Controller implements Notify {
 		for (int i = 0; i < data.length; i++) {
 			for (int j = i + 1; j < data.length; j++) {
 				double tempDistance = data[i].euclideanDistanceTo(data[j]);
-				if (tempDistance < solutions[0].distance() && isNotInPairList(data[i], data[j], true)) {
+				if (tempDistance < solutions[0].distance() && isNotInPairList(data[i], data[j], true, false)) {
 					solutions[0] = new Solution(new PairPoint(data[i], data[j]),
 							tempDistance,
 							Duration.between(start, Instant.now()).toMillis());
@@ -303,12 +317,13 @@ public class Controller implements Notify {
 			this.hub.notifyRequest(new Request<>(RequestCode.NEW_PAIR_DATA_MIN, this, body1));
 		}
 
-		Object[] objects = new Object[3];
+		Object[] objects = new Object[5];
 		// TODO: Change this to the request body system
 		objects[0] = this.hub.getModel().getData();
-		objects[1] = this.hub.getModel().getMinPairPointsList();
-		objects[2] = this.hub.getModel().getMaxPairPointsList();
-
+		objects[1] = this.hub.getModel().getMinPairPointsListNN();
+		objects[2] = this.hub.getModel().getMaxPairPointsListNN();
+		objects[3] = this.hub.getModel().getMinPairPointsListNLogN();
+		objects[4] = this.hub.getModel().getMaxPairPointsListNLogN();
 		Body<Object[]> body = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, objects);
 		this.hub.notifyRequest(new Request<>(RequestCode.RESULT_MIN_DIS, this, body));
 	}
@@ -319,7 +334,7 @@ public class Controller implements Notify {
 		for (int i = 0; i < data.length; i++) {
 			for (int j = i + 1; j < data.length; j++) {
 				double tempDistance = data[i].euclideanDistanceTo(data[j]);
-				if (tempDistance > solutions[0].distance() && isNotInPairList(data[i], data[j], false)) {
+				if (tempDistance > solutions[0].distance() && isNotInPairList(data[i], data[j], false, false)) {
 					solutions[0] = new Solution(new PairPoint(data[i], data[j]),
 							tempDistance,
 							Duration.between(start, Instant.now()).toMillis());
@@ -340,11 +355,13 @@ public class Controller implements Notify {
 			this.hub.notifyRequest(new Request<>(RequestCode.NEW_PAIR_DATA_MAX, this, body1));
 		}
 
-		Object[] objects = new Object[3];
+		Object[] objects = new Object[5];
 		// TODO: Change this to the request body system
 		objects[0] = this.hub.getModel().getData();
-		objects[1] = this.hub.getModel().getMinPairPointsList();
-		objects[2] = this.hub.getModel().getMaxPairPointsList();
+		objects[1] = this.hub.getModel().getMinPairPointsListNN();
+		objects[2] = this.hub.getModel().getMaxPairPointsListNN();
+		objects[3] = this.hub.getModel().getMinPairPointsListNLogN();
+		objects[4] = this.hub.getModel().getMaxPairPointsListNLogN();
 		Body<Object[]> body = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, objects);
 		this.hub.notifyRequest(new Request<>(RequestCode.RESULT_MAX_DIS, this, body));
 	}
@@ -352,8 +369,8 @@ public class Controller implements Notify {
 	private void calculateAutoBechmark() {
 		int numOfCalcs = this.hub.getModel().getData().length;
 		numOfCalcs = numOfCalcs * numOfCalcs;
+		this.data = this.hub.getModel().getData();
 		for (int k = 0; k < numOfCalcs - 1 && !this.stop; k++) {
-			this.data = this.hub.getModel().getData();
 			try {
 				Thread.sleep(200);
 			} catch (Exception e) {
@@ -375,15 +392,18 @@ public class Controller implements Notify {
 		for (Solution solution : solutionsList) {
 			System.out.println(solution);
 			Body<Solution> body1 = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, solution);
-			this.hub.notifyRequest(new Request<>(RequestCode.NEW_PAIR_DATA_MAX, this, body1));
+			this.hub.notifyRequest(new Request<>(RequestCode.NEW_PAIR_DATA_MAX_NLOGN, this, body1));
 		}
 		Instant end = Instant.now();
 		System.out.println("Time taken: " + Duration.between(start, end).toMillis() + " milliseconds");
-		Object[] objects = new Object[3];
+
+		Object[] objects = new Object[5];
 		// TODO: Change this to the request body system
 		objects[0] = this.hub.getModel().getData();
-		objects[1] = this.hub.getModel().getMinPairPointsList();
-		objects[2] = this.hub.getModel().getMaxPairPointsList();
+		objects[1] = this.hub.getModel().getMinPairPointsListNN();
+		objects[2] = this.hub.getModel().getMaxPairPointsListNN();
+		objects[3] = this.hub.getModel().getMinPairPointsListNLogN();
+		objects[4] = this.hub.getModel().getMaxPairPointsListNLogN();
 
 		Body<Object[]> body = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, objects);
 		this.hub.notifyRequest(new Request<>(RequestCode.RESULT_MAX_DIS, this, body));
@@ -396,14 +416,18 @@ public class Controller implements Notify {
 		for (Solution solution : solutionsList) {
 			System.out.println(solution);
 			Body<Solution> body1 = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, solution);
-			this.hub.notifyRequest(new Request<>(RequestCode.NEW_PAIR_DATA_MIN, this, body1));
+			this.hub.notifyRequest(new Request<>(RequestCode.NEW_PAIR_DATA_MIN_NLOGN, this, body1));
 		}
 		Instant end = Instant.now();
 		System.out.println("Time taken: " + Duration.between(start, end).toMillis() + " milliseconds");
-		Object[] objects = new Object[3];
+
+		Object[] objects = new Object[5];
+		// TODO: Change this to the request body system
 		objects[0] = this.hub.getModel().getData();
-		objects[1] = this.hub.getModel().getMinPairPointsList();
-		objects[2] = this.hub.getModel().getMaxPairPointsList();
+		objects[1] = this.hub.getModel().getMinPairPointsListNN();
+		objects[2] = this.hub.getModel().getMaxPairPointsListNN();
+		objects[3] = this.hub.getModel().getMinPairPointsListNLogN();
+		objects[4] = this.hub.getModel().getMaxPairPointsListNLogN();
 
 		Body<Object[]> body = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, objects);
 		this.hub.notifyRequest(new Request<>(RequestCode.RESULT_MIN_DIS, this, body));
@@ -434,7 +458,7 @@ public class Controller implements Notify {
 		for (int i = 0; i < strip.size(); i++) {
 			for (int j = i + 1; j < strip.size() && j <= i + 15; j++) {
 				double dist = euclideanDistance(strip.get(i), strip.get(j));
-				if (dist < d && isNotInPairList(strip.get(i), strip.get(j), true)) {
+				if (dist < d && isNotInPairList(strip.get(i), strip.get(j), true, true)) {
 					if (closestPairs.size() < this.nSolutions) {
 						closestPairs.add(new Solution(new PairPoint(strip.get(i), strip.get(j)), dist, 0));
 						Collections.sort(closestPairs, Comparator.comparingDouble(p -> p.distance()));
@@ -454,7 +478,7 @@ public class Controller implements Notify {
 		for (int i = low; i < high; i++) {
 			for (int j = i + 1; j <= high; j++) {
 				double dist = euclideanDistance(points[i], points[j]);
-				if (dist < minDist && isNotInPairList(points[i], points[j], true)) {
+				if (dist < minDist && isNotInPairList(points[i], points[j], true, true)) {
 					if (closestPairs.size() < this.nSolutions) {
 						closestPairs.add(new Solution(new PairPoint(points[i], points[j]), dist, 0));
 						Collections.sort(closestPairs, Comparator.comparingDouble(p -> p.distance()));
@@ -498,7 +522,7 @@ public class Controller implements Notify {
 		for (int i = 0; i < j; i++) {
 			for (int k = i + 1; k < j && (strip[k].y() - strip[i].y()) < d; k++) {
 				double dist = euclideanDistance(strip[i], strip[k]);
-				if (dist > d && this.isNotInPairList(strip[i], strip[k], false)) {
+				if (dist > d && this.isNotInPairList(strip[i], strip[k], false, true)) {
 					if (farthestPairs.size() < this.nSolutions) {
 						farthestPairs.add(new Solution(new PairPoint(strip[i], strip[k]), dist, 0));
 						farthestPairs.sort(Comparator.comparingDouble(Solution::distance).reversed());
@@ -520,7 +544,7 @@ public class Controller implements Notify {
 			for (int j = i + 1; j <= high; j++) {
 				double dist = euclideanDistance(points[i], points[j]);
 				// Only add if not in the list
-				if (this.isNotInPairList(points[i], points[j], false)) {
+				if (this.isNotInPairList(points[i], points[j], false, true)) {
 					if (farthestPairs.size() < this.nSolutions) {
 						farthestPairs.add(new Solution(new PairPoint(points[i], points[j]), dist, 0));
 						farthestPairs.sort(Comparator.comparingDouble(Solution::distance).reversed());

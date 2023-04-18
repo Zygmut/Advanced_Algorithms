@@ -91,16 +91,20 @@ public class View implements Notify {
 	public void notifyRequest(Request<?> request) {
 		switch (request.code) {
 			case SHOW_DATA -> {
+				PairPoint[] data = {};
 				this.window.updateSection(
 						body((Point[]) request.body.get(BodyCode.DATA),
-								new PairPoint[] {},
-								new PairPoint[] {}),
+								data, data, data, data),
 						"Body", DirectionAndPosition.POSITION_CENTER);
 			}
 			case RESULT_MIN_DIS, RESULT_MAX_DIS -> {
 				Object[] data = (Object[]) request.body.get(BodyCode.PAIR_POINTS);
-				this.window.updateSection(body((Point[]) data[0], (PairPoint[]) data[1], (PairPoint[]) data[2]), "Body",
-						DirectionAndPosition.POSITION_CENTER);
+				this.window.updateSection(body((Point[]) data[0],
+						(PairPoint[]) data[1], // min NN
+						(PairPoint[]) data[2], // max NN
+						(PairPoint[]) data[3], // min NLogN
+						(PairPoint[]) data[4] // max NLogN
+				), "Body", DirectionAndPosition.POSITION_CENTER);
 			}
 			case STATS_DATA -> {
 				Object[] data = (Object[]) request.body.get(BodyCode.DATA);
@@ -121,7 +125,8 @@ public class View implements Notify {
 	private void loadContent() {
 		this.window.addMenuBar(this.menu());
 		this.window.addSection(this.header(), DirectionAndPosition.POSITION_TOP, "Header");
-		this.window.addSection(this.body(new Point[] {}, new PairPoint[] {}, new PairPoint[] {}),
+		PairPoint[] data = {};
+		this.window.addSection(this.body(new Point[] {}, data, data, data, data),
 				DirectionAndPosition.POSITION_CENTER, "Body");
 		this.window.addSection(this.footer(), DirectionAndPosition.POSITION_BOTTOM, "Footer");
 	}
@@ -275,13 +280,15 @@ public class View implements Notify {
 		return buttonSection;
 	}
 
-	private Section body(Point[] data, PairPoint[] minPairPoints, PairPoint[] maxPairPoints) {
+	private Section body(Point[] data, PairPoint[] minPairPointsNN, PairPoint[] maxPairPointsNN,
+			PairPoint[] minPairPointsNLogN, PairPoint[] maxPairPointsnLogN) {
 		ScatterPlot scatterPlot = new ScatterPlot(Color.MAGENTA);
 		JPanel content = new JPanel();
 		content.setLayout(new BorderLayout());
 		int width = this.hub.getModel().getFrameDimension().width;
 		int height = this.hub.getModel().getFrameDimension().height;
-		content.add(new ChartPanel(scatterPlot.createPlot(data, width, height, minPairPoints, maxPairPoints)),
+		content.add(new ChartPanel(scatterPlot.createPlot(data, width, height,
+				minPairPointsNN, maxPairPointsNN, minPairPointsNLogN, maxPairPointsnLogN)),
 				BorderLayout.CENTER);
 		Section body = new Section();
 		body.createFreeSection(content);
@@ -397,8 +404,8 @@ public class View implements Notify {
 			this.seriesColor = seriesColor;
 		}
 
-		private JFreeChart createPlot(Point[] data, int width, int height, PairPoint[] minPairPoints,
-				PairPoint[] maxPairPoints) {
+		private JFreeChart createPlot(Point[] data, int width, int height, PairPoint[] minPairPointsNN,
+				PairPoint[] maxPairPointsNN, PairPoint[] minPairPointsNLogN, PairPoint[] maxPairPointsNLogN) {
 			XYSeries series = new XYSeries("Random Data");
 			for (Point point : data) {
 				series.add(point.x(), point.y());
@@ -425,7 +432,7 @@ public class View implements Notify {
 			renderer.setSeriesPaint(0, this.seriesColor);
 			renderer.setSeriesShape(0, new Ellipse2D.Double(-2, -2, 4, 4));
 			plot.setRenderer(renderer);
-			for (PairPoint pairPoint : minPairPoints) {
+			for (PairPoint pairPoint : minPairPointsNN) {
 				XYLineAnnotation line = new XYLineAnnotation(
 						pairPoint.p1().x(), pairPoint.p1().y(), // x and y coordinates of point 1
 						pairPoint.p2().x(), pairPoint.p2().y(), // x and y coordinates of point 2
@@ -433,12 +440,29 @@ public class View implements Notify {
 						Color.BLUE);
 				plot.addAnnotation(line);
 			}
-			for (PairPoint pairPoint : maxPairPoints) {
+			for (PairPoint pairPoint : maxPairPointsNN) {
 				XYLineAnnotation line = new XYLineAnnotation(
 						pairPoint.p1().x(), pairPoint.p1().y(), // x and y coordinates of point 1
 						pairPoint.p2().x(), pairPoint.p2().y(), // x and y coordinates of point 2
 						new BasicStroke(1.0f),
 						Color.RED);
+				plot.addAnnotation(line);
+			}
+			for (PairPoint pairPoint : minPairPointsNLogN) {
+				XYLineAnnotation line = new XYLineAnnotation(
+						pairPoint.p1().x(), pairPoint.p1().y(), // x and y coordinates of point 1
+						pairPoint.p2().x(), pairPoint.p2().y(), // x and y coordinates of point 2
+						new BasicStroke(1.0f),
+						Color.GREEN);
+				plot.addAnnotation(line);
+			}
+
+			for (PairPoint pairPoint : maxPairPointsNLogN) {
+				XYLineAnnotation line = new XYLineAnnotation(
+						pairPoint.p1().x(), pairPoint.p1().y(), // x and y coordinates of point 1
+						pairPoint.p2().x(), pairPoint.p2().y(), // x and y coordinates of point 2
+						new BasicStroke(1.0f),
+						Color.ORANGE);
 				plot.addAnnotation(line);
 			}
 			plot.getDomainAxis().setRange(0, width);
