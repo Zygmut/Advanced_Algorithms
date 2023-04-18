@@ -99,6 +99,8 @@ public class Model implements Notify {
 				this.solutionsForMinNN = new ArrayList<>();
 				this.solutionsForMaxNLogN = new ArrayList<>();
 				this.solutionsForMinNLogN = new ArrayList<>();
+				Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, this.data);
+				this.hub.notifyRequest(new Request<>(RequestCode.SHOW_DATA, this, body));
 			}
 			case CHANGE_ALGORITHM -> {
 				this.useNLogNAlgorithm = (boolean) request.body.get(BodyCode.DATA);

@@ -148,6 +148,8 @@ public class View implements Notify {
 		JMenuItem cleanData = new JMenuItem("Limpiar Datos");
 		// cleanData.setIcon(new ImageIcon(Config.ICON_TO_DISPLAY_MENU_OPTION));
 		cleanData.addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CLEAR_DATA, this)));
+		JMenuItem cleanLines = new JMenuItem("Borrar solución");
+		cleanLines.addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CLEAR_SOLUTIONS, this)));
 		JMenuItem exit = new JMenuItem("Salir");
 		// exit.setIcon(new ImageIcon(Config.ICON_TO_DISPLAY_MENU_OPTION));
 		exit.addActionListener(e -> System.exit(0));
@@ -156,6 +158,8 @@ public class View implements Notify {
 		options.add(stats);
 		options.addSeparator();
 		options.add(cleanData);
+		options.addSeparator();
+		options.add(cleanLines);
 		options.addSeparator();
 		JMenu genData = new JMenu("Generar Datos");
 		// genData.setIcon(new ImageIcon(Config.ICON_TO_DISPLAY_MENU_OPTION));
