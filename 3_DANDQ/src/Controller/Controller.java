@@ -78,8 +78,11 @@ public class Controller implements Notify {
 	}
 
 	private double getExponential() {
-		double lambda = 0.5;
-		double result = Math.log(1 - rng.nextDouble()) / (-lambda);
+		double lambda = 0.5; // 0.5
+		// Probability density function
+		double result = lambda * Math.exp(-lambda * rng.nextDouble());
+		// Cumulative distribution function
+		//double result = 1 - Math.exp(-lambda * rng.nextDouble());
 		while (!bounded(result)) {
 			result = getExponential();
 		}
