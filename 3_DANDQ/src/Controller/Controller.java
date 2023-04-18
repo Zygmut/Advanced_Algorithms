@@ -345,14 +345,13 @@ public class Controller implements Notify {
 	}
 
 	private void calculateMaxDistanceNLogN() {
+		this.hub.notifyRequest(new Request<>(RequestCode.GET_SOLUTION_AMOUNT, this));
 		Instant start = Instant.now();
-		// Esto tiene que ir en el otro pero para hacer tests se deja aqui, luego ya
-		// implementaremos el otro
-		List<Solution> solutionsList = findClosestNPairs(this.data);
+		List<Solution> solutionsList = findFarthestNPairs(this.data);
 		for (Solution solution : solutionsList) {
 			System.out.println(solution);
 			Body<Solution> body1 = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, solution);
-			this.hub.notifyRequest(new Request<>(RequestCode.NEW_PAIR_DATA_MIN, this, body1));
+			this.hub.notifyRequest(new Request<>(RequestCode.NEW_PAIR_DATA_MAX, this, body1));
 		}
 		Instant end = Instant.now();
 		System.out.println("Time taken: " + Duration.between(start, end).toMillis() + " milliseconds");
@@ -363,29 +362,52 @@ public class Controller implements Notify {
 		objects[2] = this.hub.getModel().getMaxPairPointsList();
 
 		Body<Object[]> body = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, objects);
-		this.hub.notifyRequest(new Request<>(RequestCode.RESULT_MIN_DIS, this, body));
+		this.hub.notifyRequest(new Request<>(RequestCode.RESULT_MAX_DIS, this, body));
 	}
 
 	private void calculateMinDistanceNLogN() {
+		this.hub.notifyRequest(new Request<>(RequestCode.GET_SOLUTION_AMOUNT, this));
 		Solution[] solutions = initSolutions(true);
 		Instant start = Instant.now();
 		// Sort the points by x coordinate
-		Arrays.sort(data, (point1, point2) -> Double.compare(point1.x(), point2.x()));
+		// Arrays.sort(data, (point1, point2) -> Double.compare(point1.x(),
+		// point2.x()));
 		// Find the maximum distance in the sorted array in O(n) recursive calls
-		findMinDistance(data, 0, data.length - 1, solutions, start);
-		System.out.println(Arrays.deepToString(solutions));
+		// findMinDistance(data, 0, data.length - 1, solutions, start);
+		List<Solution> solutionsList = findClosestNPairs(this.data);
+		for (Solution solution : solutionsList) {
+			System.out.println(solution);
+			Body<Solution> body1 = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, solution);
+			this.hub.notifyRequest(new Request<>(RequestCode.NEW_PAIR_DATA_MIN, this, body1));
+		}
+		Instant end = Instant.now();
+		System.out.println("Time taken: " + Duration.between(start, end).toMillis() + " milliseconds");
+		Object[] objects = new Object[3];
+		objects[0] = this.hub.getModel().getData();
+		objects[1] = this.hub.getModel().getMinPairPointsList();
+		objects[2] = this.hub.getModel().getMaxPairPointsList();
+
+		Body<Object[]> body = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, objects);
+		this.hub.notifyRequest(new Request<>(RequestCode.RESULT_MIN_DIS, this, body));
 	}
 
-	public List<Solution> findClosestNPairs(Point[] points) {
+	private List<Solution> findClosestNPairs(Point[] points) {
 		Arrays.sort(points, Comparator.comparingDouble(p -> p.x()));
 		List<Solution> closestPairs = new ArrayList<>();
 		findClosestNPairsUtil(points, 0, points.length - 1, closestPairs);
 		return closestPairs;
 	}
 
+	private List<Solution> findFarthestNPairs(Point[] points) {
+		Arrays.sort(points, Comparator.comparingDouble(p -> p.x()));
+		List<Solution> farthestPairs = new ArrayList<>();
+		findFarthestNPairsUtil(points, 0, points.length - 1, farthestPairs);
+		return farthestPairs;
+	}
+
 	private double findClosestNPairsUtil(Point[] points, int low, int high, List<Solution> closestPairs) {
 		if (high - low <= this.stripSize) {
-			return bruteForce(points, low, high, closestPairs);
+			return bruteForceOfMin(points, low, high, closestPairs);
 		}
 		int mid = (low + high) / 2;
 		double leftDist = findClosestNPairsUtil(points, low, mid, closestPairs);
@@ -416,7 +438,61 @@ public class Controller implements Notify {
 		return d;
 	}
 
-	private double bruteForce(Point[] points, int low, int high, List<Solution> closestPairs) {
+	private double findFarthestNPairsUtil(Point[] points, int low, int high, List<Solution> farthestPairs) {
+		if (high - low <= this.stripSize) {
+			return bruteForceOfMax(points, low, high, farthestPairs);
+		}
+		int mid = (low + high) / 2;
+		double leftDist = findFarthestNPairsUtil(points, low, mid, farthestPairs);
+		double rightDist = findFarthestNPairsUtil(points, mid + 1, high, farthestPairs);
+		double d = Math.max(leftDist, rightDist);
+		List<Point> strip = new ArrayList<>();
+		for (int i = low; i <= high; i++) {
+			if (Math.abs(points[i].x() - points[mid].x()) < d) {
+				strip.add(points[i]);
+			}
+		}
+		Collections.sort(strip, Comparator.comparingDouble(p -> p.y()));
+		for (int i = 0; i < strip.size(); i++) {
+			for (int j = i + 1; j < strip.size() && j <= i + 15; j++) {
+				double dist = euclideanDistance(strip.get(i), strip.get(j));
+				if (dist > d) {
+					if (farthestPairs.size() < this.nSolutions) {
+						farthestPairs.add(new Solution(new PairPoint(strip.get(i), strip.get(j)), dist, 0));
+						Collections.sort(farthestPairs, Comparator.comparingDouble(p -> p.distance()));
+					} else if (dist > farthestPairs.get(this.nSolutions - 1).distance()) {
+						farthestPairs.remove(this.nSolutions - 1);
+						farthestPairs.add(new Solution(new PairPoint(strip.get(i), strip.get(j)), dist, 0));
+						Collections.sort(farthestPairs, Comparator.comparingDouble(p -> p.distance()));
+					}
+				}
+			}
+		}
+		return d;
+	}
+
+	private double bruteForceOfMax(Point[] points, int low, int high, List<Solution> farthestPairs) {
+		double maxDist = Double.MIN_VALUE;
+		for (int i = low; i < high; i++) {
+			for (int j = i + 1; j <= high; j++) {
+				double dist = euclideanDistance(points[i], points[j]);
+				if (dist > maxDist) {
+					if (farthestPairs.size() < this.nSolutions) {
+						farthestPairs.add(new Solution(new PairPoint(points[i], points[j]), dist, 0));
+						Collections.sort(farthestPairs, Comparator.comparingDouble(p -> p.distance()));
+					} else if (dist > farthestPairs.get(this.nSolutions - 1).distance()) {
+						farthestPairs.remove(this.nSolutions - 1);
+						farthestPairs.add(new Solution(new PairPoint(points[i], points[j]), dist, 0));
+						Collections.sort(farthestPairs, Comparator.comparingDouble(p -> p.distance()));
+					}
+					maxDist = dist;
+				}
+			}
+		}
+		return maxDist;
+	}
+
+	private double bruteForceOfMin(Point[] points, int low, int high, List<Solution> closestPairs) {
 		double minDist = Double.MAX_VALUE;
 		for (int i = low; i < high; i++) {
 			for (int j = i + 1; j <= high; j++) {
