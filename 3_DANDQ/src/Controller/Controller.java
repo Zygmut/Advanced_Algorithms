@@ -345,13 +345,25 @@ public class Controller implements Notify {
 	}
 
 	private void calculateMaxDistanceNLogN() {
-		Solution[] solutions = initSolutions(false);
 		Instant start = Instant.now();
 		// Esto tiene que ir en el otro pero para hacer tests se deja aqui, luego ya
 		// implementaremos el otro
-		System.out.println(findClosestNPairs(this.data));
+		List<Solution> solutionsList = findClosestNPairs(this.data);
+		for (Solution solution : solutionsList) {
+			System.out.println(solution);
+			Body<Solution> body1 = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, solution);
+			this.hub.notifyRequest(new Request<>(RequestCode.NEW_PAIR_DATA_MIN, this, body1));
+		}
 		Instant end = Instant.now();
 		System.out.println("Time taken: " + Duration.between(start, end).toMillis() + " milliseconds");
+		Object[] objects = new Object[3];
+		// TODO: Change this to the request body system
+		objects[0] = this.hub.getModel().getData();
+		objects[1] = this.hub.getModel().getMinPairPointsList();
+		objects[2] = this.hub.getModel().getMaxPairPointsList();
+
+		Body<Object[]> body = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, objects);
+		this.hub.notifyRequest(new Request<>(RequestCode.RESULT_MIN_DIS, this, body));
 	}
 
 	private void calculateMinDistanceNLogN() {
@@ -393,7 +405,7 @@ public class Controller implements Notify {
 					if (closestPairs.size() < this.nSolutions) {
 						closestPairs.add(new Solution(new PairPoint(strip.get(i), strip.get(j)), dist, 0));
 						Collections.sort(closestPairs, Comparator.comparingDouble(p -> p.distance()));
-					} else if (dist < closestPairs.get(this.nSolutions  - 1).distance()) {
+					} else if (dist < closestPairs.get(this.nSolutions - 1).distance()) {
 						closestPairs.remove(this.nSolutions - 1);
 						closestPairs.add(new Solution(new PairPoint(strip.get(i), strip.get(j)), dist, 0));
 						Collections.sort(closestPairs, Comparator.comparingDouble(p -> p.distance()));
