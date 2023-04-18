@@ -2,6 +2,9 @@ package Controller;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Random;
 import java.util.function.DoubleSupplier;
 import java.util.logging.Level;
@@ -31,6 +34,7 @@ public class Controller implements Notify {
 	private boolean stop;
 	private boolean useNLogNAlgorithm;
 	private Boolean useMaxOnAuto;
+	private int stripSize = 15; // TODO: Hacer benchmark para ver cual es el mejor valor
 
 	public Controller(MVC mvc) {
 		this.hub = mvc;
@@ -343,59 +347,11 @@ public class Controller implements Notify {
 	private void calculateMaxDistanceNLogN() {
 		Solution[] solutions = initSolutions(false);
 		Instant start = Instant.now();
-		// Sort the points by x coordinate
-		Arrays.sort(data, (point1, point2) -> Double.compare(point1.x(), point2.x()));
-		// Find the maximum distance in the sorted array in O(n) recursive calls
-		findMaxDistance(data, 0, data.length - 1, solutions, start);
-
-		System.out.println(Arrays.deepToString(solutions));
-	}
-
-	private void findMaxDistance(Point[] points, int left, int right, Solution[] solutions, Instant start) {
-		if (left >= right) {
-			return;
-		}
-		int mid = (left + right) / 2;
-		findMaxDistance(points, left, mid, solutions, start);
-		findMaxDistance(points, mid + 1, right, solutions, start);
-		merge(points, left, mid, right, solutions, start);
-	}
-
-	private void merge(Point[] points, int left, int mid, int right, Solution[] solutions, Instant start) {
-		int n1 = mid - left + 1;
-		int n2 = right - mid;
-		Point[] leftPoints = new Point[n1];
-		Point[] rightPoints = new Point[n2];
-		for (int i = 0; i < n1; i++) {
-			leftPoints[i] = points[left + i];
-		}
-		for (int i = 0; i < n2; i++) {
-			rightPoints[i] = points[mid + 1 + i];
-		}
-		int i = 0, j = 0, k = left;
-		while (i < n1 && j < n2) {
-			if (leftPoints[i].x() < rightPoints[j].x()) {
-				points[k] = leftPoints[i];
-				i++;
-			} else {
-				points[k] = rightPoints[j];
-				j++;
-			}
-			k++;
-		}
-		while (i < n1) {
-			points[k] = leftPoints[i];
-			i++;
-			k++;
-		}
-		while (j < n2) {
-			points[k] = rightPoints[j];
-			j++;
-			k++;
-		}
-		// Find the maximum distance in the sorted array in O(n) recursive calls
-		findMaxDistance(points, left, mid, solutions, start);
-		findMaxDistance(points, mid + 1, right, solutions, start);
+		// Esto tiene que ir en el otro pero para hacer tests se deja aqui, luego ya
+		// implementaremos el otro
+		System.out.println(findClosestNPairs(this.data));
+		Instant end = Instant.now();
+		System.out.println("Time taken: " + Duration.between(start, end).toMillis() + " milliseconds");
 	}
 
 	private void calculateMinDistanceNLogN() {
@@ -406,7 +362,67 @@ public class Controller implements Notify {
 		// Find the maximum distance in the sorted array in O(n) recursive calls
 		findMinDistance(data, 0, data.length - 1, solutions, start);
 		System.out.println(Arrays.deepToString(solutions));
-		
+	}
+
+	public List<Solution> findClosestNPairs(Point[] points) {
+		Arrays.sort(points, Comparator.comparingDouble(p -> p.x()));
+		List<Solution> closestPairs = new ArrayList<>();
+		findClosestNPairsUtil(points, 0, points.length - 1, closestPairs);
+		return closestPairs;
+	}
+
+	private double findClosestNPairsUtil(Point[] points, int low, int high, List<Solution> closestPairs) {
+		if (high - low <= this.stripSize) {
+			return bruteForce(points, low, high, closestPairs);
+		}
+		int mid = (low + high) / 2;
+		double leftDist = findClosestNPairsUtil(points, low, mid, closestPairs);
+		double rightDist = findClosestNPairsUtil(points, mid + 1, high, closestPairs);
+		double d = Math.min(leftDist, rightDist);
+		List<Point> strip = new ArrayList<>();
+		for (int i = low; i <= high; i++) {
+			if (Math.abs(points[i].x() - points[mid].x()) < d) {
+				strip.add(points[i]);
+			}
+		}
+		Collections.sort(strip, Comparator.comparingDouble(p -> p.y()));
+		for (int i = 0; i < strip.size(); i++) {
+			for (int j = i + 1; j < strip.size() && j <= i + 15; j++) {
+				double dist = euclideanDistance(strip.get(i), strip.get(j));
+				if (dist < d) {
+					if (closestPairs.size() < this.nSolutions) {
+						closestPairs.add(new Solution(new PairPoint(strip.get(i), strip.get(j)), dist, 0));
+						Collections.sort(closestPairs, Comparator.comparingDouble(p -> p.distance()));
+					} else if (dist < closestPairs.get(this.nSolutions  - 1).distance()) {
+						closestPairs.remove(this.nSolutions - 1);
+						closestPairs.add(new Solution(new PairPoint(strip.get(i), strip.get(j)), dist, 0));
+						Collections.sort(closestPairs, Comparator.comparingDouble(p -> p.distance()));
+					}
+				}
+			}
+		}
+		return d;
+	}
+
+	private double bruteForce(Point[] points, int low, int high, List<Solution> closestPairs) {
+		double minDist = Double.MAX_VALUE;
+		for (int i = low; i < high; i++) {
+			for (int j = i + 1; j <= high; j++) {
+				double dist = euclideanDistance(points[i], points[j]);
+				if (dist < minDist) {
+					if (closestPairs.size() < this.nSolutions) {
+						closestPairs.add(new Solution(new PairPoint(points[i], points[j]), dist, 0));
+						Collections.sort(closestPairs, Comparator.comparingDouble(p -> p.distance()));
+					} else if (dist < closestPairs.get(this.nSolutions - 1).distance()) {
+						closestPairs.remove(this.nSolutions - 1);
+						closestPairs.add(new Solution(new PairPoint(points[i], points[j]), dist, 0));
+						Collections.sort(closestPairs, Comparator.comparingDouble(p -> p.distance()));
+					}
+					minDist = dist;
+				}
+			}
+		}
+		return minDist;
 	}
 
 	private void findMinDistance(Point[] points, int left, int right, Solution[] solutions, Instant start) {
@@ -420,40 +436,35 @@ public class Controller implements Notify {
 	}
 
 	private double orden(Point[] points, int left, int mid, int right, Solution[] solutions, Instant start) {
-		// Encontrar puntos cercanos a la línea de división y actualizar la distancia mínima
-        Point[] strip = new Point[right - left + 1];
-        int stripSize = 0;
+		// Encontrar puntos cercanos a la línea de división y actualizar la distancia
+		// mínima
+		Point[] strip = new Point[right - left + 1];
+		int stripSize = 0;
 		double minDistance = Double.MAX_VALUE;
-        for (int i = left; i <= right; i++) {
-            if (Math.abs(points[i].x() - points[mid].x()) < minDistance) {
-                strip[stripSize++] = points[i];
-            }
-        }
+		for (int i = left; i <= right; i++) {
+			if (Math.abs(points[i].x() - points[mid].x()) < minDistance) {
+				strip[stripSize++] = points[i];
+			}
+		}
 
-        Arrays.sort(strip, 0, stripSize, (a, b) -> a.y - b.y); // Ordenar los puntos cercanos por coordenada y
+		Arrays.sort(strip, (point1, point2) -> Double.compare(point1.y(), point2.y()));
 
-        // Comprobar si hay puntos más cercanos en la franja
-        for (int i = 0; i < stripSize; i++) {
-            for (int j = i + 1; j < stripSize && strip[j].y() - strip[i].y() < minDistance; j++) {
-				
-                double distance = euclideanDistance(strip[i], strip[j]);
-                minDistance = Math.min(minDistance, distance);
-            }
-        }
+		// Comprobar si hay puntos más cercanos en la franja
+		for (int i = 0; i < stripSize; i++) {
+			for (int j = i + 1; j < stripSize && strip[j].y() - strip[i].y() < minDistance; j++) {
 
-        return minDistance;
+				double distance = euclideanDistance(strip[i], strip[j]);
+				minDistance = Math.min(minDistance, distance);
+			}
+		}
+
+		return minDistance;
 	}
-    static double euclideanDistance(Point p1, Point p2) {
-        double dx = p1.x() - p2.x();
-        double dy = p1.y() - p2.y();
-        return Math.sqrt(dx * dx + dy * dy);
-    }
 
-
-
-
-		
-
-	
+	static double euclideanDistance(Point p1, Point p2) {
+		double dx = p1.x() - p2.x();
+		double dy = p1.y() - p2.y();
+		return Math.sqrt(dx * dx + dy * dy);
+	}
 
 }
