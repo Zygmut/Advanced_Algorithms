@@ -76,23 +76,26 @@ public class Controller implements Notify {
 	// Distribucion de poisson que devuelva valores entre 0 y 1
 	private double getPoisson() {
 		double randomN = rng.nextDouble();
-		double result = (Math.exp(-lambda) * Math.pow(lambda, randomN)) / factorial(randomN);
+		double result = (Math.exp(-lambda) * Math.pow(lambda, randomN)) / factorial((int) randomN);
+		while (!bounded(result)) {
+			result = getPoisson();
+		}
 		return result;
 	}
 
-	private double factorial(double n) {
-		if (n == 0) {
-			return 1;
-		} else {
-			return n * factorial(n - 1);
+	private long factorial(int number) {
+		long result = 1;
+		for (int factor = 2; factor <= number; factor++) {
+			result *= factor;
 		}
+		return result;
 	}
 
 	private double getExponential() {
 		// Probability density function
 		double result = lambda * Math.exp(-lambda * rng.nextDouble());
 		// Cumulative distribution function
-		//double result = 1 - Math.exp(-lambda * rng.nextDouble());
+		// double result = 1 - Math.exp(-lambda * rng.nextDouble());
 		while (!bounded(result)) {
 			result = getExponential();
 		}
@@ -102,7 +105,10 @@ public class Controller implements Notify {
 	private double bernoulli() {
 		double randomN = rng.nextDouble();
 		double prob = 0.9;
-		double result = Math.pow(prob, randomN)*Math.pow(1-prob, 1-randomN);
+		double result = Math.pow(prob, randomN) * Math.pow(1 - prob, 1 - randomN);
+		while (!bounded(result)) {
+			result = bernoulli();
+		}
 		return result;
 	}
 
