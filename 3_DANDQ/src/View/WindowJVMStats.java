@@ -23,7 +23,7 @@ public class WindowJVMStats {
 	private ArrayList<JVMStatsData> memoryUsed;
 	private ArrayList<JVMStatsData> memoryFree;
 	private ArrayList<JVMStatsData> memoryTotal;
-	private static final int REFRESH_INTERVAL = 1000; // milliseconds
+	private static final int REFRESH_INTERVAL = 1000 / 2; // milliseconds
 	private static final int DELAY = 0; // milliseconds
 
 	public WindowJVMStats() {
