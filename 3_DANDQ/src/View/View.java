@@ -185,6 +185,9 @@ public class View implements Notify {
 					case EXPONENTIAL -> {
 						this.hub.notifyRequest(new Request<>(RequestCode.GENERATE_EXPONENTIAL_DATA, this));
 					}
+					case BERNOULLI -> {
+						this.hub.notifyRequest(new Request<>(RequestCode.GENERATE_BERNOULLI_DATA, this));
+					}
 					default -> {
 						Logger.getLogger(this.getClass().getSimpleName())
 								.log(Level.SEVERE, "{0} is not implemented under the distribution menu.",
@@ -319,6 +322,9 @@ public class View implements Notify {
 				}
 				case EXPONENTIAL -> {
 					this.hub.notifyRequest(new Request<>(RequestCode.GENERATE_EXPONENTIAL_DATA, this));
+				}
+				case BERNOULLI -> {
+					this.hub.notifyRequest(new Request<>(RequestCode.GENERATE_BERNOULLI_DATA, this));
 				}
 				default -> {
 					Logger.getLogger(this.getClass().getSimpleName())

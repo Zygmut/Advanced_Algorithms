@@ -35,6 +35,7 @@ public class Controller implements Notify {
 	private boolean useNLogNAlgorithm;
 	private Boolean useMaxOnAuto;
 	private final int stripSize = 15; // TODO: Hacer benchmark para ver cual es el mejor valor
+	private double lambda = 0.5;
 
 	public Controller(MVC mvc) {
 		this.hub = mvc;
@@ -78,7 +79,6 @@ public class Controller implements Notify {
 	}
 
 	private double getExponential() {
-		double lambda = 0.5; // 0.5
 		// Probability density function
 		double result = lambda * Math.exp(-lambda * rng.nextDouble());
 		// Cumulative distribution function
@@ -88,6 +88,14 @@ public class Controller implements Notify {
 		}
 		return result;
 	}
+	private double bernoulli() {
+		double randomN = rng.nextDouble();
+		double prob = 0.9;
+		double result = Math.pow(prob, randomN)*Math.pow(1-prob, 1-randomN);
+		return result;
+	}
+
+
 
 	private boolean bounded(double point) {
 		return point < 1.0 && point > 0.0;
@@ -132,6 +140,16 @@ public class Controller implements Notify {
 				resetRNG();
 				Point[] points = generateData(
 						this::getExponential,
+						this.hub.getModel().getFrameDimension(),
+						this.hub.getModel().getPointAmount());
+				Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, points);
+				this.hub.notifyRequest(new Request<>(RequestCode.NEW_DATA, this, body));
+			}
+
+			case GENERATE_BERNOULLI_DATA -> {
+				resetRNG();
+				Point[] points = generateData(
+						this::bernoulli,
 						this.hub.getModel().getFrameDimension(),
 						this.hub.getModel().getPointAmount());
 				Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, points);
@@ -567,6 +585,10 @@ public class Controller implements Notify {
 		double dx = p1.x() - p2.x();
 		double dy = p1.y() - p2.y();
 		return Math.sqrt(dx * dx + dy * dy);
+	}
+
+	private double getLambda() {
+		return this.lambda;
 	}
 
 }
