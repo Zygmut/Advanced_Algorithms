@@ -34,7 +34,7 @@ public class Controller implements Notify {
 	private boolean stop;
 	private boolean useNLogNAlgorithm;
 	private Boolean useMaxOnAuto;
-	private int stripSize = 15; // TODO: Hacer benchmark para ver cual es el mejor valor
+	private final int stripSize = 15; // TODO: Hacer benchmark para ver cual es el mejor valor
 
 	public Controller(MVC mvc) {
 		this.hub = mvc;
@@ -217,12 +217,40 @@ public class Controller implements Notify {
 	}
 
 	private void calculateStats() {
-		Object[] statsData = new Object[2];
+		Object[] statsData = new Object[12];
+		// TODO: Guardar los datos de max y min de los dos tipos de algoritmos
 		ArrayList<Solution> max = this.hub.getModel().getSolutionsForMax();
 		ArrayList<Solution> min = this.hub.getModel().getSolutionsForMin();
-		// TODO
+
+		// ------ N^2 -----------
+		// Media de las distancias
 		statsData[0] = max.stream().mapToDouble(Solution::distance).average().orElse(0);
 		statsData[1] = min.stream().mapToDouble(Solution::distance).average().orElse(0);
+
+		// Maximo y minimo de las maximas distancias
+		statsData[2] = max.stream().mapToDouble(Solution::distance).max().orElse(0);
+		statsData[3] = max.stream().mapToDouble(Solution::distance).min().orElse(0);
+
+		// Maximo y minimo de las minimas distancias
+		statsData[4] = min.stream().mapToDouble(Solution::distance).min().orElse(0);
+		statsData[5] = min.stream().mapToDouble(Solution::distance).max().orElse(0);
+
+		// TODO
+		// max = this.hub.getModel().getSolutionsForMaxNLogN();
+		// min = this.hub.getModel().getSolutionsForMinNLogN();
+
+		// ------ NLogN -----------
+		// Media de las distancias
+		statsData[6] = max.stream().mapToDouble(Solution::distance).average().orElse(0);
+		statsData[7] = min.stream().mapToDouble(Solution::distance).average().orElse(0);
+
+		// Maximo y minimo de las maximas distancias
+		statsData[8] = max.stream().mapToDouble(Solution::distance).max().orElse(0);
+		statsData[9] = max.stream().mapToDouble(Solution::distance).min().orElse(0);
+
+		// Maximo y minimo de las minimas distancias
+		statsData[10] = min.stream().mapToDouble(Solution::distance).min().orElse(0);
+		statsData[11] = min.stream().mapToDouble(Solution::distance).max().orElse(0);
 
 		Body<Object[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, statsData);
 		this.hub.notifyRequest(new Request<>(RequestCode.STATS_DATA, this, body));
@@ -331,8 +359,12 @@ public class Controller implements Notify {
 			} catch (Exception e) {
 				// Do nothing
 			}
+			// NN
 			this.calculateMaxDistanceNN();
 			this.calculateMinDistanceNN();
+			// NLogN
+			this.calculateMaxDistanceNLogN();
+			this.calculateMinDistanceNLogN();
 		}
 	}
 
