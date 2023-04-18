@@ -504,7 +504,7 @@ public class Controller implements Notify {
 				if (farthestPairs.size() < this.nSolutions) {
 					farthestPairs.add(new Solution(new PairPoint(points[i], points[j]), dist, 0));
 					farthestPairs.sort(Comparator.comparingDouble(Solution::distance).reversed());
-				} else if (dist > farthestPairs.get(this.nSolutions  - 1).distance()) {
+				} else if (dist > farthestPairs.get(this.nSolutions - 1).distance()) {
 					farthestPairs.remove(this.nSolutions - 1);
 					farthestPairs.add(new Solution(new PairPoint(points[i], points[j]), dist, 0));
 					farthestPairs.sort(Comparator.comparingDouble(Solution::distance).reversed());
@@ -513,42 +513,6 @@ public class Controller implements Notify {
 			}
 		}
 		return maxDist;
-	}
-
-	private void findMinDistance(Point[] points, int left, int right, Solution[] solutions, Instant start) {
-		if (right - left <= 3) {
-			return;
-		}
-		int mid = (left + right) / 2;
-		findMinDistance(points, left, mid, solutions, start);
-		findMinDistance(points, mid + 1, right, solutions, start);
-		orden(points, left, mid, right, solutions, start);
-	}
-
-	private double orden(Point[] points, int left, int mid, int right, Solution[] solutions, Instant start) {
-		// Encontrar puntos cercanos a la línea de división y actualizar la distancia
-		// mínima
-		Point[] strip = new Point[right - left + 1];
-		int stripSize = 0;
-		double minDistance = Double.MAX_VALUE;
-		for (int i = left; i <= right; i++) {
-			if (Math.abs(points[i].x() - points[mid].x()) < minDistance) {
-				strip[stripSize++] = points[i];
-			}
-		}
-
-		Arrays.sort(strip, (point1, point2) -> Double.compare(point1.y(), point2.y()));
-
-		// Comprobar si hay puntos más cercanos en la franja
-		for (int i = 0; i < stripSize; i++) {
-			for (int j = i + 1; j < stripSize && strip[j].y() - strip[i].y() < minDistance; j++) {
-
-				double distance = euclideanDistance(strip[i], strip[j]);
-				minDistance = Math.min(minDistance, distance);
-			}
-		}
-
-		return minDistance;
 	}
 
 	static double euclideanDistance(Point p1, Point p2) {
