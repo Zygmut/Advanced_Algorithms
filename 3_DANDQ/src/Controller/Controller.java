@@ -75,7 +75,17 @@ public class Controller implements Notify {
 
 	// Distribucion de poisson que devuelva valores entre 0 y 1
 	private double getPoisson() {
-		return 0;
+		double randomN = rng.nextDouble();
+		double result = (Math.exp(-lambda) * Math.pow(lambda, randomN)) / factorial(randomN);
+		return result;
+	}
+
+	private double factorial(double n) {
+		if (n == 0) {
+			return 1;
+		} else {
+			return n * factorial(n - 1);
+		}
 	}
 
 	private double getExponential() {
@@ -88,14 +98,13 @@ public class Controller implements Notify {
 		}
 		return result;
 	}
+
 	private double bernoulli() {
 		double randomN = rng.nextDouble();
 		double prob = 0.9;
 		double result = Math.pow(prob, randomN)*Math.pow(1-prob, 1-randomN);
 		return result;
 	}
-
-
 
 	private boolean bounded(double point) {
 		return point < 1.0 && point > 0.0;
