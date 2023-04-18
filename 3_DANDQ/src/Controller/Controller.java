@@ -367,13 +367,7 @@ public class Controller implements Notify {
 
 	private void calculateMinDistanceNLogN() {
 		this.hub.notifyRequest(new Request<>(RequestCode.GET_SOLUTION_AMOUNT, this));
-		Solution[] solutions = initSolutions(true);
 		Instant start = Instant.now();
-		// Sort the points by x coordinate
-		// Arrays.sort(data, (point1, point2) -> Double.compare(point1.x(),
-		// point2.x()));
-		// Find the maximum distance in the sorted array in O(n) recursive calls
-		// findMinDistance(data, 0, data.length - 1, solutions, start);
 		List<Solution> solutionsList = findClosestNPairs(this.data);
 		for (Solution solution : solutionsList) {
 			System.out.println(solution);
