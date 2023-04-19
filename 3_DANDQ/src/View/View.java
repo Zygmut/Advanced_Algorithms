@@ -111,6 +111,9 @@ public class View implements Notify {
 				WindowStats windowStats = new WindowStats(data);
 				windowStats.show();
 			}
+			case LAMBDA -> {
+				this.window.updateSection(header(), "Header", DirectionAndPosition.POSITION_TOP);
+			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
@@ -382,6 +385,21 @@ public class View implements Notify {
 		ps.width = 100;
 		editor.setPreferredSize(ps);
 
+		// Spinner label lambda controller
+		JLabel lambdaLabel = new JLabel("Lambda (λ): ");
+		JSpinner lambdaSpinner = new JSpinner(
+				new SpinnerNumberModel(this.hub.getModel().getLambda(), 0.0, 0.9, 0.1));
+		lambdaSpinner.addChangeListener(e -> {
+			Body<Double> body = new Body<>(RequestType.POST, BodyCode.LAMBDA_VALUE, (double) lambdaSpinner.getValue());
+			this.hub.notifyRequest(new Request<>(RequestCode.UPDATE_LAMBDA, this, body));
+			this.hub.notifyRequest(new Request<>(RequestCode.SEND_LAMBDA, this, body));
+		});
+
+		editor = lambdaSpinner.getEditor();
+		ps = editor.getPreferredSize();
+		ps.width = 100;
+		editor.setPreferredSize(ps);
+
 		JPanel content = new JPanel();
 		content.add(distLabel);
 		content.add(distributionMenu);
@@ -391,6 +409,8 @@ public class View implements Notify {
 		content.add(pointSpinner);
 		content.add(solutionLabel);
 		content.add(solutionSpinner);
+		content.add(lambdaLabel);
+		content.add(lambdaSpinner);
 		content.setBackground(Color.WHITE);
 		Section header = new Section();
 		header.createFreeSection(content);

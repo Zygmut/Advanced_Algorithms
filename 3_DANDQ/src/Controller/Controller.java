@@ -35,12 +35,13 @@ public class Controller implements Notify {
 	private boolean useNLogNAlgorithm;
 	private Boolean useMaxOnAuto;
 	private final int stripSize = 15; // TODO: Hacer benchmark para ver cual es el mejor valor
-	private double lambda = 0.5;
+	private double lambda;
 
 	public Controller(MVC mvc) {
 		this.hub = mvc;
 		this.rng = new Random();
 		this.stop = false;
+		this.lambda = 0.5;
 	}
 
 	public Controller(MVC mvc, int seed) {
@@ -182,6 +183,9 @@ public class Controller implements Notify {
 			}
 			case SEND_SOLUTION_AMOUNT -> {
 				this.nSolutions = (Integer) request.body.get(BodyCode.SOLUTION_AMOUNT);
+			}
+			case SEND_LAMBDA -> {
+				this.lambda = (Double) request.body.get(BodyCode.LAMBDA_VALUE);
 			}
 			case CALC_MIN_DIS -> {
 				this.hub.notifyRequest(new Request<>(RequestCode.GET_DATA, this));

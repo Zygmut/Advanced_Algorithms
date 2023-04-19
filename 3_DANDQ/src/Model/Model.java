@@ -28,6 +28,7 @@ public class Model implements Notify {
 	private int nSolutions;
 	private boolean useNLogNAlgorithm;
 	private Boolean useMaxOnAuto;
+	private double lambda;
 
 	public Model(MVC mvc) {
 		this.hub = mvc;
@@ -42,6 +43,7 @@ public class Model implements Notify {
 		this.solutionsForMinNLogN = new ArrayList<>();
 		this.useNLogNAlgorithm = false;
 		this.useMaxOnAuto = false;
+		this.lambda = 0.5;
 	}
 
 	@Override
@@ -57,6 +59,9 @@ public class Model implements Notify {
 			}
 			case UPDATE_AMOUNT -> {
 				this.pointAmount = (int) request.body.get(BodyCode.POINT_AMOUNT);
+			}
+			case UPDATE_LAMBDA -> {
+				this.lambda = (double) request.body.get(BodyCode.LAMBDA_VALUE);
 			}
 			case GET_DATA -> {
 				Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, this.data);
@@ -194,6 +199,10 @@ public class Model implements Notify {
 
 	public int getNSolutions() {
 		return nSolutions;
+	}
+
+	public double getLambda() {
+		return lambda;
 	}
 
 }
