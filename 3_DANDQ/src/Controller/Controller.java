@@ -34,14 +34,14 @@ public class Controller implements Notify {
 	private boolean stop;
 	private boolean useNLogNAlgorithm;
 	private Boolean useMaxOnAuto;
-	private final int stripSize = 15; // TODO: Hacer benchmark para ver cual es el mejor valor
+	private final int stripSize = 15;
 	private double lambda;
 
 	public Controller(MVC mvc) {
 		this.hub = mvc;
 		this.rng = new Random();
 		this.stop = false;
-		this.lambda = 0.5;
+		this.lambda = 5.5;
 	}
 
 	public Controller(MVC mvc, int seed) {
@@ -67,49 +67,59 @@ public class Controller implements Notify {
 	}
 
 	private double nextBoundedGaussian() {
-		double result = Math.abs(rng.nextGaussian() * 0.2 + 0.5);
-		while (!bounded(result)) {
+		double result;
+
+		do {
 			result = Math.abs(rng.nextGaussian() * 0.2 + 0.5);
-		}
+		} while (!bounded(result));
+
 		return result;
 	}
 
 	// Distribucion de poisson que devuelva valores entre 0 y 1
 	private double getPoisson() {
-		double randomN = rng.nextDouble();
-		double result = (Math.exp(-lambda) * Math.pow(lambda, randomN)) / factorial((int) randomN);
-		while (!bounded(result)) {
-			result = getPoisson();
-		}
+		double randomN;
+		double result;
+
+		do {
+			randomN = rng.nextDouble();
+			result = (Math.exp(-lambda) * Math.pow(lambda, randomN)) / getFactorial((int) randomN);
+		} while (!bounded(result));
+
 		return result;
 	}
 
-	private long factorial(int number) {
+	private long getFactorial(int number) {
 		long result = 1;
+
 		for (int factor = 2; factor <= number; factor++) {
 			result *= factor;
 		}
+
 		return result;
 	}
 
+	// Technically, this would be the "shifted exponential distribution"
 	private double getExponential() {
-		// Probability density function
-		double result = lambda * Math.exp(-lambda * rng.nextDouble());
-		// Cumulative distribution function
-		// double result = 1 - Math.exp(-lambda * rng.nextDouble());
-		while (!bounded(result)) {
-			result = getExponential();
-		}
+		double result;
+
+		do {
+			result = -Math.log(1.0 - rng.nextDouble()) / lambda;
+		} while (!bounded(result));
+
 		return result;
 	}
 
-	private double bernoulli() {
-		double randomN = rng.nextDouble();
-		double prob = 0.9;
-		double result = Math.pow(prob, randomN) * Math.pow(1 - prob, 1 - randomN);
-		while (!bounded(result)) {
-			result = bernoulli();
-		}
+	private double getBernoulli() {
+		double prob = 0.999999;
+		double randomN;
+		double result;
+
+		do {
+			randomN = rng.nextDouble();
+			result = Math.pow(prob, randomN) * Math.pow(1 - prob, 1 - randomN);
+		} while (!bounded(result));
+
 		return result;
 	}
 
@@ -165,7 +175,7 @@ public class Controller implements Notify {
 			case GENERATE_BERNOULLI_DATA -> {
 				resetRNG();
 				Point[] points = generateData(
-						this::bernoulli,
+						this::getBernoulli,
 						this.hub.getModel().getFrameDimension(),
 						this.hub.getModel().getPointAmount());
 				Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, points);
@@ -237,10 +247,12 @@ public class Controller implements Notify {
 			this.data = this.hub.getModel().getData();
 			try {
 				Thread.sleep(200);
-			} catch (Exception e) {
-				// TODO: handle exception
+			} catch (InterruptedException e) {
+				Logger.getLogger(this.getClass().getSimpleName())
+						.log(Level.WARNING, "Thread was interrupted");
+				Thread.currentThread().interrupt();
 			}
-			if (this.useMaxOnAuto) {
+			if (this.useMaxOnAuto.booleanValue()) {
 				if (this.useNLogNAlgorithm) {
 					this.calculateMaxDistanceNLogN();
 				} else {
@@ -345,7 +357,6 @@ public class Controller implements Notify {
 				}
 			}
 		}
-		System.out.println(Arrays.deepToString(solutions));
 		for (Solution solution : solutions) {
 			Logger.getLogger(this.getClass().getSimpleName())
 					.log(Level.INFO,
@@ -413,8 +424,10 @@ public class Controller implements Notify {
 		for (int k = 0; k < numOfCalcs - 1 && !this.stop; k++) {
 			try {
 				Thread.sleep(200);
-			} catch (Exception e) {
-				// Do nothing
+			} catch (InterruptedException e) {
+				Logger.getLogger(this.getClass().getSimpleName())
+						.log(Level.WARNING, "Thread was interrupted");
+				Thread.currentThread().interrupt();
 			}
 			// NN
 			this.calculateMaxDistanceNN();
@@ -429,12 +442,11 @@ public class Controller implements Notify {
 		this.hub.notifyRequest(new Request<>(RequestCode.GET_SOLUTION_AMOUNT, this));
 		Instant start = Instant.now();
 		List<Solution> solutionsList = findFarthestNPairs(this.data);
+		Instant end = Instant.now();
 		for (Solution solution : solutionsList) {
-			System.out.println(solution);
 			Body<Solution> body1 = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, solution);
 			this.hub.notifyRequest(new Request<>(RequestCode.NEW_PAIR_DATA_MAX_NLOGN, this, body1));
 		}
-		Instant end = Instant.now();
 		System.out.println("Time taken: " + Duration.between(start, end).toMillis() + " milliseconds");
 
 		Object[] objects = new Object[5];
@@ -454,7 +466,6 @@ public class Controller implements Notify {
 		Instant start = Instant.now();
 		List<Solution> solutionsList = findClosestNPairs(this.data);
 		for (Solution solution : solutionsList) {
-			System.out.println(solution);
 			Body<Solution> body1 = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, solution);
 			this.hub.notifyRequest(new Request<>(RequestCode.NEW_PAIR_DATA_MIN_NLOGN, this, body1));
 		}
@@ -497,7 +508,7 @@ public class Controller implements Notify {
 		Collections.sort(strip, Comparator.comparingDouble(p -> p.y()));
 		for (int i = 0; i < strip.size(); i++) {
 			for (int j = i + 1; j < strip.size() && j <= i + 15; j++) {
-				double dist = euclideanDistance(strip.get(i), strip.get(j));
+				double dist = strip.get(i).euclideanDistanceTo(strip.get(j));
 				if (dist < d && isNotInPairList(strip.get(i), strip.get(j), true, true)) {
 					if (closestPairs.size() < this.nSolutions) {
 						closestPairs.add(new Solution(new PairPoint(strip.get(i), strip.get(j)), dist, 0));
@@ -517,7 +528,7 @@ public class Controller implements Notify {
 		double minDist = Double.MAX_VALUE;
 		for (int i = low; i < high; i++) {
 			for (int j = i + 1; j <= high; j++) {
-				double dist = euclideanDistance(points[i], points[j]);
+				double dist = points[i].euclideanDistanceTo(points[j]);
 				if (dist < minDist && isNotInPairList(points[i], points[j], true, true)) {
 					if (closestPairs.size() < this.nSolutions) {
 						closestPairs.add(new Solution(new PairPoint(points[i], points[j]), dist, 0));
@@ -561,7 +572,7 @@ public class Controller implements Notify {
 
 		for (int i = 0; i < j; i++) {
 			for (int k = i + 1; k < j && (strip[k].y() - strip[i].y()) < d; k++) {
-				double dist = euclideanDistance(strip[i], strip[k]);
+				double dist = strip[i].euclideanDistanceTo(strip[k]);
 				if (dist > d && this.isNotInPairList(strip[i], strip[k], false, true)) {
 					if (farthestPairs.size() < this.nSolutions) {
 						farthestPairs.add(new Solution(new PairPoint(strip[i], strip[k]), dist, 0));
@@ -582,7 +593,7 @@ public class Controller implements Notify {
 		double maxDist = Double.MIN_VALUE;
 		for (int i = low; i <= high; i++) {
 			for (int j = i + 1; j <= high; j++) {
-				double dist = euclideanDistance(points[i], points[j]);
+				double dist = points[i].euclideanDistanceTo(points[j]);
 				// Only add if not in the list
 				if (this.isNotInPairList(points[i], points[j], false, true)) {
 					if (farthestPairs.size() < this.nSolutions) {
@@ -598,16 +609,6 @@ public class Controller implements Notify {
 			}
 		}
 		return maxDist;
-	}
-
-	static double euclideanDistance(Point p1, Point p2) {
-		double dx = p1.x() - p2.x();
-		double dy = p1.y() - p2.y();
-		return Math.sqrt(dx * dx + dy * dy);
-	}
-
-	private double getLambda() {
-		return this.lambda;
 	}
 
 }
