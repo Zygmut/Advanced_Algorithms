@@ -388,11 +388,13 @@ public class View implements Notify {
 		// Spinner label lambda controller
 		JLabel lambdaLabel = new JLabel("Lambda (λ): ");
 		JSpinner lambdaSpinner = new JSpinner(
-				new SpinnerNumberModel(this.hub.getModel().getLambda(), 0.0, 0.9, 0.1));
+				new SpinnerNumberModel(this.hub.getModel().getLambda(), 0.1, Double.MAX_VALUE, 0.1));
 		lambdaSpinner.addChangeListener(e -> {
-			Body<Double> body = new Body<>(RequestType.POST, BodyCode.LAMBDA_VALUE, (double) lambdaSpinner.getValue());
+			Body<Double> body = new Body<>(RequestType.POST, BodyCode.LAMBDA, (double) lambdaSpinner.getValue());
 			this.hub.notifyRequest(new Request<>(RequestCode.UPDATE_LAMBDA, this, body));
-			this.hub.notifyRequest(new Request<>(RequestCode.SEND_LAMBDA, this, body));
+			String selectedValue = (String) distributionMenu.getSelectedItem();
+			distributionMenu.getActionListeners()[0]
+					.actionPerformed(new ActionEvent(seedSpinner, ActionEvent.ACTION_PERFORMED, selectedValue));
 		});
 
 		editor = lambdaSpinner.getEditor();

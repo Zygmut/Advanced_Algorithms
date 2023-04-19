@@ -164,6 +164,7 @@ public class Controller implements Notify {
 
 			case GENERATE_EXPONENTIAL_DATA -> {
 				resetRNG();
+				this.hub.notifyRequest(new Request<>(RequestCode.GET_LAMBDA, this));
 				Point[] points = generateData(
 						this::getExponential,
 						this.hub.getModel().getFrameDimension(),
@@ -195,7 +196,7 @@ public class Controller implements Notify {
 				this.nSolutions = (Integer) request.body.get(BodyCode.SOLUTION_AMOUNT);
 			}
 			case SEND_LAMBDA -> {
-				this.lambda = (Double) request.body.get(BodyCode.LAMBDA_VALUE);
+				this.lambda = (Double) request.body.get(BodyCode.LAMBDA);
 			}
 			case CALC_MIN_DIS -> {
 				this.hub.notifyRequest(new Request<>(RequestCode.GET_DATA, this));

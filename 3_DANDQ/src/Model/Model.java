@@ -61,7 +61,11 @@ public class Model implements Notify {
 				this.pointAmount = (int) request.body.get(BodyCode.POINT_AMOUNT);
 			}
 			case UPDATE_LAMBDA -> {
-				this.lambda = (double) request.body.get(BodyCode.LAMBDA_VALUE);
+				this.lambda = (double) request.body.get(BodyCode.LAMBDA);
+			}
+			case GET_LAMBDA -> {
+				Body<Double> body = new Body<>(RequestType.PUT, BodyCode.LAMBDA, this.lambda);
+				this.hub.notifyRequest(new Request<>(RequestCode.SEND_LAMBDA, this, body));
 			}
 			case GET_DATA -> {
 				Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, this.data);
