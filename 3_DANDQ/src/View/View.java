@@ -182,9 +182,6 @@ public class View implements Notify {
 					case GUASSIAN -> {
 						this.hub.notifyRequest(new Request<>(RequestCode.GENERATE_GAUSSIAN_DATA, this));
 					}
-					case POISSON -> {
-						this.hub.notifyRequest(new Request<>(RequestCode.GENERATE_POISSON_DATA, this));
-					}
 					case EXPONENTIAL -> {
 						this.hub.notifyRequest(new Request<>(RequestCode.GENERATE_EXPONENTIAL_DATA, this));
 					}
@@ -319,9 +316,6 @@ public class View implements Notify {
 				}
 				case GUASSIAN -> {
 					this.hub.notifyRequest(new Request<>(RequestCode.GENERATE_GAUSSIAN_DATA, this));
-				}
-				case POISSON -> {
-					this.hub.notifyRequest(new Request<>(RequestCode.GENERATE_POISSON_DATA, this));
 				}
 				case EXPONENTIAL -> {
 					this.hub.notifyRequest(new Request<>(RequestCode.GENERATE_EXPONENTIAL_DATA, this));

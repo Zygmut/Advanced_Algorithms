@@ -80,19 +80,6 @@ public class Controller implements Notify {
 		return result;
 	}
 
-	// Distribucion de poisson que devuelva valores entre 0 y 1
-	private double getPoisson() {
-		double randomN;
-		double result;
-
-		do {
-			randomN = rng.nextDouble();
-			result = (Math.exp(-lambda) * Math.pow(lambda, randomN)) / getFactorial((int) randomN);
-		} while (!bounded(result));
-
-		return result;
-	}
-
 	private long getFactorial(int number) {
 		long result = 1;
 
@@ -151,15 +138,6 @@ public class Controller implements Notify {
 				resetRNG();
 				Point[] points = generateData(
 						this::nextBoundedGaussian,
-						this.hub.getModel().getFrameDimension(),
-						this.hub.getModel().getPointAmount());
-				Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, points);
-				this.hub.notifyRequest(new Request<>(RequestCode.NEW_DATA, this, body));
-			}
-			case GENERATE_POISSON_DATA -> {
-				resetRNG();
-				Point[] points = generateData(
-						this::getPoisson,
 						this.hub.getModel().getFrameDimension(),
 						this.hub.getModel().getPointAmount());
 				Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, points);
@@ -349,20 +327,25 @@ public class Controller implements Notify {
 
 	private void saveSolutions(List<Solution> solutions, boolean isMin, boolean isNlogN) {
 		for (Solution solution : solutions) {
-			Logger.getLogger(this.getClass().getSimpleName())
-					.log(Level.INFO,
-							"Minimum distance found is {0} between points {1} and {2} under {3} milliseconds.",
-							new Object[] { solution.distance(), solution.pair().p1(), solution.pair().p2(),
-									solution.time() });
 
 			Body<Solution> body1 = new Body<>(RequestType.PUT, BodyCode.PAIR_POINTS, solution);
 			if (isMin) {
+				Logger.getLogger(this.getClass().getSimpleName())
+						.log(Level.INFO,
+								"Minimum distance found is {0} between points {1} and {2} under {3} milliseconds.",
+								new Object[] { solution.distance(), solution.pair().p1(), solution.pair().p2(),
+										solution.time() });
 				if (isNlogN) {
 					this.hub.notifyRequest(new Request<>(RequestCode.NEW_PAIR_DATA_MIN_NLOGN, this, body1));
 				} else {
 					this.hub.notifyRequest(new Request<>(RequestCode.NEW_PAIR_DATA_MIN, this, body1));
 				}
 			} else {
+				Logger.getLogger(this.getClass().getSimpleName())
+						.log(Level.INFO,
+								"Maximum distance found is {0} between points {1} and {2} under {3} milliseconds.",
+								new Object[] { solution.distance(), solution.pair().p1(), solution.pair().p2(),
+										solution.time() });
 				if (isNlogN) {
 					this.hub.notifyRequest(new Request<>(RequestCode.NEW_PAIR_DATA_MAX_NLOGN, this, body1));
 				} else {
@@ -472,7 +455,7 @@ public class Controller implements Notify {
 		}
 
 		Logger.getLogger(this.getClass().getSimpleName())
-				.log(Level.INFO, "Time taken 2: {0} milliseconds", Duration.between(start, Instant.now()).toMillis());
+				.log(Level.INFO, "Time taken: {0} milliseconds", Duration.between(start, Instant.now()).toMillis());
 
 		saveSolutions(solutionsList, false, true);
 	}
