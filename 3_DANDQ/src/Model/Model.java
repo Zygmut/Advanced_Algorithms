@@ -116,7 +116,6 @@ public class Model implements Notify {
 			}
 			case CHANGE_AUTO_MODE -> {
 				this.useMaxOnAuto = (Boolean) request.body.get(BodyCode.DATA);
-				System.out.println(this.useMaxOnAuto);
 			}
 			case GET_ALGORITHM -> {
 				Body<Boolean> body = new Body<>(RequestType.PUT, BodyCode.DATA, this.useNLogNAlgorithm);

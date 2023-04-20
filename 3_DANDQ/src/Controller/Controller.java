@@ -1,8 +1,10 @@
 package Controller;
 
+import java.awt.Dimension;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -10,8 +12,6 @@ import java.util.Random;
 import java.util.function.DoubleSupplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.management.InstanceAlreadyExistsException;
 
 import Master.MVC;
 import Model.PairPoint;
@@ -23,10 +23,6 @@ import Request.Notify;
 import Request.Request;
 import Request.RequestCode;
 import Request.RequestType;
-
-import java.awt.Dimension;
-import java.time.Duration;
-import java.time.Instant;
 
 public class Controller implements Notify {
 
@@ -76,16 +72,6 @@ public class Controller implements Notify {
 		do {
 			result = Math.abs(rng.nextGaussian() * 0.2 + 0.5);
 		} while (!bounded(result));
-
-		return result;
-	}
-
-	private long getFactorial(int number) {
-		long result = 1;
-
-		for (int factor = 2; factor <= number; factor++) {
-			result *= factor;
-		}
 
 		return result;
 	}
@@ -370,7 +356,7 @@ public class Controller implements Notify {
 
 	private void calculateMinDistanceNN() {
 		Solution[] solutions = initSolutions(true);
-		Instant start = Instant.now();
+		this.start = Instant.now();
 		for (int i = 0; i < data.length; i++) {
 			for (int j = i + 1; j < data.length; j++) {
 				double tempDistance = data[i].euclideanDistanceTo(data[j]);
@@ -391,7 +377,7 @@ public class Controller implements Notify {
 
 	private void calculateMaxDistanceNN() {
 		Solution[] solutions = initSolutions(false);
-		Instant start = Instant.now();
+		this.start = Instant.now();
 		for (int i = 0; i < data.length; i++) {
 			for (int j = i + 1; j < data.length; j++) {
 				double tempDistance = data[i].euclideanDistanceTo(data[j]);
@@ -416,21 +402,20 @@ public class Controller implements Notify {
 		this.start = Instant.now();
 
 		Point[] dataCopy = Arrays.copyOf(this.data, this.data.length);
-		// create a copy of data & Sort by x
 		Arrays.sort(dataCopy, 0, dataCopy.length, Comparator.comparingDouble(Point::x));
-		// pass by parameter that copy to the D&Q
+
 		List<Solution> solutionsList = farthestPairs(0, data.length - 1, dataCopy);
 		double maxDistance = solutionsList.get(solutionsList.size() - 1).distance();
 
 		ArrayList<Point> strip = new ArrayList<>();
 
-		// left
+		// Left side
 		double leftThreshold = dataCopy[dataCopy.length / 2].x() - (maxDistance / 2);
 		for (int i = 0; dataCopy[i].x() <= leftThreshold; i++) {
 			strip.add(dataCopy[i]);
 		}
 
-		// right
+		// Right side
 		double rightThreshold = dataCopy[dataCopy.length / 2].x() + (maxDistance / 2);
 		for (int i = dataCopy.length - 1; dataCopy[i].x() >= rightThreshold; i--) {
 			strip.add(dataCopy[i]);
@@ -438,7 +423,6 @@ public class Controller implements Notify {
 
 		strip.sort(Comparator.comparingDouble(Point::y));
 
-		// PROBLEM LIES HERE, PROBABLY
 		for (int i = 0; i < strip.size(); i++) {
 			for (int j = i + 1; j < strip.size(); j++) {
 				double tempDistance = strip.get(i).euclideanDistanceTo(strip.get(j));
@@ -506,13 +490,6 @@ public class Controller implements Notify {
 		List<Solution> solutionsList = new ArrayList<>();
 		findClosestNPairsUtil(data, 0, data.length - 1, solutionsList);
 		Instant end = Instant.now();
-		/*
-		 * for (Point point : data) {
-		 * if (point.euclideanDistanceTo(data[mid]) <= maxDistance) {
-		 * strip.add(point);
-		 * }
-		 * }
-		 */
 		Logger.getLogger(this.getClass().getSimpleName())
 				.log(Level.INFO, "Time taken: {0} milliseconds", Duration.between(start, end).toMillis());
 
