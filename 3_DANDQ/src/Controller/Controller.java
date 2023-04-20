@@ -442,17 +442,14 @@ public class Controller implements Notify {
 		ArrayList<Point> strip = new ArrayList<>();
 
 		// left
-		// double leftThreshold = dataCopy[0].x() + maxDistance; // o que sea un - en
-		// vez de un +
-		// dataCopy[0].x() <= leftThreshold
-		// o
-		// dataCopy[0].x() >= maxDistance
-		for (int i = 0; dataCopy[i].x() <= 100 - maxDistance; i++) {
+		double leftThreshold = dataCopy[dataCopy.length / 2].x() - (maxDistance / 2);
+		for (int i = 0; dataCopy[i].x() <= leftThreshold; i++) {
 			strip.add(dataCopy[i]);
 		}
 
 		// right
-		for (int i = dataCopy.length - 1; dataCopy[i].x() >= maxDistance; i--) {
+		double rightThreshold = dataCopy[dataCopy.length / 2].x() + (maxDistance / 2);
+		for (int i = dataCopy.length - 1; dataCopy[i].x() >= rightThreshold; i--) {
 			strip.add(dataCopy[i]);
 		}
 
@@ -462,9 +459,8 @@ public class Controller implements Notify {
 		for (int i = 0; i < strip.size(); i++) {
 			for (int j = i + 1; j < strip.size(); j++) {
 				double tempDistance = strip.get(i).euclideanDistanceTo(strip.get(j));
-				if (tempDistance > maxDistance
+				if (tempDistance > solutionsList.get(0).distance()
 						&& isNotInPairList(strip.get(i), strip.get(j), false, true)) {
-					maxDistance = tempDistance;
 					solutionsList.set(0,
 							new Solution(new PairPoint(strip.get(i), strip.get(j)),
 									tempDistance,
