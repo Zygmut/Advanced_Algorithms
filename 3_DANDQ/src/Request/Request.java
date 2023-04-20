@@ -64,7 +64,7 @@ public class Request<T> {
 								.append(" of length ")
 								.append(data.length);
 					}
-					case POINT_AMOUNT, SEED, LAMBDA-> {
+					case POINT_AMOUNT, SEED, LAMBDA, PAIR_POINTS-> {
 						sb.append(entry.getKey())
 								.append(" = ")
 								.append(entry.getValue());

@@ -45,7 +45,6 @@ public class MVC implements Notify {
 
 	@Override
 	public void notifyRequest(Request<?> request) {
-		System.out.println(request);
 		switch (request.code) {
 			case GENERATE_UNIFORM_DATA, GENERATE_GAUSSIAN_DATA,
 					GENERATE_POISSON_DATA, GENERATE_EXPONENTIAL_DATA, GENERATE_BERNOULLI_DATA, SEND_DATA, CALC_MIN_DIS,
