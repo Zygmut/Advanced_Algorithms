@@ -4,12 +4,15 @@ import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.geom.Ellipse2D;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
@@ -21,7 +24,10 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
+import javax.swing.JSplitPane;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.plaf.basic.BasicSplitPaneDivider;
+import javax.swing.plaf.basic.BasicSplitPaneUI;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -58,6 +64,7 @@ public class View implements Notify {
 	 * The window of the view.
 	 */
 	private Window window;
+	private JSplitPane splitPane;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -111,9 +118,6 @@ public class View implements Notify {
 				WindowStats windowStats = new WindowStats(data);
 				windowStats.show();
 			}
-			case LAMBDA -> {
-				this.window.updateSection(header(), "Header", DirectionAndPosition.POSITION_TOP);
-			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
@@ -127,7 +131,8 @@ public class View implements Notify {
 	 */
 	private void loadContent() {
 		this.window.addMenuBar(this.menu());
-		this.window.addSection(this.header(), DirectionAndPosition.POSITION_TOP, "Header");
+		this.initSplitPane();
+		this.splitPane.setRightComponent(this.sideBar());
 		PairPoint[] data = {};
 		this.window.addSection(this.body(new Point[] {}, data, data, data, data),
 				DirectionAndPosition.POSITION_CENTER, "Body");
@@ -287,6 +292,14 @@ public class View implements Notify {
 		return buttonSection;
 	}
 
+	private void initSplitPane() {
+		this.splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+		this.splitPane.setDividerLocation(0.9);
+		this.splitPane.setResizeWeight(1.0);
+		this.splitPane.setOneTouchExpandable(true);
+		this.splitPane.setBorder(null);
+	}
+
 	private Section body(Point[] data, PairPoint[] minPairPointsNN, PairPoint[] maxPairPointsNN,
 			PairPoint[] minPairPointsNLogN, PairPoint[] maxPairPointsnLogN) {
 		ScatterPlot scatterPlot = new ScatterPlot(Color.MAGENTA);
@@ -294,15 +307,20 @@ public class View implements Notify {
 		content.setLayout(new BorderLayout());
 		int width = this.hub.getModel().getFrameDimension().width;
 		int height = this.hub.getModel().getFrameDimension().height;
+		JPanel aux = new JPanel();
+		aux.setPreferredSize(new Dimension(0, 10));
+		aux.setBackground(Color.WHITE);
+		content.add(aux, BorderLayout.NORTH);
 		content.add(new ChartPanel(scatterPlot.createPlot(data, width, height,
 				minPairPointsNN, maxPairPointsNN, minPairPointsNLogN, maxPairPointsnLogN)),
 				BorderLayout.CENTER);
+		splitPane.setLeftComponent(content);
 		Section body = new Section();
-		body.createFreeSection(content);
+		body.createJSplitPaneSection(splitPane);
 		return body;
 	}
 
-	private Section header() {
+	private JPanel sideBar() {
 		// Distribution dropdown
 		JLabel distLabel = new JLabel("Distribución: ");
 		String[] distributions = Arrays.stream(Distribution.values()).map(Enum::name).toArray(String[]::new);
@@ -345,11 +363,11 @@ public class View implements Notify {
 		});
 		JComponent editor = seedSpinner.getEditor();
 		Dimension ps = editor.getPreferredSize();
-		ps.width = 100;
+		ps.width = 80;
 		editor.setPreferredSize(ps);
 
 		// Points controller
-		JLabel pointLabel = new JLabel("Número de puntos: ");
+		JLabel pointLabel = new JLabel("Núm de puntos: ");
 		JSpinner pointSpinner = new JSpinner(
 				new SpinnerNumberModel(this.hub.getModel().getPointAmount(), Integer.MIN_VALUE, Integer.MAX_VALUE, 1));
 		pointSpinner.addChangeListener(e -> {
@@ -362,11 +380,11 @@ public class View implements Notify {
 
 		editor = pointSpinner.getEditor();
 		ps = editor.getPreferredSize();
-		ps.width = 100;
+		ps.width = 70;
 		editor.setPreferredSize(ps);
 
 		// N solutions
-		JLabel solutionLabel = new JLabel("Número de Soluciones: ");
+		JLabel solutionLabel = new JLabel("Núm de parejas: ");
 		JSpinner solutionSpinner = new JSpinner(
 				new SpinnerNumberModel(this.hub.getModel().getNSolutions(), 0, Integer.MAX_VALUE, 1));
 		solutionSpinner.addChangeListener(e -> {
@@ -376,7 +394,7 @@ public class View implements Notify {
 		});
 		editor = solutionSpinner.getEditor();
 		ps = editor.getPreferredSize();
-		ps.width = 100;
+		ps.width = 50;
 		editor.setPreferredSize(ps);
 
 		// Spinner label lambda controller
@@ -393,24 +411,46 @@ public class View implements Notify {
 
 		editor = lambdaSpinner.getEditor();
 		ps = editor.getPreferredSize();
-		ps.width = 100;
+		ps.width = 80;
 		editor.setPreferredSize(ps);
 
 		JPanel content = new JPanel();
-		content.add(distLabel);
-		content.add(distributionMenu);
-		content.add(seedLabel);
-		content.add(seedSpinner);
-		content.add(pointLabel);
-		content.add(pointSpinner);
-		content.add(solutionLabel);
-		content.add(solutionSpinner);
-		content.add(lambdaLabel);
-		content.add(lambdaSpinner);
 		content.setBackground(Color.WHITE);
-		Section header = new Section();
-		header.createFreeSection(content);
-		return header;
+		BoxLayout layout = new BoxLayout(content, BoxLayout.Y_AXIS);
+		content.setLayout(layout);
+
+		JPanel aux = new JPanel();
+		aux.setBackground(Color.WHITE);
+
+		aux.add(distLabel);
+		aux.add(distributionMenu);
+		content.add(aux);
+
+		aux = new JPanel();
+		aux.setBackground(Color.WHITE);
+		aux.add(seedLabel);
+		aux.add(seedSpinner);
+		content.add(aux);
+
+		aux = new JPanel();
+		aux.setBackground(Color.WHITE);
+		aux.add(pointLabel);
+		aux.add(pointSpinner);
+		content.add(aux);
+
+		aux = new JPanel();
+		aux.setBackground(Color.WHITE);
+		aux.add(solutionLabel);
+		aux.add(solutionSpinner);
+		content.add(aux);
+
+		aux = new JPanel();
+		aux.setBackground(Color.WHITE);
+		aux.add(lambdaLabel);
+		aux.add(lambdaSpinner);
+		content.add(aux);
+
+		return content;
 	}
 
 	/**
