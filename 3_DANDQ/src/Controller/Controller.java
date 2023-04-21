@@ -357,7 +357,7 @@ public class Controller implements Notify {
 
 	private void calculateMinDistanceNN() {
 		PriorityQueue<Solution> minHeap = new PriorityQueue<>(
-				(solution1, solution2) -> Double.compare(solution2.distance(), solution1.distance()));
+				Comparator.comparingDouble(Solution::distance).reversed());
 
 		for (Solution solution : initSolutions(true)) {
 			minHeap.offer(solution);
@@ -375,13 +375,10 @@ public class Controller implements Notify {
 			}
 		}
 
-		List<Solution> solutions = new ArrayList<>(minHeap);
-		Collections.reverse(solutions);
-
 		Logger.getLogger(this.getClass().getSimpleName())
 				.log(Level.INFO, "Time taken: {0} milliseconds", Duration.between(start, Instant.now()).toMillis());
 
-		saveSolutions(solutions, true, false);
+		saveSolutions(new ArrayList<>(minHeap), true, false);
 	}
 
 	private void calculateMaxDistanceNN() {
