@@ -356,12 +356,13 @@ public class Controller implements Notify {
 	}
 
 	private void calculateMinDistanceNN() {
-		Solution[] solutions = initSolutions(true);
 		PriorityQueue<Solution> minHeap = new PriorityQueue<>(
 				(solution1, solution2) -> Double.compare(solution2.distance(), solution1.distance()));
-		for (int i = 0; i < solutions.length; i++) {
-			minHeap.offer(solutions[i]);
+
+		for (Solution solution : initSolutions(true)) {
+			minHeap.offer(solution);
 		}
+
 		this.start = Instant.now();
 		for (int i = 0; i < data.length; i++) {
 			for (int j = i + 1; j < data.length; j++) {
@@ -373,34 +374,36 @@ public class Controller implements Notify {
 				}
 			}
 		}
-		Solution[] topSolutions = new Solution[solutions.length];
-		for (int i = solutions.length - 1; i >= 0; i--) {
-			topSolutions[i] = minHeap.poll();
-		}
+
+		List<Solution> solutions = new ArrayList<>(minHeap);
+		Collections.reverse(solutions);
+
 		Logger.getLogger(this.getClass().getSimpleName())
 				.log(Level.INFO, "Time taken: {0} milliseconds", Duration.between(start, Instant.now()).toMillis());
-		saveSolutions(Arrays.asList(topSolutions), true, false);
+
+		saveSolutions(solutions, true, false);
 	}
 
 	private void calculateMaxDistanceNN() {
-		Solution[] solutions = initSolutions(false);
 		PriorityQueue<Solution> maxHeap = new PriorityQueue<>(Comparator.comparingDouble(Solution::distance));
-		for (int i = 0; i < solutions.length; i++) {
-			maxHeap.offer(solutions[i]);
+
+		for (Solution solution : initSolutions(false)) {
+			maxHeap.offer(solution);
 		}
+
 		this.start = Instant.now();
 		for (int i = 0; i < data.length; i++) {
 			for (int j = i + 1; j < data.length; j++) {
 				double tempDistance = data[i].euclideanDistanceTo(data[j]);
 				if (tempDistance > maxHeap.peek().distance() && isNotInPairList(data[i], data[j], false, false)) {
-					Solution newSolution = new Solution(new PairPoint(data[i], data[j]),
-							tempDistance,
-							Duration.between(start, Instant.now()).toMillis());
-					maxHeap.offer(newSolution);
 					maxHeap.poll();
+					maxHeap.offer(new Solution(new PairPoint(data[i], data[j]),
+							tempDistance,
+							Duration.between(start, Instant.now()).toMillis()));
 				}
 			}
 		}
+
 		Logger.getLogger(this.getClass().getSimpleName())
 				.log(Level.INFO, "Time taken: {0} milliseconds", Duration.between(start, Instant.now()).toMillis());
 
