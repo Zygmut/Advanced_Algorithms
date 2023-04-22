@@ -1,18 +1,14 @@
 package View;
 
 import java.awt.GridLayout;
+import java.util.Arrays;
 
 import javax.swing.JPanel;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
-import org.jfree.data.general.DefaultPieDataset;
-import org.jfree.data.xy.XYDataset;
-import org.jfree.data.xy.XYSeries;
-import org.jfree.data.xy.XYSeriesCollection;
 
 import betterSwing.Section;
 import betterSwing.Window;
@@ -39,7 +35,6 @@ public class WindowStats {
 	}
 
 	private Section sectionStats() {
-		// TODO: #37 Create a section with the stats.
 		Section section = new Section();
 		section.createFreeSection(this.panelStats());
 		return section;
@@ -47,92 +42,146 @@ public class WindowStats {
 
 	private JPanel panelStats() {
 		JPanel panel = new JPanel();
-		panel.setLayout(new GridLayout(2, 2));
-		ChartPanel chartPanel = this.createBarPlot(values);
-		ChartPanel chartPanel2 = this.createLinePlot(values);
-		ChartPanel chartPanel3 = this.createPiePlot(values);
-		ChartPanel chartPanel4 = this.createScatterPlot(values);
-		panel.add(chartPanel);
-		panel.add(chartPanel2);
-		panel.add(chartPanel3);
-		panel.add(chartPanel4);
+		panel.setLayout(new GridLayout(3, 3));
+
+		String[] names = { "Media dist.", "Máx. dist.", "Min. dist." };
+		String[] names2 = { "Media máx.", "Media min." };
+
+		// N^2
+		// -> Max
+		Double[] data = new Double[] {
+				this.values[0],
+				this.values[1],
+				this.values[2]
+		};
+		ChartPanel nnMax = this.createBarPlot(data, "N^2 Máx.", names, names);
+		// -> Min
+		data = new Double[] {
+				this.values[3],
+				this.values[4],
+				this.values[5]
+		};
+		System.out.println(Arrays.toString(data));
+		ChartPanel nnMin = this.createBarPlot(data, "N^2 Min.", names, names);
+		// NlogN
+		// -> Max
+		data = new Double[] {
+				this.values[6],
+				this.values[7],
+				this.values[8]
+		};
+		ChartPanel nlognMax = this.createBarPlot(data, "NlogN Máx.", names, names);
+		// -> Min
+		data = new Double[] {
+				this.values[9],
+				this.values[10],
+				this.values[11]
+		};
+		ChartPanel nlognMin = this.createBarPlot(data, "NlogN Min.", names, names);
+		data = new Double[] {
+				this.values[12],
+				this.values[13],
+		};
+		String[] names3 = { "Tiempo medio máx.", "Tiempo medio min." };
+		ChartPanel nnTime = this.createBarPlot(data, "N^2 Tiempos", names2, names3);
+		data = new Double[] {
+				this.values[14],
+				this.values[15],
+		};
+		ChartPanel nlognTime = this.createBarPlot(data, "NlogN Tiempos", names2, names3);
+		data = new Double[] {
+				this.values[0],
+				this.values[1],
+				this.values[2],
+				this.values[6],
+				this.values[7],
+				this.values[8]
+		};
+		String[] names4 = {
+				"Media dist. máx. N^2", "N^2 Máx.", "N^2 Min.",
+				"Media dist. máx. NlogN", "NlogN Máx.", "NlogN Min." };
+		String[] names5 = {
+				"Media dist.", "Máx. dist.", "Min. dist.",
+				"Media dist.", "Máx. dist.", "Min. dist.",
+		};
+		ChartPanel nnVsnlognMax = this.createStackedBarPlot(data, "N^2 vs NlogN Máx.", names4, names5);
+		data = new Double[] {
+				this.values[3],
+				this.values[4],
+				this.values[5],
+				this.values[9],
+				this.values[10],
+				this.values[11]
+		};
+		names4 = new String[] {
+				"Media dist. min. N^2", "N^2 Máx.", "N^2 Min.",
+				"Media dist. min. NlogN", "NlogN Máx.", "NlogN Min."
+		};
+		ChartPanel nnVsnlognMin = this.createStackedBarPlot(data, "N^2 vs NlogN Min.", names4, names5);
+		data = new Double[] {
+				this.values[12],
+				this.values[13],
+				this.values[14],
+				this.values[15]
+		};
+		String[] names6 = {
+				"Tiempo medio máx. N^2 ", "Tiempo medio min. N^2",
+				"Tiempo medio máx. NLogN", "Tiempo medio min. NlogN" };
+		String[] names7 = {
+				"Media tiempos máx", "Media tiempos min",
+				"Media tiempos máx", "Media tiempos min"
+		};
+		ChartPanel nnVsnlognTime = this.createStackedBarPlot(data, "N^2 vs NlogN Tiempos", names6, names7);
+
+		panel.add(nnMax);
+		panel.add(nnMin);
+		panel.add(nnTime);
+		panel.add(nlognMin);
+		panel.add(nlognMax);
+		panel.add(nlognTime);
+		panel.add(nnVsnlognMax);
+		panel.add(nnVsnlognMin);
+		panel.add(nnVsnlognTime);
+
 		return panel;
 	}
 
-	private ChartPanel createBarPlot(Double[] values) {
+	private ChartPanel createStackedBarPlot(Double[] values, String title, String[] seriesName,
+			String[] categoriesNames) {
 		// Create a dataset
 		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 		for (int i = 0; i < values.length; i++) {
-			dataset.addValue(values[i], "Media " + i, "Media " + i);
+			String series = seriesName == null ? ("Series " + i) : seriesName[i];
+			String category = categoriesNames == null ? ("Category " + i) : categoriesNames[i];
+			dataset.addValue(values[i], series, category);
+		}
+		// Create a chart
+		JFreeChart chart = ChartFactory.createStackedBarChart(
+				title, // chart title
+				"Category", // category axis label
+				"Value", // value axis label
+				dataset // data
+		);
+		// Create a chart panel
+		ChartPanel chartPanel = new ChartPanel(chart);
+		return chartPanel;
+	}
+
+	private ChartPanel createBarPlot(Double[] values, String title, String[] columnNames, String[] rowNames) {
+		// Create a dataset
+		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+		for (int i = 0; i < values.length; i++) {
+			String row = rowNames == null ? ("Row " + i) : rowNames[i];
+			String column = columnNames == null ? ("Column " + i) : columnNames[i];
+			dataset.addValue(values[i], row, column);
 		}
 		// Create a chart
 		JFreeChart chart = ChartFactory.createBarChart(
-				"Estadísticas de ...", // chart title
+				title, // chart title
 				"Category", // category axis label
 				"Value", // value axis label
 				dataset // data
 		);
-		// Create a chart panel
-		ChartPanel chartPanel = new ChartPanel(chart);
-		return chartPanel;
-	}
-
-	private ChartPanel createLinePlot(Double[] values) {
-		// Create a dataset
-		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-		for (int i = 0; i < values.length; i++) {
-			dataset.addValue(values[i], "Media " + i, "Media " + i);
-		}
-		// Create a chart
-		JFreeChart chart = ChartFactory.createLineChart(
-				"Estadísticas de ...", // chart title
-				"Category", // category axis label
-				"Value", // value axis label
-				dataset // data
-		);
-		// Create a chart panel
-		ChartPanel chartPanel = new ChartPanel(chart);
-		return chartPanel;
-	}
-
-	private ChartPanel createPiePlot(Double[] values) {
-		// Create a dataset
-		DefaultPieDataset dataset = new DefaultPieDataset();
-		dataset.setValue("Category 1", 30);
-		dataset.setValue("Category 2", 20);
-		dataset.setValue("Category 3", 50);
-
-		// Create a chart
-		JFreeChart chart = ChartFactory.createPieChart(
-				"Pie Chart Demo",
-				dataset,
-				true,
-				true,
-				false);
-		// Create a chart panel
-		ChartPanel chartPanel = new ChartPanel(chart);
-		return chartPanel;
-	}
-
-	private ChartPanel createScatterPlot(Double[] values) {
-		XYSeries series = new XYSeries("Data");
-		series.add(1.0, 1.0);
-		series.add(2.0, 4.0);
-		series.add(3.0, 3.0);
-		series.add(4.0, 5.0);
-		series.add(5.0, 7.0);
-		XYDataset dataset = new XYSeriesCollection(series);
-
-		// Create a chart
-		JFreeChart chart = ChartFactory.createScatterPlot(
-				"Scatter Plot Demo",
-				"X",
-				"Y",
-				dataset,
-				PlotOrientation.VERTICAL,
-				true,
-				true,
-				false);
 		// Create a chart panel
 		ChartPanel chartPanel = new ChartPanel(chart);
 		return chartPanel;

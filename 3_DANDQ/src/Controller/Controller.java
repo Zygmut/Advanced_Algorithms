@@ -239,7 +239,7 @@ public class Controller implements Notify {
 	}
 
 	private void calculateStats() {
-		Object[] statsData = new Object[12];
+		Object[] statsData = new Object[16];
 
 		// ------ N^2 -----------
 		ArrayList<Solution> max = this.hub.getModel().getSolutionsForMaxNN();
@@ -247,15 +247,19 @@ public class Controller implements Notify {
 
 		// Media de las distancias
 		statsData[0] = max.stream().mapToDouble(Solution::distance).average().orElse(0);
-		statsData[1] = min.stream().mapToDouble(Solution::distance).average().orElse(0);
+		statsData[3] = min.stream().mapToDouble(Solution::distance).average().orElse(0);
 
 		// Maximo y minimo de las maximas distancias
-		statsData[2] = max.stream().mapToDouble(Solution::distance).max().orElse(0);
-		statsData[3] = max.stream().mapToDouble(Solution::distance).min().orElse(0);
+		statsData[1] = max.stream().mapToDouble(Solution::distance).max().orElse(0);
+		statsData[2] = max.stream().mapToDouble(Solution::distance).min().orElse(0);
 
 		// Maximo y minimo de las minimas distancias
-		statsData[4] = min.stream().mapToDouble(Solution::distance).min().orElse(0);
-		statsData[5] = min.stream().mapToDouble(Solution::distance).max().orElse(0);
+		statsData[4] = min.stream().mapToDouble(Solution::distance).max().orElse(0);
+		statsData[5] = min.stream().mapToDouble(Solution::distance).min().orElse(0);
+
+		// Tiempo media ejecucion
+		statsData[12] = max.stream().mapToDouble(Solution::time).average().orElse(0);
+		statsData[13] = min.stream().mapToDouble(Solution::time).average().orElse(0);
 
 		// ------ NLogN -----------
 		max = this.hub.getModel().getSolutionsForMaxNLogN();
@@ -263,15 +267,19 @@ public class Controller implements Notify {
 
 		// Media de las distancias
 		statsData[6] = max.stream().mapToDouble(Solution::distance).average().orElse(0);
-		statsData[7] = min.stream().mapToDouble(Solution::distance).average().orElse(0);
+		statsData[9] = min.stream().mapToDouble(Solution::distance).average().orElse(0);
 
 		// Maximo y minimo de las maximas distancias
-		statsData[8] = max.stream().mapToDouble(Solution::distance).max().orElse(0);
-		statsData[9] = max.stream().mapToDouble(Solution::distance).min().orElse(0);
+		statsData[7] = max.stream().mapToDouble(Solution::distance).max().orElse(0);
+		statsData[8] = max.stream().mapToDouble(Solution::distance).min().orElse(0);
 
 		// Maximo y minimo de las minimas distancias
-		statsData[10] = min.stream().mapToDouble(Solution::distance).min().orElse(0);
-		statsData[11] = min.stream().mapToDouble(Solution::distance).max().orElse(0);
+		statsData[10] = min.stream().mapToDouble(Solution::distance).max().orElse(0);
+		statsData[11] = min.stream().mapToDouble(Solution::distance).min().orElse(0);
+
+		// Tiempo media ejecucion
+		statsData[14] = max.stream().mapToDouble(Solution::time).average().orElse(0);
+		statsData[15] = min.stream().mapToDouble(Solution::time).average().orElse(0);
 
 		Body<Object[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, statsData);
 		this.hub.notifyRequest(new Request<>(RequestCode.STATS_DATA, this, body));
