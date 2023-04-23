@@ -1,15 +1,18 @@
 package View;
 
 import java.awt.GridLayout;
-import java.util.Arrays;
 
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import java.awt.Color;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.data.category.DefaultCategoryDataset;
 
+import Master.MVC;
 import betterSwing.Section;
 import betterSwing.Window;
 import betterSwing.utils.DirectionAndPosition;
@@ -19,8 +22,10 @@ public class WindowStats {
 
 	private Window window;
 	private Double[] values;
+	private MVC hub;
 
-	public WindowStats(Object[] data) {
+	public WindowStats(Object[] data, MVC hub) {
+		this.hub = hub;
 		this.window = new Window(Config.CONFIG_PATH_TO_STATS_WINDOW);
 		this.window.initConfig();
 		this.values = new Double[data.length];
@@ -43,6 +48,7 @@ public class WindowStats {
 	private JPanel panelStats() {
 		JPanel panel = new JPanel();
 		panel.setLayout(new GridLayout(3, 3));
+		panel.setBackground(Color.WHITE);
 
 		String[] names = { "Media dist.", "Máx. dist.", "Min. dist." };
 		String[] names2 = { "Media máx.", "Media min." };
@@ -61,16 +67,8 @@ public class WindowStats {
 				this.values[4],
 				this.values[5]
 		};
-		System.out.println(Arrays.toString(data));
 		ChartPanel nnMin = this.createBarPlot(data, "N^2 Min.", names, names);
 		// NlogN
-		// -> Max
-		data = new Double[] {
-				this.values[6],
-				this.values[7],
-				this.values[8]
-		};
-		ChartPanel nlognMax = this.createBarPlot(data, "NlogN Máx.", names, names);
 		// -> Min
 		data = new Double[] {
 				this.values[9],
@@ -89,22 +87,10 @@ public class WindowStats {
 				this.values[15],
 		};
 		ChartPanel nlognTime = this.createBarPlot(data, "NlogN Tiempos", names2, names3);
-		data = new Double[] {
-				this.values[0],
-				this.values[1],
-				this.values[2],
-				this.values[6],
-				this.values[7],
-				this.values[8]
-		};
-		String[] names4 = {
-				"Media dist. máx. N^2", "N^2 Máx.", "N^2 Min.",
-				"Media dist. máx. NlogN", "NlogN Máx.", "NlogN Min." };
 		String[] names5 = {
 				"Media dist.", "Máx. dist.", "Min. dist.",
 				"Media dist.", "Máx. dist.", "Min. dist.",
 		};
-		ChartPanel nnVsnlognMax = this.createStackedBarPlot(data, "N^2 vs NlogN Máx.", names4, names5);
 		data = new Double[] {
 				this.values[3],
 				this.values[4],
@@ -113,7 +99,7 @@ public class WindowStats {
 				this.values[10],
 				this.values[11]
 		};
-		names4 = new String[] {
+		String[] names4 = new String[] {
 				"Media dist. min. N^2", "N^2 Máx.", "N^2 Min.",
 				"Media dist. min. NlogN", "NlogN Máx.", "NlogN Min."
 		};
@@ -136,12 +122,38 @@ public class WindowStats {
 		panel.add(nnMax);
 		panel.add(nnMin);
 		panel.add(nnTime);
-		panel.add(nlognMax);
 		panel.add(nlognMin);
 		panel.add(nlognTime);
-		panel.add(nnVsnlognMax);
 		panel.add(nnVsnlognMin);
 		panel.add(nnVsnlognTime);
+		panel.add(this.createFreqPanel());
+
+		return panel;
+	}
+
+	private JPanel createFreqPanel() {
+		Object[] nnMax = this.hub.getController().calcPointFreq(0);
+		Object[] nnMin = this.hub.getController().calcPointFreq(1);
+		Object[] nlognMin = this.hub.getController().calcPointFreq(2);
+		JPanel panel = new JPanel();
+		panel.setBackground(Color.WHITE);
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		JPanel panel1 = new JPanel();
+		panel1.setBackground(Color.WHITE);
+		JLabel label = new JLabel("El punto más frecuente en N^2 máx es: " + nnMax[0] + " con " + nnMax[1] + " repeticiones");
+		panel1.add(label);
+		JPanel panel2 = new JPanel();
+		panel2.setBackground(Color.WHITE);
+		label = new JLabel("El punto más frecuente en N^2 min es: " + nnMin[0] + " con " + nnMin[1] + " repeticiones");
+		panel2.add(label);
+		JPanel panel3 = new JPanel();
+		panel3.setBackground(Color.WHITE);
+		label = new JLabel("El punto más frecuente en NlogN es: " + nlognMin[0] + " con " + nlognMin[1] + " repeticiones");
+		panel3.add(label);
+
+		panel.add(panel1);
+		panel.add(panel2);
+		panel.add(panel3);
 
 		return panel;
 	}

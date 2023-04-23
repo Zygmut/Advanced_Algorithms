@@ -61,6 +61,7 @@ public class View implements Notify {
 	 */
 	private Window window;
 	private JSplitPane splitPane;
+	private JButton[] buttons;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -111,7 +112,7 @@ public class View implements Notify {
 			}
 			case STATS_DATA -> {
 				Object[] data = (Object[]) request.body.get(BodyCode.DATA);
-				WindowStats windowStats = new WindowStats(data);
+				WindowStats windowStats = new WindowStats(data, this.hub);
 				windowStats.show();
 			}
 			default -> {
@@ -140,22 +141,18 @@ public class View implements Notify {
 		JMenu options = new JMenu("Opciones");
 		JMenu stats = new JMenu("Estadisticas");
 		JMenuItem alg = new JMenuItem("Algoritmos");
-		// stats.setIcon(new ImageIcon(Config.ICON_TO_DISPLAY_MENU_OPTION));
 		alg.addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CALC_STATS, this)));
 		JMenuItem jvm = new JMenuItem("JVM");
-		// jvm.setIcon(new ImageIcon(Config.ICON_TO_DISPLAY_MENU_OPTION));
 		jvm.addActionListener(e -> {
 			WindowJVMStats jvmStats = new WindowJVMStats();
 			jvmStats.show();
 			jvmStats.start();
 		});
 		JMenuItem cleanData = new JMenuItem("Limpiar Datos");
-		// cleanData.setIcon(new ImageIcon(Config.ICON_TO_DISPLAY_MENU_OPTION));
 		cleanData.addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CLEAR_DATA, this)));
 		JMenuItem cleanLines = new JMenuItem("Borrar solución");
 		cleanLines.addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CLEAR_SOLUTIONS, this)));
 		JMenuItem exit = new JMenuItem("Salir");
-		// exit.setIcon(new ImageIcon(Config.ICON_TO_DISPLAY_MENU_OPTION));
 		exit.addActionListener(e -> System.exit(0));
 		stats.add(alg);
 		stats.add(jvm);
@@ -166,7 +163,6 @@ public class View implements Notify {
 		options.add(cleanLines);
 		options.addSeparator();
 		JMenu genData = new JMenu("Generar Datos");
-		// genData.setIcon(new ImageIcon(Config.ICON_TO_DISPLAY_MENU_OPTION));
 		String[] distributions = Arrays.stream(Distribution.values()).map(Enum::name).toArray(String[]::new);
 		ButtonGroup grou = new ButtonGroup();
 		for (String string : distributions) {
@@ -210,12 +206,14 @@ public class View implements Notify {
 		JCheckBoxMenuItem bruteForce = new JCheckBoxMenuItem("N^2");
 		bruteForce.setSelected(true);
 		bruteForce.addActionListener(e -> {
+			buttons[1].setEnabled(true);
 			this.hub.notifyRequest(new Request<>(RequestCode.CHANGE_ALGORITHM, this,
 					new Body<>(RequestType.PUT, BodyCode.DATA, false)));
 			this.hub.notifyRequest(new Request<>(RequestCode.CLEAR_SOLUTIONS, this));
 		});
 		JCheckBoxMenuItem divideAndConquer = new JCheckBoxMenuItem("NlogN");
 		divideAndConquer.addActionListener(e -> {
+			buttons[1].setEnabled(false);
 			this.hub.notifyRequest(new Request<>(RequestCode.CHANGE_ALGORITHM, this,
 					new Body<>(RequestType.PUT, BodyCode.DATA, true)));
 			this.hub.notifyRequest(new Request<>(RequestCode.CLEAR_SOLUTIONS, this));
@@ -256,7 +254,6 @@ public class View implements Notify {
 
 		JMenu help = new JMenu("Ayuda");
 		JMenuItem about = new JMenuItem("Manual de Usuario");
-		// about.setIcon(new ImageIcon(Config.ICON_TO_DISPLAY_MENU_OPTION));
 		about.addActionListener(e -> {
 			// TODO
 		});
@@ -268,7 +265,7 @@ public class View implements Notify {
 
 	private Section footer() {
 		Section buttonSection = new Section();
-		JButton[] buttons = new JButton[3];
+		buttons = new JButton[3];
 		buttons[0] = new JButton("Distancia Mínima");
 		buttons[0].addActionListener(e -> this.hub.notifyRequest(new Request<>(RequestCode.CALC_MIN_DIS, this)));
 		buttons[1] = new JButton("Dist Máxima");

@@ -6,7 +6,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.function.DoubleSupplier;
@@ -33,7 +36,7 @@ public class Controller implements Notify {
 	private boolean stop;
 	private boolean useNLogNAlgorithm;
 	private Boolean useMaxOnAuto;
-	private final int stripSize = 15;
+	private final int stripSize = 7;
 	private double lambda;
 	private Instant start;
 
@@ -129,7 +132,6 @@ public class Controller implements Notify {
 				Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, points);
 				this.hub.notifyRequest(new Request<>(RequestCode.NEW_DATA, this, body));
 			}
-
 			case GENERATE_EXPONENTIAL_DATA -> {
 				resetRNG();
 				this.hub.notifyRequest(new Request<>(RequestCode.GET_LAMBDA, this));
@@ -140,7 +142,6 @@ public class Controller implements Notify {
 				Body<Point[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, points);
 				this.hub.notifyRequest(new Request<>(RequestCode.NEW_DATA, this, body));
 			}
-
 			case GENERATE_BERNOULLI_DATA -> {
 				resetRNG();
 				Point[] points = generateData(
@@ -179,14 +180,12 @@ public class Controller implements Notify {
 				this.hub.notifyRequest(new Request<>(RequestCode.GET_DATA, this));
 				this.hub.notifyRequest(new Request<>(RequestCode.GET_ALGORITHM, this));
 				if (this.useNLogNAlgorithm) {
-					Thread.startVirtualThread(this::calculateMaxDistanceNLogN);
+					// Thread.startVirtualThread(this::calculateMaxDistanceNLogN);
 				} else {
 					Thread.startVirtualThread(this::calculateMaxDistanceNN);
 				}
 			}
 			case CALC_STATS -> {
-
-				// this.hub.notifyRequest(new Request<>(RequestCode.GET_STATS_DATA, this));
 				Thread.startVirtualThread(this::calculateStats);
 			}
 			case CALC_AUTO -> {
@@ -223,7 +222,7 @@ public class Controller implements Notify {
 			}
 			if (this.useMaxOnAuto.booleanValue()) {
 				if (this.useNLogNAlgorithm) {
-					this.calculateMaxDistanceNLogN();
+					// this.calculateMaxDistanceNLogN();
 				} else {
 					this.calculateMaxDistanceNN();
 				}
@@ -260,28 +259,56 @@ public class Controller implements Notify {
 		statsData[12] = max.stream().mapToDouble(Solution::time).average().orElse(0);
 		statsData[13] = min.stream().mapToDouble(Solution::time).average().orElse(0);
 
+		// Repetición de puntos
+		// ----- N^2 ------
+		// statsData[6] = this.calcPointFreq(max); // NEW
+		// statsData[7] = this.calcPointFreq(min); // NEW
+
 		// ------ NLogN -----------
-		max = this.hub.getModel().getSolutionsForMaxNLogN();
 		min = this.hub.getModel().getSolutionsForMinNLogN();
 
 		// Media de las distancias
-		statsData[6] = max.stream().mapToDouble(Solution::distance).average().orElse(0);
 		statsData[9] = min.stream().mapToDouble(Solution::distance).average().orElse(0);
-
-		// Maximo y minimo de las maximas distancias
-		statsData[7] = max.stream().mapToDouble(Solution::distance).max().orElse(0);
-		statsData[8] = max.stream().mapToDouble(Solution::distance).min().orElse(0);
 
 		// Maximo y minimo de las minimas distancias
 		statsData[10] = min.stream().mapToDouble(Solution::distance).max().orElse(0);
 		statsData[11] = min.stream().mapToDouble(Solution::distance).min().orElse(0);
 
 		// Tiempo media ejecucion
-		statsData[14] = max.stream().mapToDouble(Solution::time).average().orElse(0);
 		statsData[15] = min.stream().mapToDouble(Solution::time).average().orElse(0);
+
+		// Repetición de puntos
+		// ----- NLogN ------
+		// statsData[8] = this.calcPointFreq(min); // NEW
+		// statsData[14] = max.stream().mapToDouble(Solution::time).average().orElse(0);
 
 		Body<Object[]> body = new Body<>(RequestType.PUT, BodyCode.DATA, statsData);
 		this.hub.notifyRequest(new Request<>(RequestCode.STATS_DATA, this, body));
+	}
+
+	public Object[] calcPointFreq(int c) {
+		ArrayList<Solution> list = switch (c) {
+			case 0 -> this.hub.getModel().getSolutionsForMaxNN();
+			case 1 -> this.hub.getModel().getSolutionsForMinNN();
+			case 2 -> this.hub.getModel().getSolutionsForMinNLogN();
+			default -> throw new IllegalStateException("Unexpected value: " + c);
+		};
+		HashMap<Point, Integer> map = new HashMap<>();
+		for (Solution s : list) {
+			Point p = s.pair().p1();
+			map.put(p, map.getOrDefault(p, 0) + 1);
+			p = s.pair().p2();
+			map.put(p, map.getOrDefault(p, 0) + 1);
+		}
+		int max = 0;
+		Point p = null;
+		for (Map.Entry<Point, Integer> entry : map.entrySet()) {
+			if (entry.getValue() > max) {
+				max = entry.getValue();
+				p = entry.getKey();
+			}
+		}
+		return new Object[] { p, max };
 	}
 
 	private PairPoint[] getList(boolean isMin, boolean isNLogN) {
@@ -414,103 +441,13 @@ public class Controller implements Notify {
 		saveSolutions(new ArrayList<>(maxHeap), false, false);
 	}
 
-	private void calculateMaxDistanceNLogN() {
-		this.hub.notifyRequest(new Request<>(RequestCode.GET_SOLUTION_AMOUNT, this));
-
-		this.start = Instant.now();
-
-		Point[] dataCopy = Arrays.copyOf(this.data, this.data.length);
-		Arrays.sort(dataCopy, 0, dataCopy.length, Comparator.comparingDouble(Point::x));
-
-		List<Solution> solutionsList = farthestPairs(0, data.length - 1, dataCopy);
-
-		Logger.getLogger(this.getClass().getSimpleName())
-				.log(Level.INFO, "Time taken: {0} milliseconds", Duration.between(start, Instant.now()).toMillis());
-
-		saveSolutions(solutionsList, false, true);
-	}
-
-	private List<Solution> farthestPairs(int low, int high, Point[] dataCopy) {
-		// TODO: Create an option to aplly this optimization
-		if (high - low + 1 <= this.stripSize) {
-			return bruteForceOfMax(low, high, dataCopy);
-		}
-
-		int mid = (low + high) / 2;
-
-		List<Solution> left = farthestPairs(low, mid, dataCopy);
-		List<Solution> right = farthestPairs(mid + 1, high, dataCopy);
-
-		if (low == 0 && high == 1154) {
-			int a = 0;
-		}
-		left.addAll(right);
-
-		// Sort by distance
-		// TODO: #47 Upgrade this to a N time complexity
-		left.sort(Comparator.comparingDouble(Solution::distance));
-
-		// Get the highest distance from the two parts
-		List<Solution> solutionsList = left.subList(this.nSolutions, left.size());
-		double maxDistance = solutionsList.get(solutionsList.size() - 1).distance();
-
-		ArrayList<Point> strip = new ArrayList<>();
-
-		// Left side
-		Point midPoint = dataCopy[mid];
-		for (int i = low; dataCopy[i].euclideanDistanceTo(midPoint) > maxDistance; i++) {
-			strip.add(dataCopy[i]);
-		}
-
-		// Right side
-		for (int i = high; dataCopy[i].euclideanDistanceTo(midPoint) > maxDistance; i--) {
-			strip.add(dataCopy[i]);
-		}
-
-		strip.sort(Comparator.comparingDouble(Point::y));
-
-		for (int i = 0; i < strip.size(); i++) {
-			for (int j = i + 1; j < strip.size(); j++) {
-				double tempDistance = strip.get(i).euclideanDistanceTo(strip.get(j));
-				if (tempDistance > solutionsList.get(0).distance()
-						&& isNotInPairList(strip.get(i), strip.get(j), false, true)) {
-					solutionsList.set(0,
-							new Solution(new PairPoint(strip.get(i), strip.get(j)),
-									tempDistance,
-									Duration.between(start, Instant.now()).toMillis()));
-					solutionsList
-							.sort((solution1, solution2) -> Double.compare(solution1.distance(), solution2.distance()));
-				}
-			}
-		}
-
-		return solutionsList;
-	}
-
-	private List<Solution> bruteForceOfMax(int low, int high, Point[] dataCopy) {
-		Solution[] solutions = initSolutions(false);
-		for (int i = low; i <= high; i++) {
-			for (int j = i + 1; j <= high; j++) {
-				double tempDistance = dataCopy[i].euclideanDistanceTo(dataCopy[j]);
-				if (tempDistance > solutions[0].distance() && isNotInPairList(dataCopy[i], dataCopy[j], false, true)) {
-					solutions[0] = new Solution(new PairPoint(dataCopy[i], dataCopy[j]),
-							tempDistance,
-							Duration.between(this.start, Instant.now()).toMillis());
-					Arrays.sort(solutions,
-							(solution1, solution2) -> Double.compare(solution1.distance(), solution2.distance()));
-				}
-			}
-		}
-		return new ArrayList<>(Arrays.asList(solutions));
-	}
-
 	private void calculateMinDistanceNLogN() {
 		this.hub.notifyRequest(new Request<>(RequestCode.GET_SOLUTION_AMOUNT, this));
 
 		this.start = Instant.now();
 
 		Point[] dataCopy = Arrays.copyOf(this.data, this.data.length);
-		Arrays.sort(dataCopy, 0, dataCopy.length, Comparator.comparingDouble(Point::x));
+		Arrays.sort(dataCopy, Comparator.comparingDouble(Point::x));
 
 		List<Solution> solutionsList = closestPairs(0, 100, dataCopy);
 
@@ -572,8 +509,7 @@ public class Controller implements Notify {
 							new Solution(new PairPoint(strip.get(i), strip.get(j)),
 									tempDistance,
 									Duration.between(start, Instant.now()).toMillis()));
-					solutionsList
-							.sort((solution1, solution2) -> Double.compare(solution2.distance(), solution1.distance()));
+					solutionsList.sort(Comparator.comparingDouble(Solution::distance));
 				}
 			}
 		}
@@ -586,13 +522,12 @@ public class Controller implements Notify {
 		for (int i = 0; i < dataCopy.size(); i++) {
 			for (int j = i + 1; j < dataCopy.size(); j++) {
 				double tempDistance = dataCopy.get(i).euclideanDistanceTo(dataCopy.get(j));
-				if (tempDistance < solutions[0].distance()
+				if (tempDistance < solutions[solutions.length - 1].distance()
 						&& isNotInPairList(dataCopy.get(i), dataCopy.get(j), true, true)) {
-					solutions[0] = new Solution(new PairPoint(dataCopy.get(i), dataCopy.get(j)),
+					solutions[solutions.length - 1] = new Solution(new PairPoint(dataCopy.get(i), dataCopy.get(j)),
 							tempDistance,
 							Duration.between(this.start, Instant.now()).toMillis());
-					Arrays.sort(solutions,
-							(solution1, solution2) -> Double.compare(solution2.distance(), solution1.distance()));
+					Arrays.sort(solutions, Comparator.comparingDouble(Solution::distance));
 				}
 			}
 		}
@@ -615,7 +550,7 @@ public class Controller implements Notify {
 			this.calculateMaxDistanceNN();
 			this.calculateMinDistanceNN();
 			// NLogN
-			this.calculateMaxDistanceNLogN();
+			// this.calculateMaxDistanceNLogN();
 			this.calculateMinDistanceNLogN();
 		}
 	}
