@@ -423,19 +423,47 @@ public class Controller implements Notify {
 		Arrays.sort(dataCopy, 0, dataCopy.length, Comparator.comparingDouble(Point::x));
 
 		List<Solution> solutionsList = farthestPairs(0, data.length - 1, dataCopy);
+
+		Logger.getLogger(this.getClass().getSimpleName())
+				.log(Level.INFO, "Time taken: {0} milliseconds", Duration.between(start, Instant.now()).toMillis());
+
+		saveSolutions(solutionsList, false, true);
+	}
+
+	private List<Solution> farthestPairs(int low, int high, Point[] dataCopy) {
+		// TODO: Create an option to aplly this optimization
+		if (high - low + 1 <= this.stripSize) {
+			return bruteForceOfMax(low, high, dataCopy);
+		}
+
+		int mid = (low + high) / 2;
+
+		List<Solution> left = farthestPairs(low, mid, dataCopy);
+		List<Solution> right = farthestPairs(mid + 1, high, dataCopy);
+
+		if (low == 0 && high == 1154) {
+			int a = 0;
+		}
+		left.addAll(right);
+
+		// Sort by distance
+		// TODO: #47 Upgrade this to a N time complexity
+		left.sort(Comparator.comparingDouble(Solution::distance));
+
+		// Get the highest distance from the two parts
+		List<Solution> solutionsList = left.subList(this.nSolutions, left.size());
 		double maxDistance = solutionsList.get(solutionsList.size() - 1).distance();
 
 		ArrayList<Point> strip = new ArrayList<>();
 
 		// Left side
-		double leftThreshold = dataCopy[dataCopy.length / 2].x() - (maxDistance / 2);
-		for (int i = 0; dataCopy[i].x() <= leftThreshold; i++) {
+		Point midPoint = dataCopy[mid];
+		for (int i = low; dataCopy[i].euclideanDistanceTo(midPoint) > maxDistance; i++) {
 			strip.add(dataCopy[i]);
 		}
 
 		// Right side
-		double rightThreshold = dataCopy[dataCopy.length / 2].x() + (maxDistance / 2);
-		for (int i = dataCopy.length - 1; dataCopy[i].x() >= rightThreshold; i--) {
+		for (int i = high; dataCopy[i].euclideanDistanceTo(midPoint) > maxDistance; i--) {
 			strip.add(dataCopy[i]);
 		}
 
@@ -456,31 +484,7 @@ public class Controller implements Notify {
 			}
 		}
 
-		Logger.getLogger(this.getClass().getSimpleName())
-				.log(Level.INFO, "Time taken: {0} milliseconds", Duration.between(start, Instant.now()).toMillis());
-
-		saveSolutions(solutionsList, false, true);
-	}
-
-	private List<Solution> farthestPairs(int low, int high, Point[] dataCopy) {
-		// TODO: Create an option to aplly this optimization
-		if (high - low + 1 <= this.stripSize) {
-			return bruteForceOfMax(low, high, dataCopy);
-		}
-
-		int mid = (low + high) / 2;
-
-		List<Solution> left = farthestPairs(low, mid, dataCopy);
-		List<Solution> right = farthestPairs(mid + 1, high, dataCopy);
-
-		left.addAll(right);
-
-		// Sort by distance
-		// TODO: #47 Upgrade this to a N time complexity
-		left.sort(Comparator.comparingDouble(Solution::distance));
-
-		// Get the highest distance from the two parts
-		return left.subList(this.nSolutions - 1, left.size() - 1);
+		return solutionsList;
 	}
 
 	private List<Solution> bruteForceOfMax(int low, int high, Point[] dataCopy) {
@@ -508,36 +512,7 @@ public class Controller implements Notify {
 		Point[] dataCopy = Arrays.copyOf(this.data, this.data.length);
 		Arrays.sort(dataCopy, 0, dataCopy.length, Comparator.comparingDouble(Point::x));
 
-		List<Solution> solutionsList = closestPairs(0, data.length - 1, dataCopy);
-		double minDistance = solutionsList.get(solutionsList.size() - 1).distance();
-
-		ArrayList<Point> strip = new ArrayList<>();
-
-		// Center slice
-		double leftThreshold = dataCopy[dataCopy.length / 2].x() - (minDistance / 2);
-		double rightThreshold = dataCopy[dataCopy.length / 2].x() + (minDistance / 2);
-		for (Point point : dataCopy) {
-			if (point.x() >= leftThreshold && point.x() <= rightThreshold) {
-				strip.add(point);
-			}
-		}
-
-		strip.sort(Comparator.comparingDouble(Point::y));
-
-		for (int i = 0; i < strip.size(); i++) {
-			for (int j = i + 1; j < strip.size(); j++) {
-				double tempDistance = strip.get(i).euclideanDistanceTo(strip.get(j));
-				if (tempDistance < solutionsList.get(0).distance()
-						&& isNotInPairList(strip.get(i), strip.get(j), true, true)) {
-					solutionsList.set(0,
-							new Solution(new PairPoint(strip.get(i), strip.get(j)),
-									tempDistance,
-									Duration.between(start, Instant.now()).toMillis()));
-					solutionsList
-							.sort((solution1, solution2) -> Double.compare(solution2.distance(), solution1.distance()));
-				}
-			}
-		}
+		List<Solution> solutionsList = closestPairs(0, 100, dataCopy);
 
 		Logger.getLogger(this.getClass().getSimpleName())
 				.log(Level.INFO, "Time taken: {0} milliseconds", Duration.between(start, Instant.now()).toMillis());
@@ -549,13 +524,20 @@ public class Controller implements Notify {
 	private List<Solution> closestPairs(int low, int high, Point[] dataCopy) {
 		// TODO: Create an option to aplly this optimization
 		if (high - low + 1 <= this.stripSize) {
-			return bruteForceOfMin(low, high, dataCopy);
+			ArrayList<Point> dataSlice = new ArrayList<>();
+			for (Point point : dataCopy) {
+				if (point.x() > low && point.x() < high) {
+					dataSlice.add(point);
+				}
+			}
+
+			return bruteForceOfMin(dataSlice);
 		}
 
 		int mid = (low + high) / 2;
 
 		List<Solution> left = closestPairs(low, mid, dataCopy);
-		List<Solution> right = closestPairs(mid + 1, high, dataCopy);
+		List<Solution> right = closestPairs(mid, high, dataCopy);
 
 		left.addAll(right);
 
@@ -563,17 +545,50 @@ public class Controller implements Notify {
 		// TODO: #47 Upgrade this to a N time complexity
 		left.sort(Comparator.comparingDouble(Solution::distance));
 
-		// Get the highest distance from the two parts
-		return left.subList(0, this.nSolutions - 1);
+		// Get the least distance from the two parts
+		List<Solution> solutionsList = left.subList(0, this.nSolutions);
+
+		double minDistance = solutionsList.get(0).distance();
+
+		ArrayList<Point> strip = new ArrayList<>();
+
+		// Center slice
+		double leftThreshold = mid - minDistance;
+		double rightThreshold = mid + minDistance;
+		for (Point point : dataCopy) {
+			if (point.x() > leftThreshold && point.x() < rightThreshold) {
+				strip.add(point);
+			}
+		}
+
+		strip.sort(Comparator.comparingDouble(Point::y));
+
+		for (int i = 0; i < strip.size(); i++) {
+			for (int j = i + 1; j < strip.size(); j++) {
+				double tempDistance = strip.get(i).euclideanDistanceTo(strip.get(j));
+				if (tempDistance < solutionsList.get(solutionsList.size() - 1).distance()
+						&& isNotInPairList(strip.get(i), strip.get(j), true, true)) {
+					solutionsList.set(solutionsList.size() - 1,
+							new Solution(new PairPoint(strip.get(i), strip.get(j)),
+									tempDistance,
+									Duration.between(start, Instant.now()).toMillis()));
+					solutionsList
+							.sort((solution1, solution2) -> Double.compare(solution2.distance(), solution1.distance()));
+				}
+			}
+		}
+
+		return solutionsList;
 	}
 
-	private List<Solution> bruteForceOfMin(int low, int high, Point[] dataCopy) {
+	private List<Solution> bruteForceOfMin(ArrayList<Point> dataCopy) {
 		Solution[] solutions = initSolutions(true);
-		for (int i = low; i <= high; i++) {
-			for (int j = i + 1; j <= high; j++) {
-				double tempDistance = dataCopy[i].euclideanDistanceTo(dataCopy[j]);
-				if (tempDistance < solutions[0].distance() && isNotInPairList(dataCopy[i], dataCopy[j], true, true)) {
-					solutions[0] = new Solution(new PairPoint(dataCopy[i], dataCopy[j]),
+		for (int i = 0; i < dataCopy.size(); i++) {
+			for (int j = i + 1; j < dataCopy.size(); j++) {
+				double tempDistance = dataCopy.get(i).euclideanDistanceTo(dataCopy.get(j));
+				if (tempDistance < solutions[0].distance()
+						&& isNotInPairList(dataCopy.get(i), dataCopy.get(j), true, true)) {
+					solutions[0] = new Solution(new PairPoint(dataCopy.get(i), dataCopy.get(j)),
 							tempDistance,
 							Duration.between(this.start, Instant.now()).toMillis());
 					Arrays.sort(solutions,

@@ -136,8 +136,8 @@ public class WindowStats {
 		panel.add(nnMax);
 		panel.add(nnMin);
 		panel.add(nnTime);
-		panel.add(nlognMin);
 		panel.add(nlognMax);
+		panel.add(nlognMin);
 		panel.add(nlognTime);
 		panel.add(nnVsnlognMax);
 		panel.add(nnVsnlognMin);
