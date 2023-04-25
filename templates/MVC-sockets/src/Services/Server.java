@@ -19,7 +19,7 @@ public interface Server {
 	 * Handles all the requests that are sent to the server via sockets
 	 *
 	 */
-	public void requestHandler();
+	public void requestHandler(Request request);
 
 	/**
 	 * Validates a the request
@@ -34,8 +34,6 @@ public interface Server {
 	 * @param request
 	 */
 	public void requestExecutor(Request request);
-
-	// public Response responseHandler();
 
 	/**
 	 * Loads the services that are available to the server where the key is the

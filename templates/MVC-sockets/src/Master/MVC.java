@@ -5,6 +5,7 @@ import Services.Server;
 import Services.Service;
 import Services.Comunication.Request.Request;
 import Services.Comunication.Response.Response;
+import Services.Comunication.Response.ResponseCode;
 import View.View;
 import utils.Config;
 
@@ -26,6 +27,8 @@ public class MVC implements Server {
 	private Model model;
 	private View view;
 	private Controller controller;
+	private Map<String, Service> requestMap;
+	private boolean running = true;
 
 	public MVC() {
 		this.model = new Model(this);
@@ -54,48 +57,31 @@ public class MVC implements Server {
 	}
 
 	private void initServer() {
-		ServerSocket serverSocket = null;
-		try {
-			// Create a server socket on port 1234
-			serverSocket = new ServerSocket(Config.SERVER_PORT);
+		this.requestMap = this.requestMapLoader();
+		try (ServerSocket serverSocket = new ServerSocket(Config.SERVER_PORT)) {
 			this.logMessage("Server started.");
-			int i = 0;
-			while (true) {
-				if (i == 10) {
-					break;
-				}
+			while (running) {
 				// Wait for a client connection
 				Socket clientSocket = serverSocket.accept();
-				this.logMessage("Client connected.");
+				this.logMessage("Client connected." + clientSocket.getInetAddress().toString());
 
 				// Get the input and output streams for the client socket
 				ObjectInputStream inputStream = new ObjectInputStream(clientSocket.getInputStream());
 
 				Request req = (Request) inputStream.readObject();
-				this.logMessage("Received from client: " + req.toString());
+				this.requestHandler(req);
 
 				ObjectOutputStream outputStream = new ObjectOutputStream(clientSocket.getOutputStream());
-				Response res = new Response();
+				Response res = new Response(ResponseCode.HELLO_WORLD, this);
 				outputStream.writeObject(res);
 
 				// Close the client socket
 				clientSocket.close();
-				this.logMessage("Client disconnected.");
-				i++;
+				this.logMessage("Client disconnected." + clientSocket.getInetAddress().toString());
 			}
 		} catch (IOException | ClassNotFoundException ex) {
 			this.logMessage(ex.getMessage());
 			ex.printStackTrace();
-		} finally {
-			this.logMessage("Server stopped.");
-			try {
-				if (serverSocket != null) {
-					serverSocket.close();
-				}
-			} catch (IOException ex) {
-				this.logMessage(ex.getMessage());
-				ex.printStackTrace();
-			}
 		}
 	}
 
@@ -107,9 +93,10 @@ public class MVC implements Server {
 	}
 
 	@Override
-	public void requestHandler() {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Unimplemented method 'requestHandler'");
+	public void requestHandler(Request request) {
+		// this.requestValidator(request);
+		this.logMessage("Received from client: " + request.toString());
+		// this.requestExecutor(request);
 	}
 
 	@Override
@@ -126,8 +113,8 @@ public class MVC implements Server {
 
 	@Override
 	public Map<String, Service> requestMapLoader() {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Unimplemented method 'requestMapLoader'");
+		// TODO
+		return null;
 	}
 
 	private void logMessage(String message) {

@@ -1,12 +1,22 @@
 package View;
 
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.swing.JButton;
 
 import Master.MVC;
 import Services.Service;
 import Services.Comunication.Request.Request;
+import Services.Comunication.Request.RequestCode;
+import Services.Comunication.Response.Response;
+import betterSwing.Section;
 import betterSwing.Window;
+import betterSwing.utils.DirectionAndPosition;
+import utils.Config;
 
 public class View implements Service {
 
@@ -44,14 +54,14 @@ public class View implements Service {
 		this.hub = mvc;
 		this.window = new Window(configPath);
 		this.window.initConfig();
-		this.loadContent();
 	}
 
 	@Override
 	public void start() {
-		// this.window.start();
 		Logger.getLogger(this.getClass().getSimpleName())
 				.log(Level.INFO, "View started.");
+		this.loadContent();
+		this.window.start();
 	}
 
 	@Override
@@ -72,14 +82,24 @@ public class View implements Service {
 
 	@Override
 	public void sendRequest() {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Unimplemented method 'sendRequest'");
+		try (Socket socket = new Socket("localhost", Config.SERVER_PORT)) {
+			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+			Request request = new Request(RequestCode.HELLO_WORLD, this);
+			out.writeObject(request);
+
+			ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+			Response response = (Response) in.readObject();
+			Logger.getLogger(this.getClass().getSimpleName())
+					.log(Level.INFO, "Response: {0}", response);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
 	}
 
 	@Override
 	public void sendResponse() {
 		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Unimplemented method 'sendResponse'");
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	/**
@@ -87,8 +107,11 @@ public class View implements Service {
 	 *
 	 */
 	private void loadContent() {
-		Logger.getLogger(this.getClass().getSimpleName())
-				.log(Level.INFO, "Loading content...");
+		Section demoSection = new Section();
+		JButton demoButton = new JButton("Click me!");
+		demoButton.addActionListener(e -> this.sendRequest());
+		demoSection.createButtons(new JButton[] { demoButton }, DirectionAndPosition.DIRECTION_ROW);
+		this.window.addSection(demoSection, DirectionAndPosition.POSITION_TOP, "Demo");
 	}
 
 }
