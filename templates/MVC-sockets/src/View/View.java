@@ -1,12 +1,17 @@
 package View;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import Master.MVC;
-import Request.Service;
-import Request.Request;
+import Services.Service;
+import Services.Comunication.Request.Request;
 import betterSwing.Window;
+import utils.Config;
 
 public class View implements Service {
 
@@ -49,6 +54,7 @@ public class View implements Service {
 
 	@Override
 	public void start() {
+		//this.window.start();
 		Logger.getLogger(this.getClass().getSimpleName())
 				.log(Level.INFO, "View started.");
 	}
@@ -69,6 +75,18 @@ public class View implements Service {
 		}
 	}
 
+	@Override
+	public void sendRequest() {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'sendRequest'");
+	}
+
+	@Override
+	public void sendResponse() {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'sendResponse'");
+	}
+
 	/**
 	 * Loads all the view content.
 	 *
@@ -76,15 +94,6 @@ public class View implements Service {
 	private void loadContent() {
 		Logger.getLogger(this.getClass().getSimpleName())
 				.log(Level.INFO, "Loading content...");
-	}
-
-	/**
-	 * Returns the window of the view.
-	 *
-	 * @return The window of the view.
-	 */
-	public Window getWindow() {
-		return this.window;
 	}
 
 }

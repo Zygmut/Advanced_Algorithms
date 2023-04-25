@@ -1,11 +1,16 @@
 package Model;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import Master.MVC;
-import Request.Service;
-import Request.Request;
+import Services.Service;
+import Services.Comunication.Request.Request;
+import utils.Config;
 
 public class Model implements Service {
 
@@ -35,6 +40,18 @@ public class Model implements Service {
 						.log(Level.SEVERE, "{0} is not implemented.", request);
 			}
 		}
+	}
+
+	@Override
+	public void sendRequest() {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'sendRequest'");
+	}
+
+	@Override
+	public void sendResponse() {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'sendResponse'");
 	}
 
 }

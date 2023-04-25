@@ -1,6 +1,10 @@
-package Request;
+package Services.Comunication.Request;
 
-public class Request {
+import java.io.Serializable;
+
+public class Request implements Serializable{
+
+	private static final long serialVersionUID = 123456789L;
 	public final RequestCode code;
 	public final String origin;
 
