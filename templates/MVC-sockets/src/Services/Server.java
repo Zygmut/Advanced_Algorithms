@@ -1,6 +1,5 @@
 package Services;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import Services.Comunication.Request.Request;

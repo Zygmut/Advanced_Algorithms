@@ -1,9 +1,5 @@
 package View;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -11,7 +7,6 @@ import Master.MVC;
 import Services.Service;
 import Services.Comunication.Request.Request;
 import betterSwing.Window;
-import utils.Config;
 
 public class View implements Service {
 
@@ -54,7 +49,7 @@ public class View implements Service {
 
 	@Override
 	public void start() {
-		//this.window.start();
+		// this.window.start();
 		Logger.getLogger(this.getClass().getSimpleName())
 				.log(Level.INFO, "View started.");
 	}
