@@ -3,13 +3,13 @@
 	"height": "500",
 	"x": "0",
 	"y": "0",
-	"title": "Práctica 4 - Greedy / Short-sighted - Estadísticas",
+	"title": "Práctica 4 - Greedy / Short-sighted - Manual de usuario",
 	"lookAndFeel": "Nimbus",
-	"windowOnCenter": "true",
+	"windowOnCenter": "false",
 	"windowResizable": "true",
 	"windowCloseOperation": "DISPOSE_ON_CLOSE",
 	"windowIcon": "",
-	"windowWidthCenter": "true",
+	"windowWidthCenter": "false",
 	"windowOnLoadVisible": "true",
 	"bgColor": "black"
 }

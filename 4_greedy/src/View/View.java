@@ -202,7 +202,8 @@ public class View implements Service {
 		JMenu help = new JMenu("Ayuda");
 		JMenuItem about = new JMenuItem("Manual de Usuario");
 		about.addActionListener(e -> {
-			// TODO
+			WindowUsage usage = new WindowUsage();
+			usage.show();
 		});
 		help.add(about);
 		menuBar.add(help);
