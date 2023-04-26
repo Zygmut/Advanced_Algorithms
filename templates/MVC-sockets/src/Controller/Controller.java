@@ -30,7 +30,7 @@ public class Controller implements Service {
 		switch (request.code) {
 			case HELLO_WORLD -> {
 				Logger.getLogger(this.getClass().getSimpleName())
-						.log(Level.INFO, "Hello World!");
+						.log(Level.INFO, "The body of the request is: {0}", request.body);
 			}
 			case HELLO_WORLD_2 -> {
 				Logger.getLogger(this.getClass().getSimpleName())

@@ -10,6 +10,7 @@ import javax.swing.JButton;
 
 import Master.MVC;
 import Services.Service;
+import Services.Comunication.Content.Body;
 import Services.Comunication.Request.Request;
 import Services.Comunication.Request.RequestCode;
 import Services.Comunication.Response.Response;
@@ -105,7 +106,8 @@ public class View implements Service {
 		Section demoSection = new Section();
 		JButton demoButton = new JButton("Click me!");
 		demoButton.addActionListener(e -> {
-			Request request = new Request(RequestCode.HELLO_WORLD, this);
+			String message = "Hello World!";
+			Request request = new Request(RequestCode.HELLO_WORLD, this, new Body(message));
 			this.sendRequest(request);
 		});
 		demoSection.createButtons(new JButton[] { demoButton }, DirectionAndPosition.DIRECTION_ROW);
