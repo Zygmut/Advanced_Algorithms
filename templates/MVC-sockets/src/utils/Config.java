@@ -19,7 +19,7 @@ public class Config {
 	/**
 	 * Indicates where is the {@code View} configuration file located at.
 	 */
-	public static final String VIEW_CONFIG_PATH = "./src/view/settings/main.json";
+	public static final String VIEW_MAIN_WIN_CONFIG_PATH = "./src/view/settings/main.json";
 	/**
 	 * Indicates where is the {@code MVC (Hub)} configuration file located at.
 	 */

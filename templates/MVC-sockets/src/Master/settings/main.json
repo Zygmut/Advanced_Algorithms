@@ -9,5 +9,16 @@
 			"services": ["CONTROLLER", "VIEW", "MODEL"]
 		}
 	],
-	"responseMap": []
+	"responseMap": [
+		{
+			"code": "TEST",
+			"services": ["CONTROLLER", "VIEW", "MODEL"]
+		}
+	],
+	"resToReqMap": [
+		{
+			"responseCode": "TEST",
+			"requestCode": "HELLO_WORLD"
+		}
+	]
 }

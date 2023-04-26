@@ -77,7 +77,6 @@ public class View implements Service {
 
 	@Override
 	public void sendRequest(Request request) {
-		// Hello World example
 		try (Socket socket = new Socket(Config.SERVER_HOST, Config.SERVER_PORT)) {
 			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 			out.writeObject(request);
@@ -94,8 +93,13 @@ public class View implements Service {
 
 	@Override
 	public void sendResponse(Response response) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Not supported yet.");
+		try (Socket socket = new Socket(Config.SERVER_HOST, Config.SERVER_PORT)) {
+			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+			out.writeObject(response);
+		} catch (Exception e) {
+			Logger.getLogger(this.getClass().getSimpleName())
+					.log(Level.SEVERE, "Error while sending response.", e);
+		}
 	}
 
 	/**

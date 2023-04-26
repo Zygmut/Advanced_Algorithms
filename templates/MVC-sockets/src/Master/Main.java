@@ -9,7 +9,7 @@ public class Main {
 		if (!Config.DEBUG) {
 			Mesurament.mesura();
 		}
-		MVC mvc = new MVC(Config.VIEW_CONFIG_PATH);
+		MVC mvc = new MVC(Config.VIEW_MAIN_WIN_CONFIG_PATH);
 		mvc.start();
 	}
 }

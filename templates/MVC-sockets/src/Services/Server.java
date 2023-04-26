@@ -1,9 +1,6 @@
 package Services;
 
-import java.util.Map;
-
 import Services.Comunication.Request.Request;
-import Services.Comunication.Request.RequestCode;
 import Services.Comunication.Response.Response;
 
 /**
@@ -16,6 +13,12 @@ import Services.Comunication.Response.Response;
  *
  * Also, a server should be able to load the endpoints of the services from a
  * config file.
+ *
+ * It's important that the sever should have to maps from the endpoints to the
+ * services, specificly one for the requests and one for the responses. In our
+ * case, it should be a {@code Map<RequestCode, Service[]>} and a
+ * {@code Map<ResponseCode,
+ * Service[]>}.
  *
  * @see Services.Comunication.Request.Request
  * @see Services.Comunication.Response.Response
@@ -57,10 +60,8 @@ public interface Server {
 	/**
 	 * Loads the services that are available to the server where the key is the
 	 * endpoint and the value is the service that is associated with the endpoint.
-	 *
-	 * @return Map<RequestCode, Service[]> the map from the endpoint to the service
 	 */
-	public Map<RequestCode, Service[]> requestMapLoader();
+	public void mapLoader();
 
 	/**
 	 * Handles all the responses that are sent to the server via sockets.
@@ -68,4 +69,11 @@ public interface Server {
 	 * @param response the response to be handled
 	 */
 	public void responseHandler(Response response);
+
+	/**
+	 * Executes the response
+	 *
+	 * @param response the response to be executed
+	 */
+	public void responseExecutor(Response response);
 }

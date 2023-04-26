@@ -33,25 +33,36 @@ public class MVC implements Server {
 	private Model model;
 	private View view;
 	private Controller controller;
-	private Map<RequestCode, Service[]> requestMap;
+	private Map<RequestCode, Service[]> reqMap;
+	private Map<ResponseCode, Service[]> resMap;
+	private Map<ResponseCode, RequestCode> resToReqMap;
 	private boolean running = true;
 
 	public MVC() {
 		this.model = new Model();
 		this.view = new View();
 		this.controller = new Controller();
+		this.reqMap = new EnumMap<>(RequestCode.class);
+		this.resMap = new EnumMap<>(ResponseCode.class);
+		this.resToReqMap = new EnumMap<>(ResponseCode.class);
 	}
 
 	public MVC(Model model, View view, Controller controller) {
 		this.model = model;
 		this.view = view;
 		this.controller = controller;
+		this.reqMap = new EnumMap<>(RequestCode.class);
+		this.resMap = new EnumMap<>(ResponseCode.class);
+		this.resToReqMap = new EnumMap<>(ResponseCode.class);
 	}
 
 	public MVC(String configPath) {
 		this.model = new Model();
 		this.controller = new Controller();
 		this.view = new View(configPath);
+		this.reqMap = new EnumMap<>(RequestCode.class);
+		this.resMap = new EnumMap<>(ResponseCode.class);
+		this.resToReqMap = new EnumMap<>(ResponseCode.class);
 	}
 
 	@Override
@@ -66,8 +77,12 @@ public class MVC implements Server {
 		this.running = false;
 	}
 
+	/**
+	 * This method initializes the server by loading the endpoints from the config
+	 * and starting the server socket. Also it manages the requests and responses.
+	 */
 	private void initServer() {
-		this.requestMap = this.requestMapLoader();
+		this.mapLoader();
 		try (ServerSocket serverSocket = new ServerSocket(Config.SERVER_PORT)) {
 			this.logMessage("Server started.");
 			while (running) {
@@ -118,12 +133,12 @@ public class MVC implements Server {
 
 	@Override
 	public boolean requestValidator(Request request) {
-		return this.requestMap.containsKey(request.code);
+		return this.reqMap.containsKey(request.code);
 	}
 
 	@Override
 	public void requestExecutor(Request request) {
-		Service[] services = this.requestMap.get(request.code);
+		Service[] services = this.reqMap.get(request.code);
 		for (Service service : services) {
 			this.logMessage("Request sent to service: " + service.getClass().getSimpleName());
 			service.notifyRequest(request);
@@ -131,47 +146,67 @@ public class MVC implements Server {
 	}
 
 	@Override
-	public Map<RequestCode, Service[]> requestMapLoader() {
-		Map<RequestCode, Service[]> map = new EnumMap<>(RequestCode.class);
+	public void mapLoader() {
 		// Read the request map from the config file
 		Gson gson = new Gson();
 		try (BufferedReader br = new BufferedReader(new FileReader(Config.MVC_CONFIG_PATH))) {
 			ConfigHolder config = gson.fromJson(br, ConfigHolder.class);
-			for (RequestMapHolder holder : config.requestMap) {
-				map.put(holder.code, this.stringToServices(holder.services));
+			for (Master.MVC.ConfigHolder.RequestMapHolder holder : config.requestMap) {
+				reqMap.put(holder.code, this.stringToServices(holder.services));
+			}
+			for (Master.MVC.ConfigHolder.ResponseMapHolder holder : config.responseMap) {
+				resMap.put(holder.code, this.stringToServices(holder.services));
+			}
+			for (ResponseToRequestMapHolder holder : config.resToReqMap) {
+				resToReqMap.put(holder.responseCode, holder.requestCode);
 			}
 		} catch (Exception e) {
-			throw new RuntimeException("Error loading the request map from the config file.", e);
+			throw new ConfigLoaderException("Error loading the request map from the config file.", e);
 		}
-		return map;
 	}
 
 	@Override
 	public void responseHandler(Response response) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Unimplemented method 'responseHandler'");
+		this.logMessage("Received from client: " + response.toString());
+		Thread.startVirtualThread(() -> this.responseExecutor(response));
+		this.logMessage("Response processed.");
 	}
 
+	@Override
+	public void responseExecutor(Response response) {
+		Service[] services = this.resMap.get(response.code);
+		for (Service service : services) {
+			this.logMessage("Response sent to service: " + service.getClass().getSimpleName());
+			service.notifyRequest(this.resToReq(response));
+		}
+	}
+
+	/**
+	 * This method converts a response to a request.
+	 *
+	 * @param response The response to convert.
+	 * @return The converted request.
+	 */
+	private Request resToReq(Response response) {
+		return new Request(this.resToReqMap.get(response.code), response.origin, response.body);
+	}
+
+	/**
+	 * This method logs a message to the console using the logger.
+	 *
+	 * @param message The message to log.
+	 */
 	private void logMessage(String message) {
 		Logger.getLogger(this.getClass().getName()).log(Level.INFO, "[SERVER]: {0}",
 				new Object[] { message });
 	}
 
-	private class ConfigHolder {
-		private RequestMapHolder[] requestMap;
-		private ResponseMapHolder[] responseMap;
-	}
-
-	private class RequestMapHolder {
-		private RequestCode code;
-		private String[] services;
-	}
-
-	private class ResponseMapHolder {
-		private ResponseCode code;
-		private String[] services;
-	}
-
+	/**
+	 * This method converts a string array to a service array.
+	 *
+	 * @param names The names of the services to convert.
+	 * @return The converted services.
+	 */
 	private Service[] stringToServices(String[] names) {
 		Service[] services = new Service[names.length];
 		for (int i = 0; i < names.length; i++) {
@@ -180,6 +215,12 @@ public class MVC implements Server {
 		return services;
 	}
 
+	/**
+	 * This method converts a string to a service.
+	 *
+	 * @param name The name of the service to convert.
+	 * @return The converted service.
+	 */
 	private Service stringToService(String name) {
 		// The name should be all in lower case execept the first letter
 		name = name.toLowerCase();
@@ -192,4 +233,186 @@ public class MVC implements Server {
 		};
 	}
 
+	private class ConfigLoaderException extends RuntimeException {
+
+		private static final long serialVersionUID = 1L;
+
+		public ConfigLoaderException(String message, Throwable cause) {
+			super(message, cause);
+		}
+	}
+
+	private record ConfigHolder(RequestMapHolder[] requestMap, ResponseMapHolder[] responseMap,
+			ResponseToRequestMapHolder[] resToReqMap) {
+
+		@Override
+		public boolean equals(Object obj) {
+			if (!(obj instanceof ConfigHolder)) {
+				return false;
+			}
+			ConfigHolder other = (ConfigHolder) obj;
+			if (this.requestMap.length != other.requestMap.length) {
+				return false;
+			}
+			if (this.responseMap.length != other.responseMap.length) {
+				return false;
+			}
+			for (int i = 0; i < this.requestMap.length; i++) {
+				if (!this.requestMap[i].equals(other.requestMap[i])) {
+					return false;
+				}
+			}
+			for (int i = 0; i < this.responseMap.length; i++) {
+				if (!this.responseMap[i].equals(other.responseMap[i])) {
+					return false;
+				}
+			}
+			return true;
+		}
+
+		@Override
+		public int hashCode() {
+			int hash = 0;
+			for (RequestMapHolder holder : this.requestMap) {
+				hash += holder.hashCode();
+			}
+			for (ResponseMapHolder holder : this.responseMap) {
+				hash += holder.hashCode();
+			}
+			return hash;
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			sb.append("Request map:\n");
+			for (RequestMapHolder holder : this.requestMap) {
+				sb.append(holder.toString());
+				sb.append("\n");
+			}
+			sb.append("Response map:\n");
+			for (ResponseMapHolder holder : this.responseMap) {
+				sb.append(holder.toString());
+				sb.append("\n");
+			}
+			return sb.toString();
+		}
+
+		private record RequestMapHolder(RequestCode code, String[] services) {
+			@Override
+			public boolean equals(Object obj) {
+				if (!(obj instanceof RequestMapHolder)) {
+					return false;
+				}
+				RequestMapHolder other = (RequestMapHolder) obj;
+				if (this.code != other.code) {
+					return false;
+				}
+				if (this.services.length != other.services.length) {
+					return false;
+				}
+				for (int i = 0; i < this.services.length; i++) {
+					if (!this.services[i].equals(other.services[i])) {
+						return false;
+					}
+				}
+				return true;
+			}
+
+			@Override
+			public int hashCode() {
+				int hash = this.code.hashCode();
+				for (String service : this.services) {
+					hash += service.hashCode();
+				}
+				return hash;
+			}
+
+			@Override
+			public String toString() {
+				StringBuilder sb = new StringBuilder();
+				sb.append("Request code: ");
+				sb.append(this.code);
+				sb.append("\n");
+				sb.append("Services: ");
+				for (String service : this.services) {
+					sb.append(service);
+					sb.append(", ");
+				}
+				return sb.toString();
+			}
+		}
+
+		private record ResponseMapHolder(ResponseCode code, String[] services) {
+			@Override
+			public boolean equals(Object obj) {
+				if (!(obj instanceof ResponseMapHolder)) {
+					return false;
+				}
+				ResponseMapHolder other = (ResponseMapHolder) obj;
+				if (this.code != other.code) {
+					return false;
+				}
+				if (this.services.length != other.services.length) {
+					return false;
+				}
+				for (int i = 0; i < this.services.length; i++) {
+					if (!this.services[i].equals(other.services[i])) {
+						return false;
+					}
+				}
+				return true;
+			}
+
+			@Override
+			public int hashCode() {
+				int hash = this.code.hashCode();
+				for (String service : this.services) {
+					hash += service.hashCode();
+				}
+				return hash;
+			}
+
+			@Override
+			public String toString() {
+				StringBuilder sb = new StringBuilder();
+				sb.append("Response code: ");
+				sb.append(this.code);
+				sb.append("\n");
+				sb.append("Services: ");
+				for (String service : this.services) {
+					sb.append(service);
+					sb.append(", ");
+				}
+				return sb.toString();
+			}
+		}
+	}
+
+	private record ResponseToRequestMapHolder(ResponseCode responseCode, RequestCode requestCode) {
+		@Override
+		public boolean equals(Object obj) {
+			if (!(obj instanceof ResponseToRequestMapHolder)) {
+				return false;
+			}
+			ResponseToRequestMapHolder other = (ResponseToRequestMapHolder) obj;
+			return this.responseCode == other.responseCode && this.requestCode == other.requestCode;
+		}
+
+		@Override
+		public int hashCode() {
+			return this.responseCode.hashCode() + this.requestCode.hashCode();
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			sb.append("Response code: ");
+			sb.append(this.responseCode);
+			sb.append("\n");
+			sb.append("Request code: ");
+			sb.append(this.requestCode);
+			return sb.toString();
+		}
+	}
 }
