@@ -4,6 +4,18 @@ import java.io.Serializable;
 
 import Services.Comunication.Content.Body;
 
+/**
+ * This class represents a response from a service to the {@code MVC (Hub)}. A
+ * response contains a code, an origin, a body and a status. By default, the
+ * body is null and the status is OK.
+ *
+ * This class is serializable so that it can be sent through sockets.
+ *
+ * @see Services.Comunication.Response.ResponseCode
+ * @see Services.Comunication.Response.ResponseStatus
+ * @see Services.Comunication.Content.Body
+ * @see java.io.Serializable
+ */
 public class Response implements Serializable {
 
 	private static final long serialVersionUID = 987654321L;
@@ -49,6 +61,6 @@ public class Response implements Serializable {
 
 	@Override
 	public String toString() {
-		return "Response [code=" + code + ", from=" + origin + ", content=" + body + "]";
+		return "Response [code=" + code + ", from=" + origin + ", content=" + body + ", status=" + status + "]";
 	}
 }

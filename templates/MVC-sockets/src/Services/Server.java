@@ -6,6 +6,21 @@ import Services.Comunication.Request.Request;
 import Services.Comunication.Request.RequestCode;
 import Services.Comunication.Response.Response;
 
+/**
+ * This interface represents a server in our application structure. A server is
+ * the {@code MVC (Hub)} of our application structure. A server is a thread, in
+ * our case the main thread, that runs in the background and communicates with
+ * the {@code Services} through the {@code Request} and {@code Response}
+ * classes. A server can be started and stopped, and it can send and receive
+ * {@code Request} and {@code Response} objects.
+ *
+ * Also, a server should be able to load the endpoints of the services from a
+ * config file.
+ *
+ * @see Services.Comunication.Request.Request
+ * @see Services.Comunication.Response.Response
+ * @see Services.Service
+ */
 public interface Server {
 	/**
 	 * Starts the server
