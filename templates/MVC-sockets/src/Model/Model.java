@@ -3,16 +3,14 @@ package Model;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import Master.MVC;
 import Services.Service;
 import Services.Comunication.Request.Request;
+import Services.Comunication.Response.Response;
 
 public class Model implements Service {
 
-	private MVC hub;
-
-	public Model(MVC mvc) {
-		this.hub = mvc;
+	public Model() {
+		// Initialize model things here
 	}
 
 	@Override
@@ -30,6 +28,14 @@ public class Model implements Service {
 	@Override
 	public void notifyRequest(Request request) {
 		switch (request.code) {
+			case HELLO_WORLD -> {
+				Logger.getLogger(this.getClass().getSimpleName())
+						.log(Level.INFO, "Hello World!");
+			}
+			case HELLO_WORLD_2 -> {
+				Logger.getLogger(this.getClass().getSimpleName())
+						.log(Level.INFO, "Hello World 2!");
+			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
@@ -38,13 +44,13 @@ public class Model implements Service {
 	}
 
 	@Override
-	public void sendRequest() {
+	public void sendRequest(Request request) {
 		// TODO Auto-generated method stub
 		throw new UnsupportedOperationException("Unimplemented method 'sendRequest'");
 	}
 
 	@Override
-	public void sendResponse() {
+	public void sendResponse(Response response) {
 		// TODO Auto-generated method stub
 		throw new UnsupportedOperationException("Unimplemented method 'sendResponse'");
 	}

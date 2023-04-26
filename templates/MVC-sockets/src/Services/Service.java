@@ -1,6 +1,7 @@
 package Services;
 
 import Services.Comunication.Request.Request;
+import Services.Comunication.Response.Response;
 
 public interface Service {
 	/**
@@ -22,11 +23,15 @@ public interface Service {
 
 	/**
 	 * Sends a request to the server
+	 *
+	 * @param request the request to be sent
 	 */
-	public void sendRequest();
+	public void sendRequest(Request request);
 
 	/**
 	 * Sends a response to the client
+	 *
+	 * @param response the response to be sent
 	 */
-	public void sendResponse();
+	public void sendResponse(Response response);
 }

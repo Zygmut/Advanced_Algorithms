@@ -21,10 +21,6 @@ import utils.Config;
 public class View implements Service {
 
 	/**
-	 * The MVC hub of the view.
-	 */
-	private MVC hub;
-	/**
 	 * The window of the view.
 	 */
 	private Window window;
@@ -35,8 +31,7 @@ public class View implements Service {
 	 * @param mvc The MVC hub of the view.
 	 * @see MVC
 	 */
-	public View(MVC mvc) {
-		this.hub = mvc;
+	public View() {
 		this.window = new Window();
 		this.window.initConfig();
 		this.loadContent();
@@ -50,8 +45,7 @@ public class View implements Service {
 	 * @param configPath The path to its config.
 	 * @see MVC
 	 */
-	public View(MVC mvc, String configPath) {
-		this.hub = mvc;
+	public View(String configPath) {
 		this.window = new Window(configPath);
 		this.window.initConfig();
 	}
@@ -81,10 +75,10 @@ public class View implements Service {
 	}
 
 	@Override
-	public void sendRequest() {
-		try (Socket socket = new Socket("localhost", Config.SERVER_PORT)) {
+	public void sendRequest(Request request) {
+		// Hello World example
+		try (Socket socket = new Socket(Config.SERVER_HOST, Config.SERVER_PORT)) {
 			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-			Request request = new Request(RequestCode.HELLO_WORLD, this);
 			out.writeObject(request);
 
 			ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
@@ -92,12 +86,13 @@ public class View implements Service {
 			Logger.getLogger(this.getClass().getSimpleName())
 					.log(Level.INFO, "Response: {0}", response);
 		} catch (Exception e) {
-			// TODO: handle exception
+			Logger.getLogger(this.getClass().getSimpleName())
+					.log(Level.SEVERE, "Error while sending request.", e);
 		}
 	}
 
 	@Override
-	public void sendResponse() {
+	public void sendResponse(Response response) {
 		// TODO Auto-generated method stub
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
@@ -109,7 +104,10 @@ public class View implements Service {
 	private void loadContent() {
 		Section demoSection = new Section();
 		JButton demoButton = new JButton("Click me!");
-		demoButton.addActionListener(e -> this.sendRequest());
+		demoButton.addActionListener(e -> {
+			Request request = new Request(RequestCode.HELLO_WORLD, this);
+			this.sendRequest(request);
+		});
 		demoSection.createButtons(new JButton[] { demoButton }, DirectionAndPosition.DIRECTION_ROW);
 		this.window.addSection(demoSection, DirectionAndPosition.POSITION_TOP, "Demo");
 	}
