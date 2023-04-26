@@ -21,6 +21,10 @@ public class Config {
 	 */
 	public static final String VIEW_MAIN_WIN_CONFIG_PATH = "./src/view/settings/main.json";
 	/**
+	 * Indicates where is the {@code View-Stats} configuration file located at.
+	 */
+	public static final String VIEW_STATS_WIN_CONFIG_PATH = "./src/view/settings/stats.json";
+	/**
 	 * Indicates where is the {@code MVC (Hub)} configuration file located at.
 	 */
 	public static final String MVC_CONFIG_PATH = "./src/master/settings/main.json";
