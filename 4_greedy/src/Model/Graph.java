@@ -1,5 +1,7 @@
 package Model;
 
+import java.util.Arrays;
+
 public record Graph(Node[] content) {
 	@Override
 	public boolean equals(Object o) {
@@ -13,6 +15,6 @@ public record Graph(Node[] content) {
 
 	@Override
 	public String toString() {
-		return "";
+		return Arrays.deepToString(content);
 	}
 }

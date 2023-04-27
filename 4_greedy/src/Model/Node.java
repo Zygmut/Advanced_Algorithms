@@ -1,6 +1,7 @@
 package Model;
 
 public record Node(String id, NodeState state, Connection[] connections) {
+
 	@Override
 	public boolean equals(Object o) {
 		return true;
@@ -13,6 +14,19 @@ public record Node(String id, NodeState state, Connection[] connections) {
 
 	@Override
 	public String toString() {
-		return "";
+		StringBuilder sb = new StringBuilder();
+		sb.append("Node with ID = ")
+				.append(id)
+				.append(" with STATE = ")
+				.append(state.name())
+				.append(" and CONNECTIONS = [ ");
+
+		for (Connection connection : connections) {
+			sb.append(connection).append(" ");
+		}
+
+		sb.append("]");
+
+		return sb.toString();
 	}
 }
