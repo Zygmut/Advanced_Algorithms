@@ -1,9 +1,16 @@
 package View;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Toolkit;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -13,6 +20,16 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.ChartRenderingInfo;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.entity.XYItemEntity;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.data.xy.XYDataset;
 
 import Services.Service;
 import Services.Comunication.Content.Body;
@@ -144,7 +161,48 @@ public class View implements Service {
 
 	private Section body() {
 		JPanel content = new JPanel();
+		content.setLayout(new BorderLayout());
 		content.setBackground(Color.WHITE);
+		MapPlot scatterPlot = new MapPlot(Color.MAGENTA);
+		JFreeChart chart = scatterPlot.createPlot();
+		// TODO: Change this to be dynamic
+		scatterPlot.changePlotBackground("./assets/images/pitiuses.png");
+		ChartPanel chartPanel = new ChartPanel(chart);
+		chartPanel.addMouseListener(new MouseListener() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				// Get the mouse click coordinates
+				int x = e.getX();
+				int y = e.getY();
+				// Calculate the data values based on the chart's range
+				XYPlot plot = (XYPlot) chart.getPlot();
+				ChartRenderingInfo info = chartPanel.getChartRenderingInfo();
+				Rectangle2D dataArea = info.getPlotInfo().getDataArea();
+				double xValue = plot.getDomainAxis().java2DToValue(x, dataArea, plot.getDomainAxisEdge());
+				double yValue = plot.getRangeAxis().java2DToValue(y, dataArea, plot.getRangeAxisEdge());
+				// TODO: Send the coordinates to the server
+				// Print the clicked coordinates
+				System.out.println("Clicked at: X=" + xValue + ", Y=" + yValue);
+			}
+
+			// Implement the remaining MouseListener methods
+			@Override
+			public void mousePressed(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+			}
+		});
+		content.add(chartPanel, BorderLayout.CENTER);
 		splitPane.setLeftComponent(content);
 		Section body = new Section();
 		body.createJSplitPaneSection(splitPane);
@@ -209,5 +267,45 @@ public class View implements Service {
 		menuBar.add(help);
 
 		return menuBar;
+	}
+
+	private class MapPlot {
+
+		private Color lineColor;
+		private XYPlot plot;
+
+		public MapPlot(Color lineColor) {
+			this.lineColor = lineColor;
+		}
+
+		private JFreeChart createPlot() {
+			JFreeChart chart = ChartFactory.createXYLineChart(
+					"Mapa",
+					"X",
+					"Y",
+					null);
+
+			plot = chart.getXYPlot();
+			plot.setBackgroundPaint(Color.WHITE);
+			// TODO: Hide the axis
+			// plot.getDomainAxis().setVisible(false);
+			// plot.getRangeAxis().setVisible(false);
+			XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(false, true);
+			renderer.setSeriesPaint(0, this.lineColor);
+			renderer.setSeriesShape(0, new Ellipse2D.Double(-2, -2, 4, 4));
+			plot.setRenderer(renderer);
+			plot.getDomainAxis().setRange(0, 100);
+			plot.getRangeAxis().setRange(0, 100);
+
+			return chart;
+		}
+
+		private void addData() {
+			// TODO
+		}
+
+		private void changePlotBackground(String image) {
+			plot.setBackgroundImage(Toolkit.getDefaultToolkit().getImage(image));
+		}
 	}
 }
