@@ -7,9 +7,9 @@ public record Map(BufferedImage img, Graph graph) {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("Map with IMG = ")
+		sb.append("Map: img=")
 				.append(img)
-				.append(" and GRAPH = ")
+				.append(" graph=")
 				.append(graph);
 
 		return sb.toString();

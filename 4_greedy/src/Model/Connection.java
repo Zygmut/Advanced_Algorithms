@@ -1,13 +1,14 @@
 package Model;
 
-public record Connection(Node node, double weight) {
+public record Connection(String nodeId, double weight) {
 
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("ID = ")
-				.append(node.id())
-				.append(" and WEIGHT = ")
+		sb.append(this.getClass().getSimpleName())
+				.append(": nodeId=")
+				.append(nodeId)
+				.append(" weight=")
 				.append(weight);
 		return sb.toString();
 	}
