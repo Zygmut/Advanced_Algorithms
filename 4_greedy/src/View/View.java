@@ -7,9 +7,15 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.BasicStroke;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Reader;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,8 +30,14 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.annotations.XYLineAnnotation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+
+import com.google.gson.Gson;
 
 import Services.Service;
 import Services.Comunication.Content.Body;
@@ -36,6 +48,7 @@ import betterSwing.Section;
 import betterSwing.Window;
 import betterSwing.utils.DirectionAndPosition;
 import utils.Config;
+import Model.*;
 
 public class View implements Service {
 
@@ -160,10 +173,10 @@ public class View implements Service {
 		content.setLayout(new BorderLayout());
 		content.setBackground(Color.WHITE);
 		MapPlot scatterPlot = new MapPlot(Color.MAGENTA);
-		JFreeChart chart = scatterPlot.createPlot();
-		// TODO: Change this to be dynamic
-		scatterPlot.changePlotBackground("./assets/images/pitiuses.png");
+		JFreeChart chart = scatterPlot.createPlot("./assets/images/ibiza-formentera.png");
 		ChartPanel chartPanel = new ChartPanel(chart);
+		chartPanel.setDomainZoomable(false);
+		chartPanel.setRangeZoomable(false);
 		chartPanel.addMouseListener(new MouseListener() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -274,24 +287,75 @@ public class View implements Service {
 			this.lineColor = lineColor;
 		}
 
-		private JFreeChart createPlot() {
+		private JFreeChart createPlot(String backImgPath) {
+			// TODO: REMOVE THIS IS DEBU
+			Gson gson = new Gson();
+			Map map = null;
+			try (Reader reader = new FileReader("./assets/ibiza-formentera.json")) {
+				// Convert JSON File to Java Object
+				map = gson.fromJson(reader, Map.class);
+			} catch (IOException e){
+				System.out.println(e.getLocalizedMessage());
+			}
+
+			Node[] nodes = map.graph().content();
+
+			GeoPoint[] points = new GeoPoint[nodes.length];
+			for (int i = 0; i < points.length; i++) {
+				points[i] = nodes[i].geoPoint();
+			}
+
+			XYSeries series = new XYSeries("");
+			for (GeoPoint point : points) {
+				series.add(point.x(), point.y());
+			}
+
+			ArrayList<PairPoint> lines = new ArrayList<>();
+			for (Node node : nodes) {
+				GeoPoint originPoint = node.geoPoint();
+				for (Connection connection : node.connections()) {
+					String nodeId = connection.nodeId();
+					for (Node target: nodes) {
+						if (target.id().equals(nodeId)){
+							GeoPoint targetPoint = target.geoPoint();
+							lines.add(new PairPoint(originPoint, targetPoint));
+							break;
+						}
+					}
+				}
+			}
+
+
+			XYDataset dataset = new XYSeriesCollection(series);
+			// END DEBUG
+
 			JFreeChart chart = ChartFactory.createXYLineChart(
-					"Mapa",
+					"",
 					"X",
 					"Y",
-					null);
+					dataset);
 
 			plot = chart.getXYPlot();
+			changePlotBackground(backImgPath);
 			plot.setBackgroundPaint(Color.WHITE);
-			// TODO: Hide the axis
-			// plot.getDomainAxis().setVisible(false);
-			// plot.getRangeAxis().setVisible(false);
+			plot.getDomainAxis().setVisible(false);
+			plot.getRangeAxis().setVisible(false);
 			XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(false, true);
 			renderer.setSeriesPaint(0, this.lineColor);
-			renderer.setSeriesShape(0, new Ellipse2D.Double(-2, -2, 4, 4));
+			renderer.setSeriesShape(0, new Ellipse2D.Double(-4, -4, 8, 8));
 			plot.setRenderer(renderer);
+
+			for (PairPoint pairPoint : lines) {
+				XYLineAnnotation line = new XYLineAnnotation(
+						pairPoint.p1().x(), pairPoint.p1().y(), // x and y coordinates of point 1
+						pairPoint.p2().x(), pairPoint.p2().y(), // x and y coordinates of point 2
+						new BasicStroke(1.0f),
+						Color.RED);
+				plot.addAnnotation(line);
+			}
 			plot.getDomainAxis().setRange(0, 100);
 			plot.getRangeAxis().setRange(0, 100);
+			chart.removeLegend();
 
 			return chart;
 		}
@@ -302,6 +366,7 @@ public class View implements Service {
 
 		private void changePlotBackground(String image) {
 			plot.setBackgroundImage(Toolkit.getDefaultToolkit().getImage(image));
+			plot.setBackgroundImageAlpha(1);
 		}
 	}
 }
