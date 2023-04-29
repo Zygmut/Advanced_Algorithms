@@ -4,7 +4,17 @@ import java.util.Arrays;
 
 public record Node(String id, NodeState state, Connection[] connections) {
 
-	public Node addConnection(Node target, double weight) {
+	public boolean canGoTo(Node target){
+		for (Connection connection : connections) {
+			if(connection.nodeId().equals(target.id())){
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public Node connectedTo(Node target, double weight) {
 		if (this.connections() == null){
 			return new Node(this.id(), this.state(), new Connection[]{new Connection(target.id(), weight)});
 		}
