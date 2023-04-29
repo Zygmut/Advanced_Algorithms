@@ -173,7 +173,7 @@ public class View implements Service {
 		content.setLayout(new BorderLayout());
 		content.setBackground(Color.WHITE);
 		MapPlot scatterPlot = new MapPlot(Color.MAGENTA);
-		JFreeChart chart = scatterPlot.createPlot("./assets/images/ibiza-formentera.png");
+		JFreeChart chart = scatterPlot.createPlot("./assets/ibiza-formentera/map.png");
 		ChartPanel chartPanel = new ChartPanel(chart);
 		chartPanel.setDomainZoomable(false);
 		chartPanel.setRangeZoomable(false);
@@ -291,7 +291,7 @@ public class View implements Service {
 			// TODO: REMOVE THIS IS DEBU
 			Gson gson = new Gson();
 			Map map = null;
-			try (Reader reader = new FileReader("./assets/ibiza-formentera.json")) {
+			try (Reader reader = new FileReader("./assets/ibiza-formentera/ibiza-formentera.json")) {
 				// Convert JSON File to Java Object
 				map = gson.fromJson(reader, Map.class);
 			} catch (IOException e){
