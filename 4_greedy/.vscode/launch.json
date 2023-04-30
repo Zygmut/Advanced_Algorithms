@@ -1,0 +1,12 @@
+{
+	"configurations": [
+		{
+			"type": "java",
+			"name": "Main",
+			"request": "launch",
+			"mainClass": "Master.Main",
+			"projectName": "4_greedy_dda01562",
+			"vmArgs": "--enable-preview",
+		}
+	]
+}
