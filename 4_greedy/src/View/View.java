@@ -15,10 +15,14 @@ import java.io.ObjectOutputStream;
 import java.io.Reader;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -47,7 +51,9 @@ import Services.Comunication.Response.Response;
 import betterSwing.Section;
 import betterSwing.Window;
 import betterSwing.utils.DirectionAndPosition;
+import utils.Algorithms;
 import utils.Config;
+import utils.Maps;
 import Model.*;
 
 public class View implements Service {
@@ -156,13 +162,49 @@ public class View implements Service {
 	private JPanel sideBar() {
 		JPanel sideBar = new JPanel();
 		sideBar.setBackground(Color.WHITE);
+		sideBar.setLayout(new BoxLayout(sideBar, BoxLayout.Y_AXIS));
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.setBackground(Color.WHITE);
+		JLabel label = new JLabel("Demo: ");
 		JButton button = new JButton("Hello World!");
 		button.addActionListener(e -> {
 			String message = "Hello World!";
 			Request request = new Request(RequestCode.HELLO_WORLD, this, new Body(message));
 			this.sendRequest(request);
 		});
-		sideBar.add(button);
+		buttonPanel.add(label);
+		buttonPanel.add(button);
+		sideBar.add(buttonPanel);
+		JPanel mapSelectorPanel = new JPanel();
+		mapSelectorPanel.setBackground(Color.WHITE);
+		JLabel mapSelectorLabel = new JLabel("Mapa: ");
+		String[] maps = Arrays.stream(Maps.values()).map(Enum::toString).toArray(String[]::new);
+		JComboBox<String> distributionMenu = new JComboBox<>(maps);
+		distributionMenu.addActionListener(e -> {
+			String map = (String) distributionMenu.getSelectedItem();
+			String[] mapsNames = Maps.getMaps();
+			int index = Arrays.asList(mapsNames).indexOf(map);
+			System.out.println(Maps.values()[index]);
+			// TODO: Send new map to server
+			// TODO: Update map
+		});
+		mapSelectorPanel.add(mapSelectorLabel);
+		mapSelectorPanel.add(distributionMenu);
+		sideBar.add(mapSelectorPanel);
+
+		JPanel algSelectorPanel = new JPanel();
+		algSelectorPanel.setBackground(Color.WHITE);
+		JLabel algSelectorLabel = new JLabel("Algoritmo: ");
+		String[] algorithms = Arrays.stream(Algorithms.values()).map(Enum::toString).toArray(String[]::new);
+		JComboBox<String> algorithmMenu = new JComboBox<>(algorithms);
+		algorithmMenu.addActionListener(e -> {
+			String algorithm = (String) algorithmMenu.getSelectedItem();
+			System.out.println(algorithm);
+		});
+		algSelectorPanel.add(algSelectorLabel);
+		algSelectorPanel.add(algorithmMenu);
+		sideBar.add(algSelectorPanel);
+
 		return sideBar;
 	}
 
@@ -197,8 +239,8 @@ public class View implements Service {
 					double xValue = plot.getDomainAxis().java2DToValue(x, dataArea, plot.getDomainAxisEdge());
 					double yValue = plot.getRangeAxis().java2DToValue(y, dataArea, plot.getRangeAxisEdge());
 					System.out.println("Clicked at: X=" + xValue + ", Y=" + yValue);
-					scatterPlot.addSelectPoint(new GeoPoint(xValue, yValue));
 					View.this.numberOfPointsSelected++;
+					scatterPlot.addSelectPoint(new GeoPoint(xValue, yValue));
 				}
 			}
 
@@ -243,7 +285,8 @@ public class View implements Service {
 		buttons[2].addActionListener(e -> {
 			this.numberOfPointsSelected = 0;
 			// TODO: Send info to server
-			this.sendRequest(null);
+			Request request = new Request(RequestCode.HELLO_WORLD, this);
+			this.sendRequest(request);
 		});
 		buttonSection.createButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
 		return buttonSection;
@@ -299,7 +342,8 @@ public class View implements Service {
 		private XYSeries selectedPoint;
 		private boolean enableDistanceDisplay;
 
-		public MapPlot(Color mapNodesColor, Color selectPointColor, Color nodeLinesColor, boolean enableDistanceDisplay) {
+		public MapPlot(Color mapNodesColor, Color selectPointColor, Color nodeLinesColor,
+				boolean enableDistanceDisplay) {
 			this.mapNodesColor = mapNodesColor;
 			this.selectPointColor = selectPointColor;
 			this.nodeLinesColor = nodeLinesColor;
