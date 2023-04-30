@@ -9,7 +9,6 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.BasicStroke;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -25,15 +24,16 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import javax.swing.SwingUtilities;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.annotations.XYLineAnnotation;
+import org.jfree.chart.annotations.XYTextAnnotation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
-import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
@@ -60,6 +60,12 @@ public class View implements Service {
 	 * The split pane of the view.
 	 */
 	private JSplitPane splitPane;
+	/**
+	 * Map plot of the view.
+	 */
+	private MapPlot scatterPlot;
+	private int numberOfPointsSelected = 0;
+	private JButton[] buttons;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -172,26 +178,28 @@ public class View implements Service {
 		JPanel content = new JPanel();
 		content.setLayout(new BorderLayout());
 		content.setBackground(Color.WHITE);
-		MapPlot scatterPlot = new MapPlot(Color.MAGENTA);
-		JFreeChart chart = scatterPlot.createPlot("./assets/ibiza-formentera/map.png");
+		this.scatterPlot = new MapPlot(Color.MAGENTA, Color.BLACK, Color.PINK, true);
+		JFreeChart chart = this.scatterPlot.createPlot("./assets/ibiza-formentera/map.png");
 		ChartPanel chartPanel = new ChartPanel(chart);
 		chartPanel.setDomainZoomable(false);
 		chartPanel.setRangeZoomable(false);
 		chartPanel.addMouseListener(new MouseListener() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				// Get the mouse click coordinates
-				int x = e.getX();
-				int y = e.getY();
-				// Calculate the data values based on the chart's range
-				XYPlot plot = (XYPlot) chart.getPlot();
-				ChartRenderingInfo info = chartPanel.getChartRenderingInfo();
-				Rectangle2D dataArea = info.getPlotInfo().getDataArea();
-				double xValue = plot.getDomainAxis().java2DToValue(x, dataArea, plot.getDomainAxisEdge());
-				double yValue = plot.getRangeAxis().java2DToValue(y, dataArea, plot.getRangeAxisEdge());
-				// TODO: Send the coordinates to the server
-				// Print the clicked coordinates
-				System.out.println("Clicked at: X=" + xValue + ", Y=" + yValue);
+				if (SwingUtilities.isLeftMouseButton(e)) {
+					// Get the mouse click coordinates
+					int x = e.getX();
+					int y = e.getY();
+					// Calculate the data values based on the chart's range
+					XYPlot plot = (XYPlot) chart.getPlot();
+					ChartRenderingInfo info = chartPanel.getChartRenderingInfo();
+					Rectangle2D dataArea = info.getPlotInfo().getDataArea();
+					double xValue = plot.getDomainAxis().java2DToValue(x, dataArea, plot.getDomainAxisEdge());
+					double yValue = plot.getRangeAxis().java2DToValue(y, dataArea, plot.getRangeAxisEdge());
+					System.out.println("Clicked at: X=" + xValue + ", Y=" + yValue);
+					scatterPlot.addSelectPoint(new GeoPoint(xValue, yValue));
+					View.this.numberOfPointsSelected++;
+				}
 			}
 
 			// Implement the remaining MouseListener methods
@@ -220,18 +228,22 @@ public class View implements Service {
 
 	private Section footer() {
 		Section buttonSection = new Section();
-		JButton[] buttons = new JButton[3];
+		this.buttons = new JButton[3];
 		buttons[0] = new JButton("Deshacer");
 		buttons[0].addActionListener(e -> {
-			// TODO
+			this.numberOfPointsSelected--;
+			this.scatterPlot.removeLastPoint();
 		});
 		buttons[1] = new JButton("Rehacer");
 		buttons[1].addActionListener(e -> {
-			// TODO
+			this.numberOfPointsSelected++;
+			this.scatterPlot.restoreLastPoint();
 		});
 		buttons[2] = new JButton("Confirmar");
 		buttons[2].addActionListener(e -> {
-			// TODO
+			this.numberOfPointsSelected = 0;
+			// TODO: Send info to server
+			this.sendRequest(null);
 		});
 		buttonSection.createButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
 		return buttonSection;
@@ -280,11 +292,18 @@ public class View implements Service {
 
 	private class MapPlot {
 
-		private Color lineColor;
+		private Color mapNodesColor;
+		private Color selectPointColor;
+		private Color nodeLinesColor;
 		private XYPlot plot;
+		private XYSeries selectedPoint;
+		private boolean enableDistanceDisplay;
 
-		public MapPlot(Color lineColor) {
-			this.lineColor = lineColor;
+		public MapPlot(Color mapNodesColor, Color selectPointColor, Color nodeLinesColor, boolean enableDistanceDisplay) {
+			this.mapNodesColor = mapNodesColor;
+			this.selectPointColor = selectPointColor;
+			this.nodeLinesColor = nodeLinesColor;
+			this.enableDistanceDisplay = enableDistanceDisplay;
 		}
 
 		private JFreeChart createPlot(String backImgPath) {
@@ -294,7 +313,7 @@ public class View implements Service {
 			try (Reader reader = new FileReader("./assets/ibiza-formentera/ibiza-formentera.json")) {
 				// Convert JSON File to Java Object
 				map = gson.fromJson(reader, Map.class);
-			} catch (IOException e){
+			} catch (IOException e) {
 				System.out.println(e.getLocalizedMessage());
 			}
 
@@ -305,7 +324,7 @@ public class View implements Service {
 				points[i] = nodes[i].geoPoint();
 			}
 
-			XYSeries series = new XYSeries("");
+			XYSeries series = new XYSeries("MapPoints");
 			for (GeoPoint point : points) {
 				series.add(point.x(), point.y());
 			}
@@ -315,8 +334,8 @@ public class View implements Service {
 				GeoPoint originPoint = node.geoPoint();
 				for (Connection connection : node.connections()) {
 					String nodeId = connection.nodeId();
-					for (Node target: nodes) {
-						if (target.id().equals(nodeId)){
+					for (Node target : nodes) {
+						if (target.id().equals(nodeId)) {
 							GeoPoint targetPoint = target.geoPoint();
 							lines.add(new PairPoint(originPoint, targetPoint));
 							break;
@@ -325,8 +344,10 @@ public class View implements Service {
 				}
 			}
 
-
-			XYDataset dataset = new XYSeriesCollection(series);
+			XYSeriesCollection dataset = new XYSeriesCollection();
+			this.selectedPoint = new XYSeries("selectedPoint");
+			dataset.addSeries(this.selectedPoint);
+			dataset.addSeries(series);
 			// END DEBUG
 
 			JFreeChart chart = ChartFactory.createXYLineChart(
@@ -335,13 +356,16 @@ public class View implements Service {
 					"Y",
 					dataset);
 
+			chart.setAntiAlias(true);
 			plot = chart.getXYPlot();
 			changePlotBackground(backImgPath);
 			plot.setBackgroundPaint(Color.WHITE);
 			plot.getDomainAxis().setVisible(false);
 			plot.getRangeAxis().setVisible(false);
 			XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(false, true);
-			renderer.setSeriesPaint(0, this.lineColor);
+			renderer.setSeriesPaint(1, this.mapNodesColor);
+			renderer.setSeriesShape(1, new Ellipse2D.Double(-4, -4, 8, 8));
+			renderer.setSeriesPaint(0, this.selectPointColor);
 			renderer.setSeriesShape(0, new Ellipse2D.Double(-4, -4, 8, 8));
 			plot.setRenderer(renderer);
 
@@ -350,8 +374,21 @@ public class View implements Service {
 						pairPoint.p1().x(), pairPoint.p1().y(), // x and y coordinates of point 1
 						pairPoint.p2().x(), pairPoint.p2().y(), // x and y coordinates of point 2
 						new BasicStroke(1.0f),
-						Color.RED);
+						this.nodeLinesColor);
 				plot.addAnnotation(line);
+				if (!this.enableDistanceDisplay) {
+					continue;
+				}
+				// Create a text annotation
+				double distance = pairPoint.p1().euclideanDistanceTo(pairPoint.p2());
+				// Round to 2 decimals
+				distance = Math.round(distance * 100.0) / 100.0;
+				XYTextAnnotation textAnnotation = new XYTextAnnotation(
+						distance + " U", // Text to be displayed
+						(pairPoint.p1().x() + pairPoint.p2().x()) / 2, // x coordinate of text
+						(pairPoint.p1().y() + pairPoint.p2().y()) / 2 // y coordinate of text
+				);
+				plot.addAnnotation(textAnnotation);
 			}
 			plot.getDomainAxis().setRange(0, 100);
 			plot.getRangeAxis().setRange(0, 100);
@@ -360,7 +397,21 @@ public class View implements Service {
 			return chart;
 		}
 
-		private void addData() {
+		private void addSelectPoint(GeoPoint point) {
+			this.selectedPoint.add(point.x(), point.y());
+		}
+
+		private void removeLastPoint() {
+			if (this.selectedPoint.getItemCount() > 0) {
+				this.selectedPoint.remove(this.selectedPoint.getItemCount() - 1);
+			}
+		}
+
+		private int getSelectedPointsCount() {
+			return this.selectedPoint.getItemCount();
+		}
+
+		private void restoreLastPoint() {
 			// TODO
 		}
 
