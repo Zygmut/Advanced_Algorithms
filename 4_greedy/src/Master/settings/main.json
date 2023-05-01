@@ -1,10 +1,6 @@
 {
 	"requestMap": [
 		{
-			"code": "HELLO_WORLD",
-			"services": ["CONTROLLER", "MODEL"]
-		},
-		{
 			"code": "SEND_GEOPOINTS",
 			"services": ["MODEL"]
 		},
