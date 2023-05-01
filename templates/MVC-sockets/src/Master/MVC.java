@@ -111,7 +111,7 @@ public class MVC implements Server {
 					}
 				} else {
 					// If is a response
-					Response res = (Response) inputStream.readObject();
+					Response res = (Response) obj;
 					this.responseHandler(res);
 				}
 				// Close the client socket
@@ -119,7 +119,7 @@ public class MVC implements Server {
 				this.logMessage("Client disconnected." + clientSocket.getInetAddress().toString());
 			}
 		} catch (IOException | ClassNotFoundException ex) {
-			this.logMessage(ex.getMessage());
+			this.logMessage(ex.getLocalizedMessage());
 			ex.printStackTrace();
 		}
 	}

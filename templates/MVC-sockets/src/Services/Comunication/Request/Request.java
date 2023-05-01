@@ -27,6 +27,12 @@ public class Request implements Serializable {
 		this.body = null;
 	}
 
+	public Request(RequestCode code, String origin, Body body) {
+		this.code = code;
+		this.origin = origin;
+		this.body = body;
+	}
+
 	public Request(RequestCode code, Object origin) {
 		this.code = code;
 		this.origin = origin.getClass().getSimpleName();

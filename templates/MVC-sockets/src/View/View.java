@@ -63,6 +63,10 @@ public class View implements Service {
 	@Override
 	public void notifyRequest(Request request) {
 		switch (request.code) {
+			case GREET-> {
+				Logger.getLogger(this.getClass().getSimpleName())
+						.log(Level.INFO, "Hi {0}!.", request.origin);
+			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
@@ -76,10 +80,9 @@ public class View implements Service {
 	 */
 	private void loadContent() {
 		Section demoSection = new Section();
-		JButton demoButton = new JButton("Click me!");
+		JButton demoButton = new JButton("Greet the boys!");
 		demoButton.addActionListener(e -> {
-			String message = "Hello World!";
-			Request request = new Request(RequestCode.HELLO_WORLD, this, new Body(message));
+			Request request = new Request(RequestCode.GREET, this, new Body("Anybody there?!"));
 			this.sendRequest(request);
 		});
 		demoSection.createButtons(new JButton[] { demoButton }, DirectionAndPosition.DIRECTION_ROW);

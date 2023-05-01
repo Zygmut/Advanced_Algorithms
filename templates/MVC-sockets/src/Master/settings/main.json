@@ -1,24 +1,20 @@
 {
 	"requestMap": [
 		{
-			"code": "HELLO_WORLD",
+			"code": "GREET",
 			"services": ["CONTROLLER", "MODEL"]
-		},
-		{
-			"code": "HELLO_WORLD_2",
-			"services": ["CONTROLLER", "VIEW", "MODEL"]
 		}
 	],
 	"responseMap": [
 		{
-			"code": "TEST",
-			"services": ["CONTROLLER", "VIEW", "MODEL"]
+			"code": "GREET_BACK",
+			"services": ["VIEW"]
 		}
 	],
 	"resToReqMap": [
 		{
-			"responseCode": "TEST",
-			"requestCode": "HELLO_WORLD"
+			"responseCode": "GREET_BACK",
+			"requestCode": "GREET"
 		}
 	]
 }
