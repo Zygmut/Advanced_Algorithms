@@ -2,7 +2,7 @@ package Model;
 
 import java.util.Arrays;
 
-public record Node(String id, NodeState state, Connection[] connections) {
+public record Node(String id, NodeState state, GeoPoint geoPoint, Connection[] connections) {
 
 	public boolean canGoTo(Node target){
 		for (Connection connection : connections) {
@@ -16,13 +16,13 @@ public record Node(String id, NodeState state, Connection[] connections) {
 
 	public Node connectedTo(Node target, double weight) {
 		if (this.connections() == null){
-			return new Node(this.id(), this.state(), new Connection[]{new Connection(target.id(), weight)});
+			return new Node(this.id(), this.state(), this.geoPoint(), new Connection[]{new Connection(target.id(), weight)});
 		}
 
 		Connection[] connections = Arrays.copyOf(this.connections(), this.connections().length + 1);
 
 		connections[connections.length - 1] = new Connection(target.id(), weight);
-		return new Node(this.id(), this.state(), connections);
+		return new Node(this.id(), this.state(),this.geoPoint(), connections);
 	}
 
 	@Override
@@ -43,6 +43,8 @@ public record Node(String id, NodeState state, Connection[] connections) {
 				.append(id)
 				.append(" state=")
 				.append(state.name())
+				.append(" geoPoint=")
+				.append(geoPoint)
 				.append(" connections=[");
 		if (this.connections().length == 0) {
 			sb.append("]");
