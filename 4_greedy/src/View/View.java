@@ -78,6 +78,7 @@ public class View implements Service {
 	private Map map;
 	private JComboBox<String> mapOptions;
 
+
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
 	 *
@@ -276,6 +277,37 @@ public class View implements Service {
 		algSelectorPanel.add(algorithmMenu);
 		actionsPanel.add(algSelectorPanel);
 		sideBar.add(actionsPanel);
+
+		JPanel pointsPanel = new JPanel();
+		pointsPanel.setBackground(Color.WHITE);
+		JLabel pointsLabel = new JLabel("Selecccionar el estado del nodo a pintar: ");
+		String[] states = {"START", "MIDDLE", "END", "STEP"};
+		pointsPanel.add(pointsLabel);
+		JComboBox<String> pointsMenu = new JComboBox<>(states);
+		pointsMenu.addActionListener(e -> {
+			String point = (String) pointsMenu.getSelectedItem();
+			//TODO: Enviar al servidor el nodo seleccionado y su estado
+			switch (point) {
+				case "START" -> {
+					this.node.changeState(NodeState.START);
+				}
+				case "MIDDLE" -> {
+					this.node.changeState(NodeState.MIDDLE);
+				}
+				case "END" -> {
+					this.node.changeState(NodeState.END);
+				}
+				case "STEP" -> {
+					this.node.changeState(NodeState.STEP);
+				}
+			}
+
+
+			System.out.println(point);
+		});
+		pointsPanel.add(pointsMenu);
+		sideBar.add(pointsPanel);
+
 
 		JPanel infoPanel = new JPanel();
 		infoPanel.setBackground(Color.WHITE);
@@ -584,6 +616,7 @@ public class View implements Service {
 					);
 			}
 		}
+
 
 		private int getSelectedPointsCount() {
 			return this.selectedPoint.getItemCount();

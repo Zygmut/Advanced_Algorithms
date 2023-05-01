@@ -38,6 +38,15 @@ public record Node(String id, NodeState state, GeoPoint geoPoint, Connection[] c
 		return 0;
 	}
 
+	//Método para seleccionar el estado del nodo
+	public Node changeState(NodeState state) {
+		return new Node(this.id(), state, this.geoPoint(), this.connections());
+	}
+
+	public GeoPoint getGeoPoint() {
+		return geoPoint;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

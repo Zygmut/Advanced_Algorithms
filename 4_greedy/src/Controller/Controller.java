@@ -21,6 +21,12 @@ import java.util.logging.Logger;
 
 import com.google.gson.Gson;
 
+import Model.GeoPoint;
+import Model.Graph;
+import Model.Node;
+import Services.Service;
+import Services.Comunication.Request.Request;
+import Services.Comunication.Response.Response;
 import utils.Config;
 
 public class Controller implements Service {
@@ -123,4 +129,33 @@ public class Controller implements Service {
 				.log(Level.SEVERE, "Error while sending response.", e);
 		}
 	}
+
+	// Método que devuelve el punto seleccionado más cerca del mapa de los que
+	// existen
+	public Node getClosestPoint(GeoPoint clickedPoint, Graph g) {
+		if (g == null || g.getPointsCount() == 0) {
+			return null;
+		}
+		Node closestNode = g.getNode(0);
+		double closestDistance = distance(clickedPoint, closestNode.getGeoPoint());
+	
+		for (int i = 1; i < g.getPointsCount(); i++) {
+			Node currentNode = g.getNode(i);
+			double currentDistance = distance(clickedPoint, currentNode.getGeoPoint());
+	
+			if (currentDistance < closestDistance) {
+				closestNode = currentNode;
+				closestDistance = currentDistance;
+			}
+		}
+	
+		return closestNode;
+	}
+	
+	private double distance(GeoPoint point1, GeoPoint point2) {
+		double xDiff = point1.x() - point2.x();
+		double yDiff = point1.y() - point2.y();
+		return Math.sqrt(xDiff * xDiff + yDiff * yDiff);
+	}
+	
 }
