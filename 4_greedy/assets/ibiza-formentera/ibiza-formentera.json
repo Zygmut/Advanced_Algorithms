@@ -1,5 +1,5 @@
 {
-	"img": "ibiza-formentera.png",
+	"img": "map.png",
 	"graph": {
 		"content": [
 			{
@@ -73,7 +73,7 @@
 				"state": "STEP",
 				"geoPoint": {
 					"x": 69.5747,
-					"y": 10.4510
+					"y": 10.451
 				},
 				"connections": [
 					{
@@ -108,7 +108,7 @@
 				"id": 308207026,
 				"state": "STEP",
 				"geoPoint": {
-					"x": 50.0000,
+					"x": 50.0,
 					"y": 54.5654
 				},
 				"connections": [
@@ -221,7 +221,7 @@
 				"state": "STEP",
 				"geoPoint": {
 					"x": 60.8165,
-					"y": 78.3400
+					"y": 78.34
 				},
 				"connections": [
 					{
@@ -246,7 +246,7 @@
 				"id": 1070982831,
 				"state": "STEP",
 				"geoPoint": {
-					"x": 74.4820,
+					"x": 74.482,
 					"y": 85.6985
 				},
 				"connections": [
@@ -459,7 +459,7 @@
 				"state": "STEP",
 				"geoPoint": {
 					"x": 29.2802,
-					"y": 50.9350
+					"y": 50.935
 				},
 				"connections": [
 					{
@@ -472,7 +472,7 @@
 				"id": 5169886242,
 				"state": "STEP",
 				"geoPoint": {
-					"x": 53.3260,
+					"x": 53.326,
 					"y": 58.6358
 				},
 				"connections": [

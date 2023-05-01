@@ -1,8 +1,11 @@
 package Model;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
-public record Node(String id, NodeState state, GeoPoint geoPoint, Connection[] connections) {
+public record Node(String id, NodeState state, GeoPoint geoPoint, Connection[] connections) implements Serializable{
+
+	private static final long serialVersionUID = 7981683548L;
 
 	public boolean canGoTo(Node target){
 		for (Connection connection : connections) {

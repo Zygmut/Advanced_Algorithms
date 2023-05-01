@@ -5,5 +5,6 @@ package Services.Comunication.Response;
  */
 public enum ResponseCode {
 	PROMISE,
-	TEST
+	CHECK_GEOPOINT,
+	LOAD_MAP,
 }

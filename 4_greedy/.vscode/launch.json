@@ -2,11 +2,10 @@
 	"configurations": [
 		{
 			"type": "java",
-			"name": "Main",
+			"name": "Launch Java Program",
 			"request": "launch",
 			"mainClass": "Master.Main",
-			"projectName": "4_greedy_dda01562",
-			"vmArgs": "--enable-preview",
+			"vmArgs": "--enable-preview"
 		}
 	]
 }
