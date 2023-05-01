@@ -72,6 +72,7 @@ public class View implements Service {
 	private String selectedMap;
 	private JTextArea textArea;
 	private JComboBox<String> mapOptions;
+	private GeoPoint lastPoint;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -365,13 +366,20 @@ public class View implements Service {
 		this.buttons = new JButton[3];
 		buttons[0] = new JButton("Deshacer");
 		buttons[0].addActionListener(e -> {
+				if (!this.pointsSelected.isEmpty()) {
+					lastPoint = this.pointsSelected.get(
+						this.pointsSelected.size() - 1
+					);
+				}
 				this.pointsSelected.remove(this.pointsSelected.size() - 1);
 				this.scatterPlot.removeLastPoint();
 			});
 		buttons[1] = new JButton("Rehacer");
 		buttons[1].addActionListener(e -> {
-				// TODO: Restore last point
+			if (lastPoint != null)
+				this.pointsSelected.add(lastPoint);
 				this.scatterPlot.restoreLastPoint();
+				lastPoint = null;
 			});
 		buttons[2] = new JButton("Confirmar");
 		buttons[2].addActionListener(e -> {
@@ -572,8 +580,9 @@ public class View implements Service {
 			return this.selectedPoint.getItemCount();
 		}
 
+		//Method that restores the last point that was removed
 		private void restoreLastPoint() {
-			// TODO
+			this.selectedPoint.add(lastPoint.x(), lastPoint.y());
 		}
 
 		private void changePlotBackground(String image) {
