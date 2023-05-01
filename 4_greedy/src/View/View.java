@@ -73,7 +73,7 @@ public class View implements Service {
 	 * Map plot of the view.
 	 */
 	private MapPlot scatterPlot;
-	private int numberOfPointsSelected = 0;
+	private ArrayList<GeoPoint> pointsSelected;
 	private JButton[] buttons;
 
 	/**
@@ -84,6 +84,7 @@ public class View implements Service {
 	public View() {
 		this.window = new Window();
 		this.window.initConfig();
+		this.pointsSelected = new ArrayList<>();
 		this.loadContent();
 	}
 
@@ -261,8 +262,9 @@ public class View implements Service {
 					double xValue = plot.getDomainAxis().java2DToValue(x, dataArea, plot.getDomainAxisEdge());
 					double yValue = plot.getRangeAxis().java2DToValue(y, dataArea, plot.getRangeAxisEdge());
 					System.out.println("Clicked at: X=" + xValue + ", Y=" + yValue);
-					View.this.numberOfPointsSelected++;
-					scatterPlot.addSelectPoint(new GeoPoint(xValue, yValue));
+					GeoPoint point = new GeoPoint(xValue, yValue);
+					View.this.pointsSelected.add(point);
+					scatterPlot.addSelectPoint(point);
 				}
 			}
 
@@ -295,20 +297,21 @@ public class View implements Service {
 		this.buttons = new JButton[3];
 		buttons[0] = new JButton("Deshacer");
 		buttons[0].addActionListener(e -> {
-			this.numberOfPointsSelected--;
+			this.pointsSelected.remove(this.pointsSelected.size() - 1);
 			this.scatterPlot.removeLastPoint();
 		});
 		buttons[1] = new JButton("Rehacer");
 		buttons[1].addActionListener(e -> {
-			this.numberOfPointsSelected++;
+			// TODO: Restore last point
 			this.scatterPlot.restoreLastPoint();
 		});
 		buttons[2] = new JButton("Confirmar");
 		buttons[2].addActionListener(e -> {
-			this.numberOfPointsSelected = 0;
 			// TODO: Send info to server
-			Request request = new Request(RequestCode.HELLO_WORLD, this);
+			Body body = new Body(this.pointsSelected); // Geopoints might be Serializable
+			Request request = new Request(RequestCode.HELLO_WORLD, this, body);
 			this.sendRequest(request);
+			this.pointsSelected = new ArrayList<>();
 		});
 		buttonSection.createButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
 		return buttonSection;
