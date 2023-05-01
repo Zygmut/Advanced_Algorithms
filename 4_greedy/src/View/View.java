@@ -2,6 +2,7 @@ package View;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -27,7 +28,9 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 
 import org.jfree.chart.ChartFactory;
@@ -162,7 +165,10 @@ public class View implements Service {
 	private JPanel sideBar() {
 		JPanel sideBar = new JPanel();
 		sideBar.setBackground(Color.WHITE);
-		sideBar.setLayout(new BoxLayout(sideBar, BoxLayout.Y_AXIS));
+		sideBar.setLayout(new GridLayout(2, 1));
+		JPanel actionsPanel = new JPanel();
+		actionsPanel.setBackground(Color.WHITE);
+		actionsPanel.setLayout(new BoxLayout(actionsPanel, BoxLayout.Y_AXIS));
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setBackground(Color.WHITE);
 		JLabel label = new JLabel("Demo: ");
@@ -174,7 +180,7 @@ public class View implements Service {
 		});
 		buttonPanel.add(label);
 		buttonPanel.add(button);
-		sideBar.add(buttonPanel);
+		actionsPanel.add(buttonPanel);
 		JPanel mapSelectorPanel = new JPanel();
 		mapSelectorPanel.setBackground(Color.WHITE);
 		JLabel mapSelectorLabel = new JLabel("Mapa: ");
@@ -190,7 +196,7 @@ public class View implements Service {
 		});
 		mapSelectorPanel.add(mapSelectorLabel);
 		mapSelectorPanel.add(distributionMenu);
-		sideBar.add(mapSelectorPanel);
+		actionsPanel.add(mapSelectorPanel);
 
 		JPanel algSelectorPanel = new JPanel();
 		algSelectorPanel.setBackground(Color.WHITE);
@@ -203,7 +209,23 @@ public class View implements Service {
 		});
 		algSelectorPanel.add(algSelectorLabel);
 		algSelectorPanel.add(algorithmMenu);
-		sideBar.add(algSelectorPanel);
+		actionsPanel.add(algSelectorPanel);
+		sideBar.add(actionsPanel);
+
+		JPanel infoPanel = new JPanel();
+		infoPanel.setBackground(Color.WHITE);
+		infoPanel.setLayout(new BorderLayout());
+		JTextArea textArea = new JTextArea();
+		textArea.setEditable(false);
+		textArea.setLineWrap(true);
+		textArea.setWrapStyleWord(true);
+		textArea.setText("Información sobre el algoritmo seleccionado.");
+
+		// Wrap a scrollpane around it.
+		JScrollPane scrollPane = new JScrollPane(textArea);
+		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		infoPanel.add(scrollPane, BorderLayout.CENTER);
+		sideBar.add(infoPanel);
 
 		return sideBar;
 	}
