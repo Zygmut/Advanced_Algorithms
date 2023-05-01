@@ -5,5 +5,8 @@ package Services.Comunication.Request;
  */
 public enum RequestCode {
 	HELLO_WORLD,
-	HELLO_WORLD_2,
+	SEND_GEOPOINTS,
+	CHECK_GEOPOINT,
+	LOAD_MAP,
+	PARSE_MAP,
 }

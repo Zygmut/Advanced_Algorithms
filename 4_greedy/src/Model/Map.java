@@ -1,7 +1,9 @@
 package Model;
 
+import java.io.Serializable;
 
-public record Map(String img, Graph graph) {
+public record Map(String img, Graph graph) implements Serializable{
+	private static final long serialVersionUID = 7988697435L;
 
 	@Override
 	public String toString() {

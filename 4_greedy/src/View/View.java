@@ -1,14 +1,25 @@
 package View;
 
+import Model.*;
+import Services.Comunication.Content.Body;
+import Services.Comunication.Request.Request;
+import Services.Comunication.Request.RequestCode;
+import Services.Comunication.Response.Response;
+import Services.Service;
+import betterSwing.Section;
+import betterSwing.Window;
+import betterSwing.utils.DirectionAndPosition;
+import com.google.gson.Gson;
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.BasicStroke;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -17,9 +28,9 @@ import java.io.Reader;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -32,7 +43,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
-
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartRenderingInfo;
@@ -43,21 +53,9 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-
-import com.google.gson.Gson;
-
-import Services.Service;
-import Services.Comunication.Content.Body;
-import Services.Comunication.Request.Request;
-import Services.Comunication.Request.RequestCode;
-import Services.Comunication.Response.Response;
-import betterSwing.Section;
-import betterSwing.Window;
-import betterSwing.utils.DirectionAndPosition;
 import utils.Algorithms;
 import utils.Config;
 import utils.Maps;
-import Model.*;
 
 public class View implements Service {
 
@@ -75,6 +73,10 @@ public class View implements Service {
 	private MapPlot scatterPlot;
 	private ArrayList<GeoPoint> pointsSelected;
 	private JButton[] buttons;
+	private String selectedMap;
+	private JTextArea textArea;
+	private Map map;
+	private JComboBox<String> mapOptions;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -98,56 +100,90 @@ public class View implements Service {
 	public View(String configPath) {
 		this.window = new Window(configPath);
 		this.window.initConfig();
+		this.pointsSelected = new ArrayList<>();
 	}
 
 	@Override
 	public void start() {
-		Logger.getLogger(this.getClass().getSimpleName())
-				.log(Level.INFO, "View started.");
+		Logger
+			.getLogger(this.getClass().getSimpleName())
+			.log(Level.INFO, "View started.");
 		this.loadContent();
 		this.window.start();
 	}
 
 	@Override
 	public void stop() {
-		Logger.getLogger(this.getClass().getSimpleName())
-				.log(Level.INFO, "View stopped.");
+		Logger
+			.getLogger(this.getClass().getSimpleName())
+			.log(Level.INFO, "View stopped.");
 	}
 
 	@Override
 	public void notifyRequest(Request request) {
 		switch (request.code) {
+			case LOAD_MAP -> {
+				this.map = (Map) request.body.content;
+				this.scatterPlot.addMap(this.selectedMap, this.map);
+				this.map = null;
+			}
+			case CHECK_GEOPOINT -> {
+				if (Objects.isNull(request.body.content)) {
+					Logger
+						.getLogger(this.getClass().getSimpleName())
+						.log(Level.SEVERE, "Clicked point is not valid.");
+					this.textArea.setText("Clicked point is not valid.");
+					return;
+				}
+				GeoPoint point = (GeoPoint) request.body.content;
+				this.scatterPlot.addSelectPoint(point);
+				this.pointsSelected.add(point);
+			}
 			default -> {
-				Logger.getLogger(this.getClass().getSimpleName())
-						.log(Level.SEVERE, "{0} is not implemented.", request);
+				Logger
+					.getLogger(this.getClass().getSimpleName())
+					.log(Level.SEVERE, "{0} is not implemented.", request);
 			}
 		}
 	}
 
 	@Override
 	public void sendRequest(Request request) {
-		try (Socket socket = new Socket(Config.SERVER_HOST, Config.SERVER_PORT)) {
-			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+		try (
+			Socket socket = new Socket(Config.SERVER_HOST, Config.SERVER_PORT)
+		) {
+			ObjectOutputStream out = new ObjectOutputStream(
+				socket.getOutputStream()
+			);
 			out.writeObject(request);
 
-			ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+			ObjectInputStream in = new ObjectInputStream(
+				socket.getInputStream()
+			);
 			Response response = (Response) in.readObject();
-			Logger.getLogger(this.getClass().getSimpleName())
-					.log(Level.INFO, "Response: {0}", response);
+			Logger
+				.getLogger(this.getClass().getSimpleName())
+				.log(Level.INFO, "Response: {0}", response);
 		} catch (Exception e) {
-			Logger.getLogger(this.getClass().getSimpleName())
-					.log(Level.SEVERE, "Error while sending request.", e);
+			Logger
+				.getLogger(this.getClass().getSimpleName())
+				.log(Level.SEVERE, "Error while sending request.", e);
 		}
 	}
 
 	@Override
 	public void sendResponse(Response response) {
-		try (Socket socket = new Socket(Config.SERVER_HOST, Config.SERVER_PORT)) {
-			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+		try (
+			Socket socket = new Socket(Config.SERVER_HOST, Config.SERVER_PORT)
+		) {
+			ObjectOutputStream out = new ObjectOutputStream(
+				socket.getOutputStream()
+			);
 			out.writeObject(response);
 		} catch (Exception e) {
-			Logger.getLogger(this.getClass().getSimpleName())
-					.log(Level.SEVERE, "Error while sending response.", e);
+			Logger
+				.getLogger(this.getClass().getSimpleName())
+				.log(Level.SEVERE, "Error while sending response.", e);
 		}
 	}
 
@@ -159,8 +195,23 @@ public class View implements Service {
 		this.window.addMenuBar(this.menu());
 		this.initSplitPane();
 		this.splitPane.setRightComponent(this.sideBar());
-		this.window.addSection(this.body(), DirectionAndPosition.POSITION_CENTER, "Body");
-		this.window.addSection(this.footer(), DirectionAndPosition.POSITION_BOTTOM, "Footer");
+		this.window.addSection(
+				this.body(),
+				DirectionAndPosition.POSITION_CENTER,
+				"Body"
+			);
+		this.window.addSection(
+				this.footer(),
+				DirectionAndPosition.POSITION_BOTTOM,
+				"Footer"
+			);
+		this.mapOptions.getActionListeners()[0].actionPerformed(
+				new ActionEvent(
+					this,
+					ActionEvent.ACTION_PERFORMED,
+					this.selectedMap
+				)
+			);
 	}
 
 	private JPanel sideBar() {
@@ -176,7 +227,11 @@ public class View implements Service {
 		JButton button = new JButton("Hello World!");
 		button.addActionListener(e -> {
 			String message = "Hello World!";
-			Request request = new Request(RequestCode.HELLO_WORLD, this, new Body(message));
+			Request request = new Request(
+				RequestCode.HELLO_WORLD,
+				this,
+				new Body(message)
+			);
 			this.sendRequest(request);
 		});
 		buttonPanel.add(label);
@@ -185,24 +240,33 @@ public class View implements Service {
 		JPanel mapSelectorPanel = new JPanel();
 		mapSelectorPanel.setBackground(Color.WHITE);
 		JLabel mapSelectorLabel = new JLabel("Mapa: ");
-		String[] maps = Arrays.stream(Maps.values()).map(Enum::toString).toArray(String[]::new);
-		JComboBox<String> distributionMenu = new JComboBox<>(maps);
-		distributionMenu.addActionListener(e -> {
-			String map = (String) distributionMenu.getSelectedItem();
+		String[] maps = Arrays
+			.stream(Maps.values())
+			.map(Enum::toString)
+			.toArray(String[]::new);
+		this.mapOptions = new JComboBox<>(maps);
+		this.selectedMap = Maps.IBIZA_FORMENTERA.toString();
+		mapOptions.setSelectedItem(this.selectedMap);
+		mapOptions.addActionListener(e -> {
+			String map = (String) mapOptions.getSelectedItem();
 			String[] mapsNames = Maps.getMaps();
 			int index = Arrays.asList(mapsNames).indexOf(map);
 			System.out.println(Maps.values()[index]);
-			// TODO: Send new map to server
-			// TODO: Update map
+			Body body = new Body(Maps.values()[index].toString());
+			Request request = new Request(RequestCode.PARSE_MAP, this, body);
+			this.sendRequest(request);
 		});
 		mapSelectorPanel.add(mapSelectorLabel);
-		mapSelectorPanel.add(distributionMenu);
+		mapSelectorPanel.add(mapOptions);
 		actionsPanel.add(mapSelectorPanel);
 
 		JPanel algSelectorPanel = new JPanel();
 		algSelectorPanel.setBackground(Color.WHITE);
 		JLabel algSelectorLabel = new JLabel("Algoritmo: ");
-		String[] algorithms = Arrays.stream(Algorithms.values()).map(Enum::toString).toArray(String[]::new);
+		String[] algorithms = Arrays
+			.stream(Algorithms.values())
+			.map(Enum::toString)
+			.toArray(String[]::new);
 		JComboBox<String> algorithmMenu = new JComboBox<>(algorithms);
 		algorithmMenu.addActionListener(e -> {
 			String algorithm = (String) algorithmMenu.getSelectedItem();
@@ -216,7 +280,7 @@ public class View implements Service {
 		JPanel infoPanel = new JPanel();
 		infoPanel.setBackground(Color.WHITE);
 		infoPanel.setLayout(new BorderLayout());
-		JTextArea textArea = new JTextArea();
+		this.textArea = new JTextArea();
 		textArea.setEditable(false);
 		textArea.setLineWrap(true);
 		textArea.setWrapStyleWord(true);
@@ -224,7 +288,9 @@ public class View implements Service {
 
 		// Wrap a scrollpane around it.
 		JScrollPane scrollPane = new JScrollPane(textArea);
-		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		scrollPane.setVerticalScrollBarPolicy(
+			JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
+		);
 		infoPanel.add(scrollPane, BorderLayout.CENTER);
 		sideBar.add(infoPanel);
 
@@ -243,48 +309,67 @@ public class View implements Service {
 		JPanel content = new JPanel();
 		content.setLayout(new BorderLayout());
 		content.setBackground(Color.WHITE);
-		this.scatterPlot = new MapPlot(Color.MAGENTA, Color.BLACK, Color.PINK, true);
-		JFreeChart chart = this.scatterPlot.createPlot("./assets/ibiza-formentera/map.png");
+		this.scatterPlot =
+			new MapPlot(Color.MAGENTA, Color.BLACK, Color.PINK, true);
+
+		JFreeChart chart = this.scatterPlot.createPlot();
 		ChartPanel chartPanel = new ChartPanel(chart);
 		chartPanel.setDomainZoomable(false);
 		chartPanel.setRangeZoomable(false);
-		chartPanel.addMouseListener(new MouseListener() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				if (SwingUtilities.isLeftMouseButton(e)) {
-					// Get the mouse click coordinates
-					int x = e.getX();
-					int y = e.getY();
-					// Calculate the data values based on the chart's range
-					XYPlot plot = (XYPlot) chart.getPlot();
-					ChartRenderingInfo info = chartPanel.getChartRenderingInfo();
-					Rectangle2D dataArea = info.getPlotInfo().getDataArea();
-					double xValue = plot.getDomainAxis().java2DToValue(x, dataArea, plot.getDomainAxisEdge());
-					double yValue = plot.getRangeAxis().java2DToValue(y, dataArea, plot.getRangeAxisEdge());
-					System.out.println("Clicked at: X=" + xValue + ", Y=" + yValue);
-					GeoPoint point = new GeoPoint(xValue, yValue);
-					View.this.pointsSelected.add(point);
-					scatterPlot.addSelectPoint(point);
+		chartPanel.addMouseListener(
+			new MouseListener() {
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					if (SwingUtilities.isLeftMouseButton(e)) {
+						// Get the mouse click coordinates
+						int x = e.getX();
+						int y = e.getY();
+						// Calculate the data values based on the chart's range
+						XYPlot plot = (XYPlot) chart.getPlot();
+						ChartRenderingInfo info = chartPanel.getChartRenderingInfo();
+						Rectangle2D dataArea = info.getPlotInfo().getDataArea();
+						double xValue = plot
+							.getDomainAxis()
+							.java2DToValue(
+								x,
+								dataArea,
+								plot.getDomainAxisEdge()
+							);
+						double yValue = plot
+							.getRangeAxis()
+							.java2DToValue(
+								y,
+								dataArea,
+								plot.getRangeAxisEdge()
+							);
+						System.out.println(
+							"Clicked at: X=" + xValue + ", Y=" + yValue
+						);
+						GeoPoint point = new GeoPoint(xValue, yValue);
+						Body body = new Body(point);
+						Request request = new Request(
+							RequestCode.CHECK_GEOPOINT,
+							this,
+							body
+						);
+						View.this.sendRequest(request);
+					}
 				}
-			}
 
-			// Implement the remaining MouseListener methods
-			@Override
-			public void mousePressed(MouseEvent e) {
-			}
+				// Implement the remaining MouseListener methods
+				@Override
+				public void mousePressed(MouseEvent e) {}
 
-			@Override
-			public void mouseReleased(MouseEvent e) {
-			}
+				@Override
+				public void mouseReleased(MouseEvent e) {}
 
-			@Override
-			public void mouseEntered(MouseEvent e) {
-			}
+				@Override
+				public void mouseEntered(MouseEvent e) {}
 
-			@Override
-			public void mouseExited(MouseEvent e) {
+				@Override
+				public void mouseExited(MouseEvent e) {}
 			}
-		});
+		);
 		content.add(chartPanel, BorderLayout.CENTER);
 		splitPane.setLeftComponent(content);
 		Section body = new Section();
@@ -297,23 +382,30 @@ public class View implements Service {
 		this.buttons = new JButton[3];
 		buttons[0] = new JButton("Deshacer");
 		buttons[0].addActionListener(e -> {
-			this.pointsSelected.remove(this.pointsSelected.size() - 1);
-			this.scatterPlot.removeLastPoint();
-		});
+				this.pointsSelected.remove(this.pointsSelected.size() - 1);
+				this.scatterPlot.removeLastPoint();
+			});
 		buttons[1] = new JButton("Rehacer");
 		buttons[1].addActionListener(e -> {
-			// TODO: Restore last point
-			this.scatterPlot.restoreLastPoint();
-		});
+				// TODO: Restore last point
+				this.scatterPlot.restoreLastPoint();
+			});
 		buttons[2] = new JButton("Confirmar");
 		buttons[2].addActionListener(e -> {
-			// TODO: Send info to server
-			Body body = new Body(this.pointsSelected); // Geopoints might be Serializable
-			Request request = new Request(RequestCode.HELLO_WORLD, this, body);
-			this.sendRequest(request);
-			this.pointsSelected = new ArrayList<>();
-		});
-		buttonSection.createButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
+				// TODO: Send info to server
+				Body body = new Body(this.pointsSelected); // Geopoints might be Serializable
+				Request request = new Request(
+					RequestCode.SEND_GEOPOINTS,
+					this,
+					body
+				);
+				View.this.sendRequest(request);
+				this.pointsSelected = new ArrayList<>();
+			});
+		buttonSection.createButtons(
+			buttons,
+			DirectionAndPosition.DIRECTION_ROW
+		);
 		return buttonSection;
 	}
 
@@ -365,37 +457,64 @@ public class View implements Service {
 		private Color nodeLinesColor;
 		private XYPlot plot;
 		private XYSeries selectedPoint;
+		private XYSeries nodesPoint;
 		private boolean enableDistanceDisplay;
 
-		public MapPlot(Color mapNodesColor, Color selectPointColor, Color nodeLinesColor,
-				boolean enableDistanceDisplay) {
+		public MapPlot(
+			Color mapNodesColor,
+			Color selectPointColor,
+			Color nodeLinesColor,
+			boolean enableDistanceDisplay
+		) {
 			this.mapNodesColor = mapNodesColor;
 			this.selectPointColor = selectPointColor;
 			this.nodeLinesColor = nodeLinesColor;
 			this.enableDistanceDisplay = enableDistanceDisplay;
 		}
 
-		private JFreeChart createPlot(String backImgPath) {
-			// TODO: REMOVE THIS IS DEBU
-			Gson gson = new Gson();
-			Map map = null;
-			try (Reader reader = new FileReader("./assets/ibiza-formentera/ibiza-formentera.json")) {
-				// Convert JSON File to Java Object
-				map = gson.fromJson(reader, Map.class);
-			} catch (IOException e) {
-				System.out.println(e.getLocalizedMessage());
-			}
+		private JFreeChart createPlot() {
+			XYSeriesCollection dataset = new XYSeriesCollection();
+			this.selectedPoint = new XYSeries("selectedPoint");
+			this.nodesPoint = new XYSeries("nodesPoint");
+			dataset.addSeries(this.selectedPoint);
+			dataset.addSeries(this.nodesPoint);
 
+			JFreeChart chart = ChartFactory.createXYLineChart(
+				"",
+				"X",
+				"Y",
+				dataset
+			);
+			chart.setAntiAlias(true);
+			plot = chart.getXYPlot();
+			plot.setBackgroundPaint(Color.WHITE);
+			plot.getDomainAxis().setVisible(false);
+			plot.getRangeAxis().setVisible(false);
+			XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(
+				false,
+				true
+			);
+			renderer.setSeriesPaint(1, this.mapNodesColor);
+			renderer.setSeriesShape(1, new Ellipse2D.Double(-4, -4, 8, 8));
+			renderer.setSeriesPaint(0, this.selectPointColor);
+			renderer.setSeriesShape(0, new Ellipse2D.Double(-4, -4, 8, 8));
+			plot.setRenderer(renderer);
+
+			plot.getDomainAxis().setRange(0, 100);
+			plot.getRangeAxis().setRange(0, 100);
+			chart.removeLegend();
+
+			return chart;
+		}
+
+		private void addMap(String selectedMap, Map map) {
+			String backImgPath =
+				"./assets/" + selectedMap.toLowerCase() + "/" + map.img();
 			Node[] nodes = map.graph().content();
 
 			GeoPoint[] points = new GeoPoint[nodes.length];
 			for (int i = 0; i < points.length; i++) {
 				points[i] = nodes[i].geoPoint();
-			}
-
-			XYSeries series = new XYSeries("MapPoints");
-			for (GeoPoint point : points) {
-				series.add(point.x(), point.y());
 			}
 
 			ArrayList<PairPoint> lines = new ArrayList<>();
@@ -413,66 +532,56 @@ public class View implements Service {
 				}
 			}
 
-			XYSeriesCollection dataset = new XYSeriesCollection();
-			this.selectedPoint = new XYSeries("selectedPoint");
-			dataset.addSeries(this.selectedPoint);
-			dataset.addSeries(series);
-			// END DEBUG
-
-			JFreeChart chart = ChartFactory.createXYLineChart(
-					"",
-					"X",
-					"Y",
-					dataset);
-
-			chart.setAntiAlias(true);
-			plot = chart.getXYPlot();
 			changePlotBackground(backImgPath);
-			plot.setBackgroundPaint(Color.WHITE);
-			plot.getDomainAxis().setVisible(false);
-			plot.getRangeAxis().setVisible(false);
-			XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(false, true);
-			renderer.setSeriesPaint(1, this.mapNodesColor);
-			renderer.setSeriesShape(1, new Ellipse2D.Double(-4, -4, 8, 8));
-			renderer.setSeriesPaint(0, this.selectPointColor);
-			renderer.setSeriesShape(0, new Ellipse2D.Double(-4, -4, 8, 8));
-			plot.setRenderer(renderer);
 
 			for (PairPoint pairPoint : lines) {
 				XYLineAnnotation line = new XYLineAnnotation(
-						pairPoint.p1().x(), pairPoint.p1().y(), // x and y coordinates of point 1
-						pairPoint.p2().x(), pairPoint.p2().y(), // x and y coordinates of point 2
-						new BasicStroke(1.0f),
-						this.nodeLinesColor);
+					pairPoint.p1().x(),
+					pairPoint.p1().y(), // x and y coordinates of point 1
+					pairPoint.p2().x(),
+					pairPoint.p2().y(), // x and y coordinates of point 2
+					new BasicStroke(1.0f),
+					this.nodeLinesColor
+				);
 				plot.addAnnotation(line);
 				if (!this.enableDistanceDisplay) {
 					continue;
 				}
 				// Create a text annotation
-				double distance = pairPoint.p1().euclideanDistanceTo(pairPoint.p2());
+				double distance = pairPoint
+					.p1()
+					.euclideanDistanceTo(pairPoint.p2());
 				// Round to 2 decimals
 				distance = Math.round(distance * 100.0) / 100.0;
 				XYTextAnnotation textAnnotation = new XYTextAnnotation(
-						distance + " U", // Text to be displayed
-						(pairPoint.p1().x() + pairPoint.p2().x()) / 2, // x coordinate of text
-						(pairPoint.p1().y() + pairPoint.p2().y()) / 2 // y coordinate of text
+					distance + " U", // Text to be displayed
+					(pairPoint.p1().x() + pairPoint.p2().x()) / 2, // x coordinate of text
+					(pairPoint.p1().y() + pairPoint.p2().y()) / 2 // y coordinate of text
 				);
 				plot.addAnnotation(textAnnotation);
 			}
-			plot.getDomainAxis().setRange(0, 100);
-			plot.getRangeAxis().setRange(0, 100);
-			chart.removeLegend();
 
-			return chart;
+			for (GeoPoint point : points) {
+				this.nodesPoint.add(point.x(), point.y());
+			}
 		}
 
 		private void addSelectPoint(GeoPoint point) {
+			String text = "" + View.this.pointsSelected.size();
+			XYTextAnnotation textAnnotation = new XYTextAnnotation(
+				text, // Text to be displayed
+				point.x(), // x coordinate of text
+				point.y() + 2 // y coordinate of text
+			);
+			plot.addAnnotation(textAnnotation);
 			this.selectedPoint.add(point.x(), point.y());
 		}
 
 		private void removeLastPoint() {
 			if (this.selectedPoint.getItemCount() > 0) {
-				this.selectedPoint.remove(this.selectedPoint.getItemCount() - 1);
+				this.selectedPoint.remove(
+						this.selectedPoint.getItemCount() - 1
+					);
 			}
 		}
 
@@ -485,7 +594,9 @@ public class View implements Service {
 		}
 
 		private void changePlotBackground(String image) {
-			plot.setBackgroundImage(Toolkit.getDefaultToolkit().getImage(image));
+			plot.setBackgroundImage(
+				Toolkit.getDefaultToolkit().getImage(image)
+			);
 			plot.setBackgroundImageAlpha(1);
 		}
 	}

@@ -9,9 +9,9 @@ def write_json(data, filename='data.json'):
 
 def main(file_name:str):
 	with open(file_name) as f:
-		data = json.load(f)
+		json_file = json.load(f)
 
-	data:list = data.get("graph").get("content")
+	data:list = json_file.get("graph").get("content")
 
 	for element in data:
 		(origin_x, origin_y) = element.get("geoPoint").get("x"), element.get("geoPoint").get("y")
@@ -25,8 +25,9 @@ def main(file_name:str):
 					connection.update({"weight": calculate_distance(origin_x, origin_y, target_x, target_y)})
 					break
 
-	write_json(data, "./assets/weighted-data.json")
+	json_file.get("graph").update({"content": data})
+	write_json(json_file, "./assets/ibiza-formentera/weighted-data.json")
 
 
 if __name__ == "__main__":
-    main("./assets/ibiza-formentera.json")
+    main("./assets/ibiza-formentera/ibiza-formentera.json")

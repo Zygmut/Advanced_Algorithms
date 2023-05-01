@@ -5,20 +5,40 @@
 			"services": ["CONTROLLER", "MODEL"]
 		},
 		{
-			"code": "HELLO_WORLD_2",
-			"services": ["CONTROLLER", "VIEW", "MODEL"]
+			"code": "SEND_GEOPOINTS",
+			"services": ["MODEL"]
+		},
+		{
+			"code": "CHECK_GEOPOINT",
+			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "PARSE_MAP",
+			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "LOAD_MAP",
+			"services": ["MODEL"]
 		}
 	],
 	"responseMap": [
 		{
-			"code": "TEST",
-			"services": ["CONTROLLER", "VIEW", "MODEL"]
+			"code": "LOAD_MAP",
+			"services": ["VIEW"]
+		},
+		{
+			"code": "CHECK_GEOPOINT",
+			"services": ["VIEW"]
 		}
 	],
 	"resToReqMap": [
 		{
-			"responseCode": "TEST",
-			"requestCode": "HELLO_WORLD"
+			"responseCode": "CHECK_GEOPOINT",
+			"requestCode": "CHECK_GEOPOINT"
+		},
+		{
+			"responseCode": "LOAD_MAP",
+			"requestCode": "LOAD_MAP"
 		}
 	]
 }
