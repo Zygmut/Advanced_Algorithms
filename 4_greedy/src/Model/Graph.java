@@ -13,8 +13,16 @@ public record Graph(Node[] content) {
 		return 0;
 	}
 
+	public Node getNode(int n) {
+		return content[n];
+	}
+
 	@Override
 	public String toString() {
 		return Arrays.deepToString(content);
+	}
+
+	public int getPointsCount() {
+		return content.length;
 	}
 }
