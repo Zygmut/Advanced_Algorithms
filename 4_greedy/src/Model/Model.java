@@ -1,7 +1,9 @@
 package Model;
 
+import Services.Comunication.Content.Body;
 import Services.Comunication.Request.Request;
 import Services.Comunication.Response.Response;
+import Services.Comunication.Response.ResponseCode;
 import Services.Service;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -52,6 +54,9 @@ public class Model implements Service {
 						.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "Invalid data type.");
 				}
+			}
+			case GET_MAP -> {
+				this.sendResponse(new Response(ResponseCode.GET_MAP, this, new Body(this.map)));
 			}
 			default -> {
 				Logger

@@ -24,8 +24,4 @@ public record Graph(Node[] content) implements Serializable {
 	public String toString() {
 		return Arrays.deepToString(content);
 	}
-
-	public int getPointsCount() {
-		return content.length;
-	}
 }

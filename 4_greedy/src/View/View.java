@@ -9,7 +9,6 @@ import Services.Service;
 import betterSwing.Section;
 import betterSwing.Window;
 import betterSwing.utils.DirectionAndPosition;
-import com.google.gson.Gson;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -20,11 +19,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Reader;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -128,6 +124,9 @@ public class View implements Service {
 				this.map = null;
 			}
 			case CHECK_GEOPOINT -> {
+				Logger
+					.getLogger(this.getClass().getSimpleName())
+					.log(Level.INFO, "Response [VIEW]: {0}", request.toString());
 				if (Objects.isNull(request.body.content)) {
 					Logger
 						.getLogger(this.getClass().getSimpleName())
@@ -333,7 +332,7 @@ public class View implements Service {
 						Body body = new Body(point);
 						Request request = new Request(
 							RequestCode.CHECK_GEOPOINT,
-							this,
+							View.this,
 							body
 						);
 						View.this.sendRequest(request);
