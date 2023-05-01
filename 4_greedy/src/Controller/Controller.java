@@ -76,15 +76,6 @@ public class Controller implements Service {
 						new Response(ResponseCode.LOAD_MAP, this, mapBody)
 					);
 			}
-			case HELLO_WORLD -> {
-				Logger
-					.getLogger(this.getClass().getSimpleName())
-					.log(
-						Level.INFO,
-						"The body of the request is: {0}",
-						request.body
-					);
-			}
 			default -> {
 				Logger
 					.getLogger(this.getClass().getSimpleName())

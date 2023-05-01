@@ -40,11 +40,6 @@ public class Model implements Service {
 	@SuppressWarnings("unchecked")
 	public void notifyRequest(Request request) {
 		switch (request.code) {
-			case HELLO_WORLD -> {
-				Logger
-					.getLogger(this.getClass().getSimpleName())
-					.log(Level.INFO, "Hello World!");
-			}
 			case LOAD_MAP -> {
 				this.map = (Map) request.body.content;
 			}

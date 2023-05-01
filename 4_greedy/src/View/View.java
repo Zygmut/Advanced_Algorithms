@@ -221,22 +221,6 @@ public class View implements Service {
 		JPanel actionsPanel = new JPanel();
 		actionsPanel.setBackground(Color.WHITE);
 		actionsPanel.setLayout(new BoxLayout(actionsPanel, BoxLayout.Y_AXIS));
-		JPanel buttonPanel = new JPanel();
-		buttonPanel.setBackground(Color.WHITE);
-		JLabel label = new JLabel("Demo: ");
-		JButton button = new JButton("Hello World!");
-		button.addActionListener(e -> {
-			String message = "Hello World!";
-			Request request = new Request(
-				RequestCode.HELLO_WORLD,
-				this,
-				new Body(message)
-			);
-			this.sendRequest(request);
-		});
-		buttonPanel.add(label);
-		buttonPanel.add(button);
-		actionsPanel.add(buttonPanel);
 		JPanel mapSelectorPanel = new JPanel();
 		mapSelectorPanel.setBackground(Color.WHITE);
 		JLabel mapSelectorLabel = new JLabel("Mapa: ");
