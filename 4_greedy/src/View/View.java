@@ -71,7 +71,6 @@ public class View implements Service {
 	private JButton[] buttons;
 	private String selectedMap;
 	private JTextArea textArea;
-	private Map map;
 	private JComboBox<String> mapOptions;
 
 	/**
@@ -119,22 +118,23 @@ public class View implements Service {
 	public void notifyRequest(Request request) {
 		switch (request.code) {
 			case LOAD_MAP -> {
-				this.map = (Map) request.body.content;
-				this.scatterPlot.addMap(this.selectedMap, this.map);
-				this.map = null;
+				Map map = (Map) request.body.content;
+				this.scatterPlot.addMap(this.selectedMap, map);
 			}
 			case CHECK_GEOPOINT -> {
+				String aux = textArea.getText();
 				Logger
 					.getLogger(this.getClass().getSimpleName())
-					.log(Level.INFO, "Response [VIEW]: {0}", request.toString());
+					.log(Level.INFO, "Response [VIEW]: {0}", request);
 				if (Objects.isNull(request.body.content)) {
 					Logger
 						.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "Clicked point is not valid.");
-					this.textArea.setText("Clicked point is not valid.");
+					this.textArea.setText(aux + "\nClicked point is not valid.");
 					return;
 				}
 				GeoPoint point = (GeoPoint) request.body.content;
+				this.textArea.setText(aux + "\nClicked point is valid.\n  =>" + point.toString());
 				this.scatterPlot.addSelectPoint(point);
 				this.pointsSelected.add(point);
 			}
@@ -267,7 +267,7 @@ public class View implements Service {
 		textArea.setEditable(false);
 		textArea.setLineWrap(true);
 		textArea.setWrapStyleWord(true);
-		textArea.setText("Información sobre el algoritmo seleccionado.");
+		textArea.setText("Logs: \n");
 
 		// Wrap a scrollpane around it.
 		JScrollPane scrollPane = new JScrollPane(textArea);

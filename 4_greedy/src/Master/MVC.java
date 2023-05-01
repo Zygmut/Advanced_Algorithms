@@ -88,7 +88,6 @@ public class MVC implements Server {
 			while (running) {
 				// Wait for a client connection
 				Socket clientSocket = serverSocket.accept();
-				this.logMessage("Client connected." + clientSocket.getInetAddress().toString());
 				// Get the input and output streams for the client socket
 				ObjectInputStream inputStream = new ObjectInputStream(clientSocket.getInputStream());
 				// If is a request
@@ -116,7 +115,6 @@ public class MVC implements Server {
 				}
 				// Close the client socket
 				clientSocket.close();
-				this.logMessage("Client disconnected." + clientSocket.getInetAddress().toString());
 			}
 		} catch (IOException | ClassNotFoundException ex) {
 			this.logMessage(ex.getLocalizedMessage());

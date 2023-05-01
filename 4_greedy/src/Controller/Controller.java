@@ -1,20 +1,14 @@
 package Controller;
 
 import Model.GeoPoint;
-import Model.GeoPoint;
-import Model.Graph;
 import Model.Map;
 import Model.Node;
 import Services.Comunication.Content.Body;
 import Services.Comunication.Helpers;
 import Services.Comunication.Request.Request;
-import Services.Comunication.Request.Request;
 import Services.Comunication.Request.RequestCode;
 import Services.Comunication.Response.Response;
-import Services.Comunication.Response.Response;
 import Services.Comunication.Response.ResponseCode;
-import Services.Comunication.Response.ResponseStatus;
-import Services.Service;
 import Services.Service;
 import com.google.gson.Gson;
 import java.io.FileReader;
@@ -24,10 +18,10 @@ import java.io.ObjectOutputStream;
 import java.io.Reader;
 import java.net.Socket;
 import java.util.Objects;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import utils.Config;
+import utils.Exceptions.GraphException;
 
 public class Controller implements Service {
 
@@ -54,7 +48,10 @@ public class Controller implements Service {
 	private Map fetchMap() {
 		Request request = new Request(RequestCode.GET_MAP, this);
 		this.sendRequest(request);
-		Helpers.await(Objects::isNull, map);
+		// Helpers.await(Objects::isNull, map); No funciona
+		while (Objects.isNull(map)) {
+			Helpers.await();
+		}
 		return map;
 	}
 
@@ -69,7 +66,7 @@ public class Controller implements Service {
 				GeoPoint nextValidGeoPoint = checkClosestGeoPoint(
 					clickedPoint,
 					graphNodes,
-					10
+					2.5
 				);
 				this.map = null;
 
@@ -97,7 +94,9 @@ public class Controller implements Service {
 					// Convert JSON File to Java Object
 					this.map = gson.fromJson(reader, Map.class);
 				} catch (IOException e) {
-					System.out.println(e.getLocalizedMessage());
+					Logger
+						.getLogger(this.getClass().getSimpleName())
+						.log(Level.SEVERE, "Error while parsing map.", e);
 				}
 				Body mapBody = new Body(this.map);
 				this.sendRequest(
@@ -161,7 +160,7 @@ public class Controller implements Service {
 		double radius
 	) {
 		if (Objects.isNull(graphNodes) || graphNodes.length == 0) {
-			throw new RuntimeException(
+			throw new GraphException(
 				"Graph does not have nodes or is not initialized."
 			);
 		}
