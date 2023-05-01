@@ -1,15 +1,21 @@
 package Controller;
 
 import Model.GeoPoint;
+import Model.GeoPoint;
+import Model.Graph;
 import Model.Map;
+import Model.Node;
 import Services.Comunication.Content.Body;
 import Services.Comunication.Request.Request;
+import Services.Comunication.Request.Request;
 import Services.Comunication.Request.RequestCode;
+import Services.Comunication.Response.Response;
 import Services.Comunication.Response.Response;
 import Services.Comunication.Response.ResponseCode;
 import Services.Comunication.Response.ResponseStatus;
 import Services.Service;
-
+import Services.Service;
+import com.google.gson.Gson;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -18,15 +24,6 @@ import java.io.Reader;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import com.google.gson.Gson;
-
-import Model.GeoPoint;
-import Model.Graph;
-import Model.Node;
-import Services.Service;
-import Services.Comunication.Request.Request;
-import Services.Comunication.Response.Response;
 import utils.Config;
 
 public class Controller implements Service {
@@ -61,7 +58,9 @@ public class Controller implements Service {
 				String folder = (String) request.body.content;
 				try (
 					Reader reader = new FileReader(
-						"./assets/" + folder.toLowerCase() + "/weighted-data.json"
+						"./assets/" +
+						folder.toLowerCase() +
+						"/weighted-data.json"
 					)
 				) {
 					// Convert JSON File to Java Object
@@ -70,8 +69,12 @@ public class Controller implements Service {
 					System.out.println(e.getLocalizedMessage());
 				}
 				Body mapBody = new Body(map);
-				this.sendRequest(new Request(RequestCode.LOAD_MAP, this, mapBody));
-				this.sendResponse(new Response(ResponseCode.LOAD_MAP, this, mapBody));
+				this.sendRequest(
+						new Request(RequestCode.LOAD_MAP, this, mapBody)
+					);
+				this.sendResponse(
+						new Response(ResponseCode.LOAD_MAP, this, mapBody)
+					);
 			}
 			case HELLO_WORLD -> {
 				Logger
@@ -137,25 +140,30 @@ public class Controller implements Service {
 			return null;
 		}
 		Node closestNode = g.getNode(0);
-		double closestDistance = distance(clickedPoint, closestNode.getGeoPoint());
-	
+		double closestDistance = distance(
+			clickedPoint,
+			closestNode.getGeoPoint()
+		);
+
 		for (int i = 1; i < g.getPointsCount(); i++) {
 			Node currentNode = g.getNode(i);
-			double currentDistance = distance(clickedPoint, currentNode.getGeoPoint());
-	
+			double currentDistance = distance(
+				clickedPoint,
+				currentNode.getGeoPoint()
+			);
+
 			if (currentDistance < closestDistance) {
 				closestNode = currentNode;
 				closestDistance = currentDistance;
 			}
 		}
-	
+
 		return closestNode;
 	}
-	
+
 	private double distance(GeoPoint point1, GeoPoint point2) {
 		double xDiff = point1.x() - point2.x();
 		double yDiff = point1.y() - point2.y();
 		return Math.sqrt(xDiff * xDiff + yDiff * yDiff);
 	}
-	
 }
