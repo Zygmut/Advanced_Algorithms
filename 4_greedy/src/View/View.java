@@ -50,7 +50,6 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import utils.Algorithms;
-import utils.Config;
 import utils.Maps;
 
 public class View implements Service {
@@ -151,46 +150,6 @@ public class View implements Service {
 					.getLogger(this.getClass().getSimpleName())
 					.log(Level.SEVERE, "{0} is not implemented.", request);
 			}
-		}
-	}
-
-	@Override
-	public void sendRequest(Request request) {
-		try (
-			Socket socket = new Socket(Config.SERVER_HOST, Config.SERVER_PORT)
-		) {
-			ObjectOutputStream out = new ObjectOutputStream(
-				socket.getOutputStream()
-			);
-			out.writeObject(request);
-
-			ObjectInputStream in = new ObjectInputStream(
-				socket.getInputStream()
-			);
-			Response response = (Response) in.readObject();
-			Logger
-				.getLogger(this.getClass().getSimpleName())
-				.log(Level.INFO, "Response: {0}", response);
-		} catch (Exception e) {
-			Logger
-				.getLogger(this.getClass().getSimpleName())
-				.log(Level.SEVERE, "Error while sending request.", e);
-		}
-	}
-
-	@Override
-	public void sendResponse(Response response) {
-		try (
-			Socket socket = new Socket(Config.SERVER_HOST, Config.SERVER_PORT)
-		) {
-			ObjectOutputStream out = new ObjectOutputStream(
-				socket.getOutputStream()
-			);
-			out.writeObject(response);
-		} catch (Exception e) {
-			Logger
-				.getLogger(this.getClass().getSimpleName())
-				.log(Level.SEVERE, "Error while sending response.", e);
 		}
 	}
 

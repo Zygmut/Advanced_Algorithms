@@ -13,14 +13,10 @@ import Services.Service;
 import com.google.gson.Gson;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Reader;
-import java.net.Socket;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import utils.Config;
 import utils.Exceptions.GraphException;
 
 public class Controller implements Service {
@@ -111,46 +107,6 @@ public class Controller implements Service {
 					.getLogger(this.getClass().getSimpleName())
 					.log(Level.SEVERE, "{0} is not implemented.", request);
 			}
-		}
-	}
-
-	@Override
-	public void sendRequest(Request request) {
-		try (
-			Socket socket = new Socket(Config.SERVER_HOST, Config.SERVER_PORT)
-		) {
-			ObjectOutputStream out = new ObjectOutputStream(
-				socket.getOutputStream()
-			);
-			out.writeObject(request);
-
-			ObjectInputStream in = new ObjectInputStream(
-				socket.getInputStream()
-			);
-			Response response = (Response) in.readObject();
-			Logger
-				.getLogger(this.getClass().getSimpleName())
-				.log(Level.INFO, "Response: {0}", response);
-		} catch (Exception e) {
-			Logger
-				.getLogger(this.getClass().getSimpleName())
-				.log(Level.SEVERE, "Error while sending request.", e);
-		}
-	}
-
-	@Override
-	public void sendResponse(Response response) {
-		try (
-			Socket socket = new Socket(Config.SERVER_HOST, Config.SERVER_PORT)
-		) {
-			ObjectOutputStream out = new ObjectOutputStream(
-				socket.getOutputStream()
-			);
-			out.writeObject(response);
-		} catch (Exception e) {
-			Logger
-				.getLogger(this.getClass().getSimpleName())
-				.log(Level.SEVERE, "Error while sending response.", e);
 		}
 	}
 
