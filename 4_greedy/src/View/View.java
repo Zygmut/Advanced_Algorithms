@@ -9,7 +9,6 @@ import Services.Service;
 import betterSwing.Section;
 import betterSwing.Window;
 import betterSwing.utils.DirectionAndPosition;
-import com.google.gson.Gson;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -20,11 +19,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Reader;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -75,8 +71,8 @@ public class View implements Service {
 	private JButton[] buttons;
 	private String selectedMap;
 	private JTextArea textArea;
-	private Map map;
 	private JComboBox<String> mapOptions;
+	private GeoPoint lastPoint;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -123,21 +119,32 @@ public class View implements Service {
 	public void notifyRequest(Request request) {
 		switch (request.code) {
 			case LOAD_MAP -> {
-				this.map = (Map) request.body.content;
-				this.scatterPlot.addMap(this.selectedMap, this.map);
-				this.map = null;
+				Map map = (Map) request.body.content;
+				this.scatterPlot.addMap(this.selectedMap, map);
 			}
 			case CHECK_GEOPOINT -> {
+				String aux = textArea.getText();
+				Logger
+					.getLogger(this.getClass().getSimpleName())
+					.log(Level.INFO, "Response [VIEW]: {0}", request);
 				if (Objects.isNull(request.body.content)) {
 					Logger
 						.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "Clicked point is not valid.");
-					this.textArea.setText("Clicked point is not valid.");
+					this.textArea.setText(aux + "\nClicked point is not valid.");
 					return;
 				}
 				GeoPoint point = (GeoPoint) request.body.content;
-				this.scatterPlot.addSelectPoint(point);
-				this.pointsSelected.add(point);
+				this.textArea.setText(aux + "\nClicked point is valid.\n  =>" + point.toString());
+				if (!this.pointsSelected.contains(point)){
+			    	this.scatterPlot.addSelectPoint(point);
+					this.pointsSelected.add(point);
+				} else {
+					Logger
+						.getLogger(this.getClass().getSimpleName())
+						.log(Level.SEVERE, "Clicked point is already selected.");
+					this.textArea.setText(aux + "\nClicked point is already selected.");
+				}
 			}
 			default -> {
 				Logger
@@ -268,7 +275,7 @@ public class View implements Service {
 		textArea.setEditable(false);
 		textArea.setLineWrap(true);
 		textArea.setWrapStyleWord(true);
-		textArea.setText("Información sobre el algoritmo seleccionado.");
+		textArea.setText("Logs: \n");
 
 		// Wrap a scrollpane around it.
 		JScrollPane scrollPane = new JScrollPane(textArea);
@@ -333,7 +340,7 @@ public class View implements Service {
 						Body body = new Body(point);
 						Request request = new Request(
 							RequestCode.CHECK_GEOPOINT,
-							this,
+							View.this,
 							body
 						);
 						View.this.sendRequest(request);
@@ -366,13 +373,20 @@ public class View implements Service {
 		this.buttons = new JButton[3];
 		buttons[0] = new JButton("Deshacer");
 		buttons[0].addActionListener(e -> {
+				if (!this.pointsSelected.isEmpty()) {
+					lastPoint = this.pointsSelected.get(
+						this.pointsSelected.size() - 1
+					);
+				}
 				this.pointsSelected.remove(this.pointsSelected.size() - 1);
 				this.scatterPlot.removeLastPoint();
 			});
 		buttons[1] = new JButton("Rehacer");
 		buttons[1].addActionListener(e -> {
-				// TODO: Restore last point
+			if (lastPoint != null)
+				this.pointsSelected.add(lastPoint);
 				this.scatterPlot.restoreLastPoint();
+				lastPoint = null;
 			});
 		buttons[2] = new JButton("Confirmar");
 		buttons[2].addActionListener(e -> {
@@ -573,8 +587,9 @@ public class View implements Service {
 			return this.selectedPoint.getItemCount();
 		}
 
+		//Method that restores the last point that was removed
 		private void restoreLastPoint() {
-			// TODO
+			this.selectedPoint.add(lastPoint.x(), lastPoint.y());
 		}
 
 		private void changePlotBackground(String image) {

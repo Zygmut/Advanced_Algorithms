@@ -13,6 +13,10 @@
 			"services": ["CONTROLLER"]
 		},
 		{
+			"code": "GET_MAP",
+			"services": ["MODEL"]
+		},
+		{
 			"code": "LOAD_MAP",
 			"services": ["MODEL"]
 		}
@@ -23,6 +27,10 @@
 			"services": ["VIEW"]
 		},
 		{
+			"code": "GET_MAP",
+			"services": ["CONTROLLER"]
+		},
+		{
 			"code": "CHECK_GEOPOINT",
 			"services": ["VIEW"]
 		}
@@ -31,6 +39,10 @@
 		{
 			"responseCode": "CHECK_GEOPOINT",
 			"requestCode": "CHECK_GEOPOINT"
+		},
+		{
+			"responseCode": "GET_MAP",
+			"requestCode": "GET_MAP"
 		},
 		{
 			"responseCode": "LOAD_MAP",

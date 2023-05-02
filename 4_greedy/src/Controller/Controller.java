@@ -1,19 +1,14 @@
 package Controller;
 
 import Model.GeoPoint;
-import Model.GeoPoint;
-import Model.Graph;
 import Model.Map;
 import Model.Node;
 import Services.Comunication.Content.Body;
-import Services.Comunication.Request.Request;
+import Services.Comunication.Helpers;
 import Services.Comunication.Request.Request;
 import Services.Comunication.Request.RequestCode;
 import Services.Comunication.Response.Response;
-import Services.Comunication.Response.Response;
 import Services.Comunication.Response.ResponseCode;
-import Services.Comunication.Response.ResponseStatus;
-import Services.Service;
 import Services.Service;
 import com.google.gson.Gson;
 import java.io.FileReader;
@@ -22,11 +17,15 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Reader;
 import java.net.Socket;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import utils.Config;
+import utils.Exceptions.GraphException;
 
 public class Controller implements Service {
+
+	private Map map;
 
 	public Controller() {
 		// Initialize controller things here
@@ -46,15 +45,44 @@ public class Controller implements Service {
 			.log(Level.INFO, "Controller stopped.");
 	}
 
+	private Map fetchMap() {
+		Request request = new Request(RequestCode.GET_MAP, this);
+		this.sendRequest(request);
+		// Helpers.await(Objects::isNull, map); No funciona
+		while (Objects.isNull(map)) {
+			Helpers.await();
+		}
+		return map;
+	}
+
 	@Override
 	public void notifyRequest(Request request) {
 		switch (request.code) {
 			case CHECK_GEOPOINT -> {
+				this.map = null;
 				GeoPoint clickedPoint = (GeoPoint) request.body.content;
+				Map modelMap = fetchMap();
+				Node[] graphNodes = modelMap.graph().content();
+				GeoPoint nextValidGeoPoint = checkClosestGeoPoint(
+					clickedPoint,
+					graphNodes,
+					2.5
+				);
+				this.map = null;
+
+				Response response = new Response(
+					ResponseCode.CHECK_GEOPOINT,
+					this,
+					new Body(nextValidGeoPoint)
+				);
+				this.sendResponse(response);
+			}
+			case GET_MAP -> {
+				this.map = (Map) request.body.content;
 			}
 			case PARSE_MAP -> {
 				Gson gson = new Gson();
-				Map map = null;
+				this.map = null;
 				String folder = (String) request.body.content;
 				try (
 					Reader reader = new FileReader(
@@ -64,11 +92,13 @@ public class Controller implements Service {
 					)
 				) {
 					// Convert JSON File to Java Object
-					map = gson.fromJson(reader, Map.class);
+					this.map = gson.fromJson(reader, Map.class);
 				} catch (IOException e) {
-					System.out.println(e.getLocalizedMessage());
+					Logger
+						.getLogger(this.getClass().getSimpleName())
+						.log(Level.SEVERE, "Error while parsing map.", e);
 				}
-				Body mapBody = new Body(map);
+				Body mapBody = new Body(this.map);
 				this.sendRequest(
 						new Request(RequestCode.LOAD_MAP, this, mapBody)
 					);
@@ -124,37 +154,23 @@ public class Controller implements Service {
 		}
 	}
 
-	// Método que devuelve el punto seleccionado más cerca del mapa de los que
-	// existen
-	public Node getClosestPoint(GeoPoint clickedPoint, Graph g) {
-		if (g == null || g.getPointsCount() == 0) {
-			return null;
-		}
-		Node closestNode = g.getNode(0);
-		double closestDistance = distance(
-			clickedPoint,
-			closestNode.getGeoPoint()
-		);
-
-		for (int i = 1; i < g.getPointsCount(); i++) {
-			Node currentNode = g.getNode(i);
-			double currentDistance = distance(
-				clickedPoint,
-				currentNode.getGeoPoint()
+	public GeoPoint checkClosestGeoPoint(
+		GeoPoint clickedPoint,
+		Node[] graphNodes,
+		double radius
+	) {
+		if (Objects.isNull(graphNodes) || graphNodes.length == 0) {
+			throw new GraphException(
+				"Graph does not have nodes or is not initialized."
 			);
+		}
 
-			if (currentDistance < closestDistance) {
-				closestNode = currentNode;
-				closestDistance = currentDistance;
+		for (Node node : graphNodes) {
+			if (clickedPoint.euclideanDistanceTo(node.geoPoint()) <= radius) {
+				return node.geoPoint();
 			}
 		}
 
-		return closestNode;
-	}
-
-	private double distance(GeoPoint point1, GeoPoint point2) {
-		double xDiff = point1.x() - point2.x();
-		double yDiff = point1.y() - point2.y();
-		return Math.sqrt(xDiff * xDiff + yDiff * yDiff);
+		return null;
 	}
 }

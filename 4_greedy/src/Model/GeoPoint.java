@@ -11,9 +11,17 @@ public record GeoPoint(double x, double y) implements Serializable {
 		);
 	}
 
+	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("(").append(x).append(", ").append(y).append(")");
 		return sb.toString();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null || !(obj instanceof GeoPoint)) return false;
+		GeoPoint target = (GeoPoint) obj;
+		return this.x == target.x && this.y == target.y;
 	}
 }

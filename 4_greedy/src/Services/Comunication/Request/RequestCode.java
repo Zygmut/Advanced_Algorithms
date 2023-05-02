@@ -7,5 +7,5 @@ public enum RequestCode {
 	SEND_GEOPOINTS,
 	CHECK_GEOPOINT,
 	LOAD_MAP,
-	PARSE_MAP,
+	PARSE_MAP, GET_MAP,
 }
