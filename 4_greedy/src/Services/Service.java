@@ -2,6 +2,13 @@ package Services;
 
 import Services.Comunication.Request.Request;
 import Services.Comunication.Response.Response;
+import Services.Service;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import utils.Config;
 
 /**
  * This interface represents a service in our application structure. A service
@@ -38,12 +45,46 @@ public interface Service {
 	 *
 	 * @param request the request to be sent
 	 */
-	public void sendRequest(Request request);
+	default void sendRequest(Request request) {
+		try (
+			Socket socket = new Socket(Config.SERVER_HOST, Config.SERVER_PORT)
+		) {
+			ObjectOutputStream out = new ObjectOutputStream(
+				socket.getOutputStream()
+			);
+			out.writeObject(request);
+
+			ObjectInputStream in = new ObjectInputStream(
+				socket.getInputStream()
+			);
+			Response response = (Response) in.readObject();
+			Logger
+				.getLogger(this.getClass().getSimpleName())
+				.log(Level.INFO, "Response: {0}", response);
+		} catch (Exception e) {
+			Logger
+				.getLogger(this.getClass().getSimpleName())
+				.log(Level.SEVERE, "Error while sending request.", e);
+		}
+	}
 
 	/**
 	 * Sends a response to the client
 	 *
 	 * @param response the response to be sent
 	 */
-	public void sendResponse(Response response);
+	default void sendResponse(Response response) {
+		try (
+			Socket socket = new Socket(Config.SERVER_HOST, Config.SERVER_PORT)
+		) {
+			ObjectOutputStream out = new ObjectOutputStream(
+				socket.getOutputStream()
+			);
+			out.writeObject(response);
+		} catch (Exception e) {
+			Logger
+				.getLogger(this.getClass().getSimpleName())
+				.log(Level.SEVERE, "Error while sending response.", e);
+		}
+	}
 }
