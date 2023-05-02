@@ -1,8 +1,5 @@
 package View;
 
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -13,11 +10,9 @@ import Services.Service;
 import Services.Comunication.Content.Body;
 import Services.Comunication.Request.Request;
 import Services.Comunication.Request.RequestCode;
-import Services.Comunication.Response.Response;
 import betterSwing.Section;
 import betterSwing.Window;
 import betterSwing.utils.DirectionAndPosition;
-import utils.Config;
 
 public class View implements Service {
 
@@ -68,37 +63,14 @@ public class View implements Service {
 	@Override
 	public void notifyRequest(Request request) {
 		switch (request.code) {
+			case GREET-> {
+				Logger.getLogger(this.getClass().getSimpleName())
+						.log(Level.INFO, "Hi {0}!.", request.origin);
+			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
 			}
-		}
-	}
-
-	@Override
-	public void sendRequest(Request request) {
-		try (Socket socket = new Socket(Config.SERVER_HOST, Config.SERVER_PORT)) {
-			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-			out.writeObject(request);
-
-			ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-			Response response = (Response) in.readObject();
-			Logger.getLogger(this.getClass().getSimpleName())
-					.log(Level.INFO, "Response: {0}", response);
-		} catch (Exception e) {
-			Logger.getLogger(this.getClass().getSimpleName())
-					.log(Level.SEVERE, "Error while sending request.", e);
-		}
-	}
-
-	@Override
-	public void sendResponse(Response response) {
-		try (Socket socket = new Socket(Config.SERVER_HOST, Config.SERVER_PORT)) {
-			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-			out.writeObject(response);
-		} catch (Exception e) {
-			Logger.getLogger(this.getClass().getSimpleName())
-					.log(Level.SEVERE, "Error while sending response.", e);
 		}
 	}
 
@@ -108,10 +80,9 @@ public class View implements Service {
 	 */
 	private void loadContent() {
 		Section demoSection = new Section();
-		JButton demoButton = new JButton("Click me!");
+		JButton demoButton = new JButton("Greet the boys!");
 		demoButton.addActionListener(e -> {
-			String message = "Hello World!";
-			Request request = new Request(RequestCode.HELLO_WORLD, this, new Body(message));
+			Request request = new Request(RequestCode.GREET, this, new Body("Anybody there?!"));
 			this.sendRequest(request);
 		});
 		demoSection.createButtons(new JButton[] { demoButton }, DirectionAndPosition.DIRECTION_ROW);
