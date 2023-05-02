@@ -52,6 +52,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 import utils.Algorithms;
 import utils.Config;
 import utils.Maps;
+import utils.Exceptions.GraphException;
 
 public class View implements Service {
 
@@ -72,7 +73,7 @@ public class View implements Service {
 	private String selectedMap;
 	private JTextArea textArea;
 	private JComboBox<String> mapOptions;
-	private GeoPoint lastPoint;
+	private ArrayList<GeoPoint> removedPoints = new ArrayList<>();
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -374,19 +375,20 @@ public class View implements Service {
 		buttons[0] = new JButton("Deshacer");
 		buttons[0].addActionListener(e -> {
 				if (!this.pointsSelected.isEmpty()) {
-					lastPoint = this.pointsSelected.get(
-						this.pointsSelected.size() - 1
-					);
+					removedPoints.add(this.pointsSelected.get(this.pointsSelected.size() - 1));
 				}
-				this.pointsSelected.remove(this.pointsSelected.size() - 1);
 				this.scatterPlot.removeLastPoint();
+				this.pointsSelected.remove(this.pointsSelected.size() - 1);
 			});
 		buttons[1] = new JButton("Rehacer");
 		buttons[1].addActionListener(e -> {
-			if (lastPoint != null)
-				this.pointsSelected.add(lastPoint);
+			if (removedPoints != null) {
+				this.pointsSelected.add(removedPoints.get(removedPoints.size() - 1));
 				this.scatterPlot.restoreLastPoint();
-				lastPoint = null;
+				removedPoints.remove(removedPoints.size() - 1);
+			} else {
+				System.out.println("No points to redo");
+			}
 			});
 		buttons[2] = new JButton("Confirmar");
 		buttons[2].addActionListener(e -> {
@@ -589,7 +591,8 @@ public class View implements Service {
 
 		//Method that restores the last point that was removed
 		private void restoreLastPoint() {
-			this.selectedPoint.add(lastPoint.x(), lastPoint.y());
+			GeoPoint lPoint = removedPoints.get(removedPoints.size() - 1);
+			this.selectedPoint.add(lPoint.x(), lPoint.y());
 		}
 
 		private void changePlotBackground(String image) {
