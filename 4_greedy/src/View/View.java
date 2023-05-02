@@ -136,8 +136,15 @@ public class View implements Service {
 				}
 				GeoPoint point = (GeoPoint) request.body.content;
 				this.textArea.setText(aux + "\nClicked point is valid.\n  =>" + point.toString());
-				this.scatterPlot.addSelectPoint(point);
-				this.pointsSelected.add(point);
+				if (!this.pointsSelected.contains(point)){
+			    	this.scatterPlot.addSelectPoint(point);
+					this.pointsSelected.add(point);
+				} else {
+					Logger
+						.getLogger(this.getClass().getSimpleName())
+						.log(Level.SEVERE, "Clicked point is already selected.");
+					this.textArea.setText(aux + "\nClicked point is already selected.");
+				}
 			}
 			default -> {
 				Logger
