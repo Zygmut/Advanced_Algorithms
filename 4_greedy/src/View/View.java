@@ -374,7 +374,7 @@ public class View implements Service {
 		this.buttons = new JButton[3];
 		buttons[0] = new JButton("Deshacer");
 		buttons[0].addActionListener(e -> {
-				if (!this.pointsSelected.isEmpty()) {
+				if (pointsSelected.size() > 0) {
 				removedPoints.add(this.pointsSelected.get(this.pointsSelected.size() - 1));
 				this.scatterPlot.removeLastPoint();
 				this.pointsSelected.remove(this.pointsSelected.size() - 1);
@@ -382,14 +382,16 @@ public class View implements Service {
 			});
 		buttons[1] = new JButton("Rehacer");
 		buttons[1].addActionListener(e -> {
-			if (removedPoints.size() > 0) {
+			if (removedPoints.size() > 0 ) {
 				this.pointsSelected.add(removedPoints.get(removedPoints.size() - 1));
 				this.scatterPlot.restoreLastPoint();
 				removedPoints.remove(removedPoints.size() - 1);
 			} else {
 				System.out.println("No points to redo");
+				removedPoints = new ArrayList<>();
 			}
 			});
+
 		buttons[2] = new JButton("Confirmar");
 		buttons[2].addActionListener(e -> {
 				// TODO: Send info to server
@@ -475,7 +477,7 @@ public class View implements Service {
 
 		private JFreeChart createPlot() {
 			XYSeriesCollection dataset = new XYSeriesCollection();
-			this.selectedPoint = new XYSeries("selectedPoint");
+			this.selectedPoint = new XYSeries("selectedPoint", false);
 			this.nodesPoint = new XYSeries("nodesPoint");
 			dataset.addSeries(this.selectedPoint);
 			dataset.addSeries(this.nodesPoint);
@@ -574,6 +576,9 @@ public class View implements Service {
 				point.x(), // x coordinate of text
 				point.y() + 2 // y coordinate of text
 			);
+			if (this.selectedPoint.getItemCount() == 0) {
+				this.numbers.clear();
+			}
 			this.numbers.add(textAnnotation);
 			plot.addAnnotation(textAnnotation);
 			this.selectedPoint.add(point.x(), point.y());
@@ -581,13 +586,14 @@ public class View implements Service {
 
 
 		private void removeLastPoint() {
-			plot.removeAnnotation(
-				this.numbers.get(getSelectedPointsCount()-1)
-			);
 			if (this.selectedPoint.getItemCount() > 0) {
-				this.selectedPoint.remove(
-						this.selectedPoint.getItemCount() - 1
-					);
+
+			plot.removeAnnotation(
+				this.numbers.get(this.selectedPoint.getItemCount() - 1)
+			);
+			this.selectedPoint.remove(
+				this.selectedPoint.getItemCount() - 1
+			);
 			}
 		}
 
@@ -597,11 +603,14 @@ public class View implements Service {
 
 		//Method that restores the last point that was removed
 		private void restoreLastPoint() {
+			if (this.selectedPoint.getItemCount() != this.numbers.size()){
+
 			plot.addAnnotation(
-				this.numbers.get(this.getSelectedPointsCount())
+				this.numbers.get(this.selectedPoint.getItemCount())
 			);
 			GeoPoint lPoint = removedPoints.get(removedPoints.size() - 1);
 			this.selectedPoint.add(lPoint.x(), lPoint.y());
+		}
 		}
 
 		private void changePlotBackground(String image) {
