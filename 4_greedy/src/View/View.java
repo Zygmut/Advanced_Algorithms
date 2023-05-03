@@ -458,6 +458,7 @@ public class View implements Service {
 		private XYPlot plot;
 		private XYSeries selectedPoint;
 		private XYSeries nodesPoint;
+		private ArrayList<XYTextAnnotation> numbers = new ArrayList<>();
 		private boolean enableDistanceDisplay;
 
 		public MapPlot(
@@ -573,11 +574,16 @@ public class View implements Service {
 				point.x(), // x coordinate of text
 				point.y() + 2 // y coordinate of text
 			);
+			this.numbers.add(textAnnotation);
 			plot.addAnnotation(textAnnotation);
 			this.selectedPoint.add(point.x(), point.y());
 		}
 
+
 		private void removeLastPoint() {
+			plot.removeAnnotation(
+				this.numbers.get(getSelectedPointsCount()-1)
+			);
 			if (this.selectedPoint.getItemCount() > 0) {
 				this.selectedPoint.remove(
 						this.selectedPoint.getItemCount() - 1
@@ -591,6 +597,9 @@ public class View implements Service {
 
 		//Method that restores the last point that was removed
 		private void restoreLastPoint() {
+			plot.addAnnotation(
+				this.numbers.get(this.getSelectedPointsCount())
+			);
 			GeoPoint lPoint = removedPoints.get(removedPoints.size() - 1);
 			this.selectedPoint.add(lPoint.x(), lPoint.y());
 		}
