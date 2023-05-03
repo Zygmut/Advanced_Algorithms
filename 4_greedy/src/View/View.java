@@ -375,14 +375,14 @@ public class View implements Service {
 		buttons[0] = new JButton("Deshacer");
 		buttons[0].addActionListener(e -> {
 				if (!this.pointsSelected.isEmpty()) {
-					removedPoints.add(this.pointsSelected.get(this.pointsSelected.size() - 1));
-				}
+				removedPoints.add(this.pointsSelected.get(this.pointsSelected.size() - 1));
 				this.scatterPlot.removeLastPoint();
 				this.pointsSelected.remove(this.pointsSelected.size() - 1);
+				}
 			});
 		buttons[1] = new JButton("Rehacer");
 		buttons[1].addActionListener(e -> {
-			if (removedPoints != null) {
+			if (removedPoints.size() > 0) {
 				this.pointsSelected.add(removedPoints.get(removedPoints.size() - 1));
 				this.scatterPlot.restoreLastPoint();
 				removedPoints.remove(removedPoints.size() - 1);
