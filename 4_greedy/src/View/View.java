@@ -51,6 +51,7 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import utils.Algorithms;
 import utils.Maps;
+import utils.Exceptions.GraphException;
 
 public class View implements Service {
 
@@ -71,7 +72,7 @@ public class View implements Service {
 	private String selectedMap;
 	private JTextArea textArea;
 	private JComboBox<String> mapOptions;
-	private GeoPoint lastPoint;
+	private ArrayList<GeoPoint> removedPoints = new ArrayList<>();
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -332,21 +333,24 @@ public class View implements Service {
 		this.buttons = new JButton[3];
 		buttons[0] = new JButton("Deshacer");
 		buttons[0].addActionListener(e -> {
-				if (!this.pointsSelected.isEmpty()) {
-					lastPoint = this.pointsSelected.get(
-						this.pointsSelected.size() - 1
-					);
-				}
-				this.pointsSelected.remove(this.pointsSelected.size() - 1);
+				if (pointsSelected.size() > 0) {
+				removedPoints.add(this.pointsSelected.get(this.pointsSelected.size() - 1));
 				this.scatterPlot.removeLastPoint();
+				this.pointsSelected.remove(this.pointsSelected.size() - 1);
+				}
 			});
 		buttons[1] = new JButton("Rehacer");
 		buttons[1].addActionListener(e -> {
-			if (lastPoint != null)
-				this.pointsSelected.add(lastPoint);
+			if (removedPoints.size() > 0 ) {
+				this.pointsSelected.add(removedPoints.get(removedPoints.size() - 1));
 				this.scatterPlot.restoreLastPoint();
-				lastPoint = null;
+				removedPoints.remove(removedPoints.size() - 1);
+			} else {
+				System.out.println("No points to redo");
+				removedPoints = new ArrayList<>();
+			}
 			});
+
 		buttons[2] = new JButton("Confirmar");
 		buttons[2].addActionListener(e -> {
 				// TODO: Send info to server
@@ -415,6 +419,7 @@ public class View implements Service {
 		private XYPlot plot;
 		private XYSeries selectedPoint;
 		private XYSeries nodesPoint;
+		private ArrayList<XYTextAnnotation> numbers = new ArrayList<>();
 		private boolean enableDistanceDisplay;
 
 		public MapPlot(
@@ -431,7 +436,7 @@ public class View implements Service {
 
 		private JFreeChart createPlot() {
 			XYSeriesCollection dataset = new XYSeriesCollection();
-			this.selectedPoint = new XYSeries("selectedPoint");
+			this.selectedPoint = new XYSeries("selectedPoint", false);
 			this.nodesPoint = new XYSeries("nodesPoint");
 			dataset.addSeries(this.selectedPoint);
 			dataset.addSeries(this.nodesPoint);
@@ -530,15 +535,24 @@ public class View implements Service {
 				point.x(), // x coordinate of text
 				point.y() + 2 // y coordinate of text
 			);
+			if (this.selectedPoint.getItemCount() == 0) {
+				this.numbers.clear();
+			}
+			this.numbers.add(textAnnotation);
 			plot.addAnnotation(textAnnotation);
 			this.selectedPoint.add(point.x(), point.y());
 		}
 
+
 		private void removeLastPoint() {
 			if (this.selectedPoint.getItemCount() > 0) {
-				this.selectedPoint.remove(
-						this.selectedPoint.getItemCount() - 1
-					);
+
+			plot.removeAnnotation(
+				this.numbers.get(this.selectedPoint.getItemCount() - 1)
+			);
+			this.selectedPoint.remove(
+				this.selectedPoint.getItemCount() - 1
+			);
 			}
 		}
 
@@ -548,7 +562,14 @@ public class View implements Service {
 
 		//Method that restores the last point that was removed
 		private void restoreLastPoint() {
-			this.selectedPoint.add(lastPoint.x(), lastPoint.y());
+			if (this.selectedPoint.getItemCount() != this.numbers.size()){
+
+			plot.addAnnotation(
+				this.numbers.get(this.selectedPoint.getItemCount())
+			);
+			GeoPoint lPoint = removedPoints.get(removedPoints.size() - 1);
+			this.selectedPoint.add(lPoint.x(), lPoint.y());
+		}
 		}
 
 		private void changePlotBackground(String image) {
