@@ -330,7 +330,7 @@ public class View implements Service {
 
 	private Section footer() {
 		Section buttonSection = new Section();
-		this.buttons = new JButton[3];
+		this.buttons = new JButton[4];
 		buttons[0] = new JButton("Deshacer");
 		buttons[0].addActionListener(e -> {
 				if (pointsSelected.size() > 0) {
@@ -350,9 +350,16 @@ public class View implements Service {
 				removedPoints = new ArrayList<>();
 			}
 			});
+			buttons[2] = new JButton("Limpiar");
+			buttons[2].addActionListener(e -> {
+					this.pointsSelected = new ArrayList<>();
+					this.removedPoints = new ArrayList<>();
+					this.scatterPlot.clear();
 
-		buttons[2] = new JButton("Confirmar");
-		buttons[2].addActionListener(e -> {
+				});
+
+		buttons[3] = new JButton("Confirmar");
+		buttons[3].addActionListener(e -> {
 				// TODO: Send info to server
 				Body body = new Body(this.pointsSelected); // Geopoints might be Serializable
 				Request request = new Request(
@@ -363,6 +370,7 @@ public class View implements Service {
 				View.this.sendRequest(request);
 				this.pointsSelected = new ArrayList<>();
 			});
+
 		buttonSection.createButtons(
 			buttons,
 			DirectionAndPosition.DIRECTION_ROW
@@ -543,6 +551,14 @@ public class View implements Service {
 			this.selectedPoint.add(point.x(), point.y());
 		}
 
+		private void clear() {
+			this.selectedPoint.clear();
+			for (XYTextAnnotation number : this.numbers) {
+				plot.removeAnnotation(number);
+			}
+			this.numbers.clear();
+		}
+
 
 		private void removeLastPoint() {
 			if (this.selectedPoint.getItemCount() > 0) {
@@ -568,7 +584,7 @@ public class View implements Service {
 			GeoPoint lPoint = removedPoints.get(removedPoints.size() - 1);
 			this.selectedPoint.add(lPoint.x(), lPoint.y());
 		}
-		}
+
 
 		private void changePlotBackground(String image) {
 			plot.setBackgroundImage(
