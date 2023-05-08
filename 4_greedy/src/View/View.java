@@ -271,7 +271,7 @@ public class View implements Service {
 			new MouseListener() {
 				@Override
 				public void mouseClicked(MouseEvent e) {
-					if (SwingUtilities.isLeftMouseButton(e)) {
+					if (SwingUtilities.isLeftMouseButton(e) && removedPoints.size() == 0) {
 						// Get the mouse click coordinates
 						int x = e.getX();
 						int y = e.getY();
@@ -562,8 +562,6 @@ public class View implements Service {
 
 		//Method that restores the last point that was removed
 		private void restoreLastPoint() {
-			if (this.selectedPoint.getItemCount() != this.numbers.size()){
-
 			plot.addAnnotation(
 				this.numbers.get(this.selectedPoint.getItemCount())
 			);
