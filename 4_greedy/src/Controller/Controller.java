@@ -16,6 +16,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -82,7 +85,10 @@ public class Controller implements Service {
 				Graph graph = fetchMap().graph();
 				ArrayList<GeoPoint> geoPoints = (ArrayList<GeoPoint>) request.body.content;
 				Node[] nodes = geoPoints.stream().map(x -> this.geoPointToNode(graph, x)).toArray(Node[]::new);
-				//this.d(graph, nodes[0], nodes[1]);
+				List<Node> path = this.dijkstra(graph, nodes[0], nodes[1]);
+				for (Node node : path) {
+					System.out.println(node.id());
+				}
 			}
 			case PARSE_MAP -> {
 				Gson gson = new Gson();
@@ -146,5 +152,78 @@ public class Controller implements Service {
 		}
 		return null;
 	}
+
+	private List<Node> dijkstra(Graph graph, Node startNode, Node endNode) {
+
+        int numNodes = graph.content().length; // Número de nodos en el grafo
+
+		// Creamos un HashMap para guardar el id de cada nodo para acceder a los arrays directamente,
+		// además también coincide con el índice del nodo en el arreglo de contenido del grafo
+		HashMap<Node, Integer> idMap = new HashMap<>();
+		for (int i = 0; i < numNodes; i++) {
+			idMap.put(graph.content()[i], i);
+		}
+
+        double[] distances = new double[numNodes]; // Arreglo para guardar las distancias más cortas desde el nodo inicial
+        boolean[] visited = new boolean[numNodes]; // Arreglo para marcar los nodos visitados
+        Node[] previous = new Node[numNodes]; // Arreglo para guardar el nodo anterior en la ruta más corta
+        List<Node> path = new ArrayList<>(); // Lista para guardar la ruta más corta
+
+        // Inicializamos las distancias a un valor grande y el nodo anterior a null
+        for (int i = 0; i < numNodes; i++) {
+            distances[i] = Double.MAX_VALUE;
+            previous[i] = null;
+        }
+
+        // La distancia desde el nodo inicial a sí mismo es 0
+        distances[idMap.get(startNode)] = 0;
+
+        // Iteramos sobre todos los nodos
+        for (int i = 0; i < numNodes - 1; i++) {
+
+            // Encontramos el nodo no visitado con la menor distancia desde el nodo inicial
+            Node currentNode = null;
+            double shortestDistance = Double.MAX_VALUE;
+            for (int j = 0; j < numNodes; j++) {
+                if (!visited[j] && distances[j] < shortestDistance) {
+					//currentNode = j;
+                    currentNode = graph.content()[j];
+                    shortestDistance = distances[j];
+                }
+            }
+
+            // Marcamos el nodo actual como visitado
+            visited[idMap.get(currentNode)] = true;
+
+            // Iteramos sobre los nodos vecinos no visitados del nodo actual
+			String[] neighbors = currentNode.neighbors();
+			Node[] nodes = new Node[neighbors.length];
+			for (int j = 0; j < neighbors.length; j++) {
+				nodes[j] = graph.findNodeById(neighbors[j]);
+			}
+
+			for (Node neighbor : nodes) {
+				if (!visited[idMap.get(neighbor)]) {
+					double tentativeDistance = distances[idMap.get(currentNode)] + currentNode.geoPoint().euclideanDistanceTo(neighbor.geoPoint());
+					if (tentativeDistance < distances[idMap.get(neighbor)]) {
+						distances[idMap.get(neighbor)] = tentativeDistance;
+						previous[idMap.get(neighbor)] = currentNode;
+					}
+				}
+			}
+        }
+
+        // Construimos la ruta más corta desde el nodo final hacia el nodo inicial
+        Node currentNode = endNode;
+        while (currentNode != startNode) {
+            path.add(currentNode);
+            currentNode = previous[idMap.get(currentNode)];
+        }
+        path.add(startNode);
+        Collections.reverse(path); // Invertimos la lista para que esté en orden correcto
+
+        return path;
+    }
+
 
 }

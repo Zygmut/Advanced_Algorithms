@@ -28,14 +28,32 @@ public record Node(String id, NodeState state, GeoPoint geoPoint, Connection[] c
 		return new Node(this.id(), this.state(),this.geoPoint(), connections);
 	}
 
+	public String[] neighbors() {
+		if (this.connections() == null){
+			return new String[0];
+		}
+
+		String[] neighbors = new String[this.connections().length];
+		for (int i = 0; i < this.connections().length; i++) {
+			neighbors[i] = this.connections()[i].nodeId();
+		}
+
+		return neighbors;
+	}
+
 	@Override
 	public boolean equals(Object o) {
-		return true;
+		if (this == o) return true;
+		if (!(o instanceof Node)) return false;
+
+		Node node = (Node) o;
+
+		return id.equals(node.id);
 	}
 
 	@Override
 	public int hashCode() {
-		return 0;
+		return id.hashCode();
 	}
 
 	//Método para seleccionar el estado del nodo
@@ -72,4 +90,5 @@ public record Node(String id, NodeState state, GeoPoint geoPoint, Connection[] c
 
 		return sb.toString();
 	}
+
 }
