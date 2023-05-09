@@ -1,14 +1,14 @@
 package View;
 
-import Model.*;
 import Services.Comunication.Content.Body;
 import Services.Comunication.Request.Request;
 import Services.Comunication.Request.RequestCode;
-import Services.Comunication.Response.Response;
 import Services.Service;
+
 import betterSwing.Section;
 import betterSwing.Window;
 import betterSwing.utils.DirectionAndPosition;
+
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -19,14 +19,13 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.Socket;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -39,6 +38,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
+
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartRenderingInfo;
@@ -49,9 +49,14 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+
+import Model.Connection;
+import Model.GeoPoint;
+import Model.Map;
+import Model.Node;
+import Model.PairPoint;
 import utils.Algorithms;
 import utils.Maps;
-import utils.Exceptions.GraphException;
 
 public class View implements Service {
 
@@ -67,12 +72,30 @@ public class View implements Service {
 	 * Map plot of the view.
 	 */
 	private MapPlot scatterPlot;
+	/**
+	 * The list of points selected.
+	 */
 	private ArrayList<GeoPoint> pointsSelected;
+	/**
+	 * The list of buttons of the view.
+	 */
 	private JButton[] buttons;
+	/**
+	 * The name of the selected map.
+	 */
 	private String selectedMap;
+	/**
+	 * The text area of the view to display logs.
+	 */
 	private JTextArea textArea;
+	/**
+	 * The the map options of the view.
+	 */
 	private JComboBox<String> mapOptions;
-	private ArrayList<GeoPoint> removedPoints = new ArrayList<>();
+	/**
+	 * The list of removed points.
+	 */
+	private ArrayList<GeoPoint> removedPoints;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -83,6 +106,7 @@ public class View implements Service {
 		this.window = new Window();
 		this.window.initConfig();
 		this.pointsSelected = new ArrayList<>();
+		this.removedPoints = new ArrayList<>();
 		this.loadContent();
 	}
 
@@ -97,13 +121,14 @@ public class View implements Service {
 		this.window = new Window(configPath);
 		this.window.initConfig();
 		this.pointsSelected = new ArrayList<>();
+		this.removedPoints = new ArrayList<>();
 	}
 
 	@Override
 	public void start() {
 		Logger
-			.getLogger(this.getClass().getSimpleName())
-			.log(Level.INFO, "View started.");
+				.getLogger(this.getClass().getSimpleName())
+				.log(Level.INFO, "View started.");
 		this.loadContent();
 		this.window.start();
 	}
@@ -111,8 +136,8 @@ public class View implements Service {
 	@Override
 	public void stop() {
 		Logger
-			.getLogger(this.getClass().getSimpleName())
-			.log(Level.INFO, "View stopped.");
+				.getLogger(this.getClass().getSimpleName())
+				.log(Level.INFO, "View stopped.");
 	}
 
 	@Override
@@ -123,33 +148,32 @@ public class View implements Service {
 				this.scatterPlot.addMap(this.selectedMap, map);
 			}
 			case CHECK_GEOPOINT -> {
-				String aux = textArea.getText();
 				Logger
-					.getLogger(this.getClass().getSimpleName())
-					.log(Level.INFO, "Response [VIEW]: {0}", request);
+						.getLogger(this.getClass().getSimpleName())
+						.log(Level.INFO, "Response [VIEW]: {0}", request);
 				if (Objects.isNull(request.body.content)) {
 					Logger
-						.getLogger(this.getClass().getSimpleName())
-						.log(Level.SEVERE, "Clicked point is not valid.");
-					this.textArea.setText(aux + "\nClicked point is not valid.");
+							.getLogger(this.getClass().getSimpleName())
+							.log(Level.SEVERE, "Clicked point is not valid.");
+					this.textArea.append("\nClicked point is not valid.");
 					return;
 				}
 				GeoPoint point = (GeoPoint) request.body.content;
-				this.textArea.setText(aux + "\nClicked point is valid.\n  =>" + point.toString());
-				if (!this.pointsSelected.contains(point)){
-			    	this.scatterPlot.addSelectPoint(point);
+				this.textArea.append("\nClicked point is valid.\n  =>" + point.toString());
+				if (!this.pointsSelected.contains(point)) {
+					this.scatterPlot.addSelectPoint(point);
 					this.pointsSelected.add(point);
 				} else {
 					Logger
-						.getLogger(this.getClass().getSimpleName())
-						.log(Level.SEVERE, "Clicked point is already selected.");
-					this.textArea.setText(aux + "\nClicked point is already selected.");
+							.getLogger(this.getClass().getSimpleName())
+							.log(Level.SEVERE, "Clicked point is already selected.");
+					this.textArea.append("\nClicked point is already selected.");
 				}
 			}
 			default -> {
 				Logger
-					.getLogger(this.getClass().getSimpleName())
-					.log(Level.SEVERE, "{0} is not implemented.", request);
+						.getLogger(this.getClass().getSimpleName())
+						.log(Level.SEVERE, "{0} is not implemented.", request);
 			}
 		}
 	}
@@ -165,20 +189,16 @@ public class View implements Service {
 		this.window.addSection(
 				this.body(),
 				DirectionAndPosition.POSITION_CENTER,
-				"Body"
-			);
+				"Body");
 		this.window.addSection(
 				this.footer(),
 				DirectionAndPosition.POSITION_BOTTOM,
-				"Footer"
-			);
+				"Footer");
 		this.mapOptions.getActionListeners()[0].actionPerformed(
 				new ActionEvent(
-					this,
-					ActionEvent.ACTION_PERFORMED,
-					this.selectedMap
-				)
-			);
+						this,
+						ActionEvent.ACTION_PERFORMED,
+						this.selectedMap));
 	}
 
 	private JPanel sideBar() {
@@ -192,9 +212,9 @@ public class View implements Service {
 		mapSelectorPanel.setBackground(Color.WHITE);
 		JLabel mapSelectorLabel = new JLabel("Mapa: ");
 		String[] maps = Arrays
-			.stream(Maps.values())
-			.map(Enum::toString)
-			.toArray(String[]::new);
+				.stream(Maps.values())
+				.map(Enum::toString)
+				.toArray(String[]::new);
 		this.mapOptions = new JComboBox<>(maps);
 		this.selectedMap = Maps.IBIZA_FORMENTERA.toString();
 		mapOptions.setSelectedItem(this.selectedMap);
@@ -215,9 +235,9 @@ public class View implements Service {
 		algSelectorPanel.setBackground(Color.WHITE);
 		JLabel algSelectorLabel = new JLabel("Algoritmo: ");
 		String[] algorithms = Arrays
-			.stream(Algorithms.values())
-			.map(Enum::toString)
-			.toArray(String[]::new);
+				.stream(Algorithms.values())
+				.map(Enum::toString)
+				.toArray(String[]::new);
 		JComboBox<String> algorithmMenu = new JComboBox<>(algorithms);
 		algorithmMenu.addActionListener(e -> {
 			String algorithm = (String) algorithmMenu.getSelectedItem();
@@ -240,8 +260,7 @@ public class View implements Service {
 		// Wrap a scrollpane around it.
 		JScrollPane scrollPane = new JScrollPane(textArea);
 		scrollPane.setVerticalScrollBarPolicy(
-			JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
-		);
+				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		infoPanel.add(scrollPane, BorderLayout.CENTER);
 		sideBar.add(infoPanel);
 
@@ -260,67 +279,64 @@ public class View implements Service {
 		JPanel content = new JPanel();
 		content.setLayout(new BorderLayout());
 		content.setBackground(Color.WHITE);
-		this.scatterPlot =
-			new MapPlot(Color.MAGENTA, Color.BLACK, Color.PINK, true);
+		this.scatterPlot = new MapPlot(Color.MAGENTA, Color.BLACK, Color.PINK, true);
 
 		JFreeChart chart = this.scatterPlot.createPlot();
 		ChartPanel chartPanel = new ChartPanel(chart);
 		chartPanel.setDomainZoomable(false);
 		chartPanel.setRangeZoomable(false);
 		chartPanel.addMouseListener(
-			new MouseListener() {
-				@Override
-				public void mouseClicked(MouseEvent e) {
-					if (SwingUtilities.isLeftMouseButton(e) && removedPoints.size() == 0) {
-						// Get the mouse click coordinates
-						int x = e.getX();
-						int y = e.getY();
-						// Calculate the data values based on the chart's range
-						XYPlot plot = (XYPlot) chart.getPlot();
-						ChartRenderingInfo info = chartPanel.getChartRenderingInfo();
-						Rectangle2D dataArea = info.getPlotInfo().getDataArea();
-						double xValue = plot
-							.getDomainAxis()
-							.java2DToValue(
-								x,
-								dataArea,
-								plot.getDomainAxisEdge()
-							);
-						double yValue = plot
-							.getRangeAxis()
-							.java2DToValue(
-								y,
-								dataArea,
-								plot.getRangeAxisEdge()
-							);
-						System.out.println(
-							"Clicked at: X=" + xValue + ", Y=" + yValue
-						);
-						GeoPoint point = new GeoPoint(xValue, yValue);
-						Body body = new Body(point);
-						Request request = new Request(
-							RequestCode.CHECK_GEOPOINT,
-							View.this,
-							body
-						);
-						View.this.sendRequest(request);
+				new MouseListener() {
+					@Override
+					public void mouseClicked(MouseEvent e) {
+						if (SwingUtilities.isLeftMouseButton(e) && removedPoints.size() == 0) {
+							// Get the mouse click coordinates
+							int x = e.getX();
+							int y = e.getY();
+							// Calculate the data values based on the chart's range
+							XYPlot plot = (XYPlot) chart.getPlot();
+							ChartRenderingInfo info = chartPanel.getChartRenderingInfo();
+							Rectangle2D dataArea = info.getPlotInfo().getDataArea();
+							double xValue = plot
+									.getDomainAxis()
+									.java2DToValue(
+											x,
+											dataArea,
+											plot.getDomainAxisEdge());
+							double yValue = plot
+									.getRangeAxis()
+									.java2DToValue(
+											y,
+											dataArea,
+											plot.getRangeAxisEdge());
+							System.out.println(
+									"Clicked at: X=" + xValue + ", Y=" + yValue);
+							GeoPoint point = new GeoPoint(xValue, yValue);
+							Body body = new Body(point);
+							Request request = new Request(
+									RequestCode.CHECK_GEOPOINT,
+									View.this,
+									body);
+							View.this.sendRequest(request);
+						}
 					}
-				}
 
-				// Implement the remaining MouseListener methods
-				@Override
-				public void mousePressed(MouseEvent e) {}
+					@Override
+					public void mousePressed(MouseEvent e) {
+					}
 
-				@Override
-				public void mouseReleased(MouseEvent e) {}
+					@Override
+					public void mouseReleased(MouseEvent e) {
+					}
 
-				@Override
-				public void mouseEntered(MouseEvent e) {}
+					@Override
+					public void mouseEntered(MouseEvent e) {
+					}
 
-				@Override
-				public void mouseExited(MouseEvent e) {}
-			}
-		);
+					@Override
+					public void mouseExited(MouseEvent e) {
+					}
+				});
 		content.add(chartPanel, BorderLayout.CENTER);
 		splitPane.setLeftComponent(content);
 		Section body = new Section();
@@ -333,48 +349,44 @@ public class View implements Service {
 		this.buttons = new JButton[4];
 		buttons[0] = new JButton("Deshacer");
 		buttons[0].addActionListener(e -> {
-				if (pointsSelected.size() > 0) {
+			if (pointsSelected.size() > 0) {
 				removedPoints.add(this.pointsSelected.get(this.pointsSelected.size() - 1));
 				this.scatterPlot.removeLastPoint();
 				this.pointsSelected.remove(this.pointsSelected.size() - 1);
-				}
-			});
+			}
+		});
 		buttons[1] = new JButton("Rehacer");
 		buttons[1].addActionListener(e -> {
-			if (removedPoints.size() > 0 ) {
+			if (removedPoints.size() > 0) {
 				this.pointsSelected.add(removedPoints.get(removedPoints.size() - 1));
 				this.scatterPlot.restoreLastPoint();
 				removedPoints.remove(removedPoints.size() - 1);
 			} else {
-				System.out.println("No points to redo");
-				removedPoints = new ArrayList<>();
+				this.textArea.append("No points to redo\n");
+				this.removedPoints = new ArrayList<>();
 			}
-			});
-			buttons[2] = new JButton("Limpiar");
-			buttons[2].addActionListener(e -> {
-					this.pointsSelected = new ArrayList<>();
-					this.removedPoints = new ArrayList<>();
-					this.scatterPlot.clear();
-
-				});
+		});
+		buttons[2] = new JButton("Limpiar");
+		buttons[2].addActionListener(e -> {
+			this.scatterPlot.clear();
+			this.pointsSelected = new ArrayList<>();
+			this.removedPoints = new ArrayList<>();
+		});
 
 		buttons[3] = new JButton("Confirmar");
 		buttons[3].addActionListener(e -> {
-				// TODO: Send info to server
-				Body body = new Body(this.pointsSelected); // Geopoints might be Serializable
-				Request request = new Request(
+			Body body = new Body(this.pointsSelected); // Geopoints might be Serializable
+			Request request = new Request(
 					RequestCode.SEND_GEOPOINTS,
 					this,
-					body
-				);
-				View.this.sendRequest(request);
-				this.pointsSelected = new ArrayList<>();
-			});
+					body);
+			View.this.sendRequest(request);
+			this.pointsSelected = new ArrayList<>();
+		});
 
 		buttonSection.createButtons(
-			buttons,
-			DirectionAndPosition.DIRECTION_ROW
-		);
+				buttons,
+				DirectionAndPosition.DIRECTION_ROW);
 		return buttonSection;
 	}
 
@@ -427,19 +439,19 @@ public class View implements Service {
 		private XYPlot plot;
 		private XYSeries selectedPoint;
 		private XYSeries nodesPoint;
-		private ArrayList<XYTextAnnotation> numbers = new ArrayList<>();
+		private ArrayList<XYTextAnnotation> numbers;
 		private boolean enableDistanceDisplay;
 
 		public MapPlot(
-			Color mapNodesColor,
-			Color selectPointColor,
-			Color nodeLinesColor,
-			boolean enableDistanceDisplay
-		) {
+				Color mapNodesColor,
+				Color selectPointColor,
+				Color nodeLinesColor,
+				boolean enableDistanceDisplay) {
 			this.mapNodesColor = mapNodesColor;
 			this.selectPointColor = selectPointColor;
 			this.nodeLinesColor = nodeLinesColor;
 			this.enableDistanceDisplay = enableDistanceDisplay;
+			this.numbers = new ArrayList<>();
 		}
 
 		private JFreeChart createPlot() {
@@ -450,20 +462,18 @@ public class View implements Service {
 			dataset.addSeries(this.nodesPoint);
 
 			JFreeChart chart = ChartFactory.createXYLineChart(
-				"",
-				"X",
-				"Y",
-				dataset
-			);
+					"",
+					"X",
+					"Y",
+					dataset);
 			chart.setAntiAlias(true);
 			plot = chart.getXYPlot();
 			plot.setBackgroundPaint(Color.WHITE);
 			plot.getDomainAxis().setVisible(false);
 			plot.getRangeAxis().setVisible(false);
 			XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(
-				false,
-				true
-			);
+					false,
+					true);
 			renderer.setSeriesPaint(1, this.mapNodesColor);
 			renderer.setSeriesShape(1, new Ellipse2D.Double(-4, -4, 8, 8));
 			renderer.setSeriesPaint(0, this.selectPointColor);
@@ -478,8 +488,7 @@ public class View implements Service {
 		}
 
 		private void addMap(String selectedMap, Map map) {
-			String backImgPath =
-				"./assets/" + selectedMap.toLowerCase() + "/" + map.img();
+			String backImgPath = "./assets/" + selectedMap.toLowerCase() + "/" + map.img();
 			Node[] nodes = map.graph().content();
 
 			GeoPoint[] points = new GeoPoint[nodes.length];
@@ -506,27 +515,26 @@ public class View implements Service {
 
 			for (PairPoint pairPoint : lines) {
 				XYLineAnnotation line = new XYLineAnnotation(
-					pairPoint.p1().x(),
-					pairPoint.p1().y(), // x and y coordinates of point 1
-					pairPoint.p2().x(),
-					pairPoint.p2().y(), // x and y coordinates of point 2
-					new BasicStroke(1.0f),
-					this.nodeLinesColor
-				);
+						pairPoint.p1().x(),
+						pairPoint.p1().y(), // x and y coordinates of point 1
+						pairPoint.p2().x(),
+						pairPoint.p2().y(), // x and y coordinates of point 2
+						new BasicStroke(1.0f),
+						this.nodeLinesColor);
 				plot.addAnnotation(line);
 				if (!this.enableDistanceDisplay) {
 					continue;
 				}
 				// Create a text annotation
 				double distance = pairPoint
-					.p1()
-					.euclideanDistanceTo(pairPoint.p2());
+						.p1()
+						.euclideanDistanceTo(pairPoint.p2());
 				// Round to 2 decimals
 				distance = Math.round(distance * 100.0) / 100.0;
 				XYTextAnnotation textAnnotation = new XYTextAnnotation(
-					distance + " U", // Text to be displayed
-					(pairPoint.p1().x() + pairPoint.p2().x()) / 2, // x coordinate of text
-					(pairPoint.p1().y() + pairPoint.p2().y()) / 2 // y coordinate of text
+						distance + " U", // Text to be displayed
+						(pairPoint.p1().x() + pairPoint.p2().x()) / 2, // x coordinate of text
+						(pairPoint.p1().y() + pairPoint.p2().y()) / 2 // y coordinate of text
 				);
 				plot.addAnnotation(textAnnotation);
 			}
@@ -539,9 +547,9 @@ public class View implements Service {
 		private void addSelectPoint(GeoPoint point) {
 			String text = "" + View.this.pointsSelected.size();
 			XYTextAnnotation textAnnotation = new XYTextAnnotation(
-				text, // Text to be displayed
-				point.x(), // x coordinate of text
-				point.y() + 2 // y coordinate of text
+					text, // Text to be displayed
+					point.x(), // x coordinate of text
+					point.y() + 2 // y coordinate of text
 			);
 			if (this.selectedPoint.getItemCount() == 0) {
 				this.numbers.clear();
@@ -559,38 +567,28 @@ public class View implements Service {
 			this.numbers.clear();
 		}
 
-
 		private void removeLastPoint() {
 			if (this.selectedPoint.getItemCount() > 0) {
-
-			plot.removeAnnotation(
-				this.numbers.get(this.selectedPoint.getItemCount() - 1)
-			);
-			this.selectedPoint.remove(
-				this.selectedPoint.getItemCount() - 1
-			);
+				plot.removeAnnotation(
+						this.numbers.get(this.selectedPoint.getItemCount() - 1));
+				this.selectedPoint.remove(
+						this.selectedPoint.getItemCount() - 1);
 			}
 		}
 
-		private int getSelectedPointsCount() {
-			return this.selectedPoint.getItemCount();
-		}
-
-		//Method that restores the last point that was removed
 		private void restoreLastPoint() {
 			plot.addAnnotation(
-				this.numbers.get(this.selectedPoint.getItemCount())
-			);
+					this.numbers.get(this.selectedPoint.getItemCount()));
 			GeoPoint lPoint = removedPoints.get(removedPoints.size() - 1);
 			this.selectedPoint.add(lPoint.x(), lPoint.y());
 		}
 
-
 		private void changePlotBackground(String image) {
 			plot.setBackgroundImage(
-				Toolkit.getDefaultToolkit().getImage(image)
-			);
+					Toolkit.getDefaultToolkit().getImage(image));
 			plot.setBackgroundImageAlpha(1);
 		}
+
 	}
+
 }
