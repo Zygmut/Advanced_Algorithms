@@ -1,6 +1,7 @@
 package Controller;
 
 import Model.GeoPoint;
+import Model.Graph;
 import Model.Map;
 import Model.Node;
 import Services.Comunication.Content.Body;
@@ -14,6 +15,7 @@ import com.google.gson.Gson;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -76,6 +78,12 @@ public class Controller implements Service {
 			case GET_MAP -> {
 				this.map = (Map) request.body.content;
 			}
+			case SEND_GEOPOINTS -> {
+				Graph graph = fetchMap().graph();
+				ArrayList<GeoPoint> geoPoints = (ArrayList<GeoPoint>) request.body.content;
+				Node[] nodes = geoPoints.stream().map(x -> this.geoPointToNode(graph, x)).toArray(Node[]::new);
+				//this.d(graph, nodes[0], nodes[1]);
+			}
 			case PARSE_MAP -> {
 				Gson gson = new Gson();
 				this.map = null;
@@ -129,4 +137,14 @@ public class Controller implements Service {
 
 		return null;
 	}
+
+	private Node geoPointToNode(Graph graph, GeoPoint geoPoint){
+		for (Node node : graph.content()) {
+			if(node.geoPoint().equals(geoPoint)){
+				return node;
+			}
+		}
+		return null;
+	}
+
 }

@@ -2,7 +2,7 @@
 	"requestMap": [
 		{
 			"code": "SEND_GEOPOINTS",
-			"services": ["MODEL"]
+			"services": ["MODEL", "CONTROLLER"]
 		},
 		{
 			"code": "CHECK_GEOPOINT",
