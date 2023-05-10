@@ -22,6 +22,7 @@ import java.awt.geom.Rectangle2D;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -560,6 +561,21 @@ public class View implements Service {
 			this.numbers.add(textAnnotation);
 			plot.addAnnotation(textAnnotation);
 			this.selectedPoint.add(point.x(), point.y());
+		}
+
+		private void addSolution(List<Node> solution) {
+			for (int i = 0; i < solution.size() - 1; i++) {
+				Node node1 = solution.get(i);
+				Node node2 = solution.get(i + 1);
+				XYLineAnnotation line = new XYLineAnnotation(
+						node1.geoPoint().x(),
+						node1.geoPoint().y(), // x and y coordinates of point 1
+						node2.geoPoint().x(),
+						node2.geoPoint().y(), // x and y coordinates of point 2
+						new BasicStroke(1.0f),
+						Color.RED);
+				plot.addAnnotation(line);
+			}
 		}
 
 		private void clear() {
