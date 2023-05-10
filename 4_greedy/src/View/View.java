@@ -22,6 +22,7 @@ import java.awt.geom.Rectangle2D;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -158,7 +159,7 @@ public class View implements Service {
 					this.textArea.append("\nClicked point is not valid.");
 					return;
 				}
-				while (this.removedPoints.size() != 0) {
+				while (!this.removedPoints.isEmpty()) {
 					this.scatterPlot.removeLastNumber();
 					this.removedPoints.remove(removedPoints.size()-1);
 				}
@@ -228,7 +229,6 @@ public class View implements Service {
 			String map = (String) mapOptions.getSelectedItem();
 			String[] mapsNames = Maps.getMaps();
 			int index = Arrays.asList(mapsNames).indexOf(map);
-			System.out.println(Maps.values()[index]);
 			Body body = new Body(Maps.values()[index].toString());
 			Request request = new Request(RequestCode.PARSE_MAP, this, body);
 			this.sendRequest(request);
@@ -315,8 +315,9 @@ public class View implements Service {
 											y,
 											dataArea,
 											plot.getRangeAxisEdge());
-							System.out.println(
-									"Clicked at: X=" + xValue + ", Y=" + yValue);
+							Logger
+							.getLogger(this.getClass().getSimpleName())
+							.log(Level.INFO, "Clicked at x: {0} y: {1}", new Object[]{xValue, yValue});
 							GeoPoint point = new GeoPoint(xValue, yValue);
 							Body body = new Body(point);
 							Request request = new Request(
@@ -329,18 +330,22 @@ public class View implements Service {
 
 					@Override
 					public void mousePressed(MouseEvent e) {
+						// Do nothing
 					}
 
 					@Override
 					public void mouseReleased(MouseEvent e) {
+						// Do nothing
 					}
 
 					@Override
 					public void mouseEntered(MouseEvent e) {
+						// Do nothing
 					}
 
 					@Override
 					public void mouseExited(MouseEvent e) {
+						// Do nothing
 					}
 				});
 		content.add(chartPanel, BorderLayout.CENTER);
@@ -355,7 +360,7 @@ public class View implements Service {
 		this.buttons = new JButton[4];
 		buttons[0] = new JButton("Deshacer");
 		buttons[0].addActionListener(e -> {
-			if (pointsSelected.size() > 0) {
+			if (!pointsSelected.isEmpty()) {
 				removedPoints.add(this.pointsSelected.get(this.pointsSelected.size() - 1));
 				this.scatterPlot.removeLastPoint();
 				this.pointsSelected.remove(this.pointsSelected.size() - 1);
@@ -363,13 +368,12 @@ public class View implements Service {
 		});
 		buttons[1] = new JButton("Rehacer");
 		buttons[1].addActionListener(e -> {
-			if (removedPoints.size() > 0) {
+			if (!removedPoints.isEmpty()) {
 				this.pointsSelected.add(removedPoints.get(removedPoints.size() - 1));
 				this.scatterPlot.restoreLastPoint();
 				this.removedPoints.remove(this.removedPoints.size() - 1);
 			} else {
-				this.textArea.append("No points to redo\n");
-
+				this.textArea.append("\nNo points to redo");
 			}
 		});
 		buttons[2] = new JButton("Limpiar");
@@ -377,6 +381,7 @@ public class View implements Service {
 			this.scatterPlot.clear();
 			this.pointsSelected = new ArrayList<>();
 			this.removedPoints = new ArrayList<>();
+			this.scatterPlot.cleanSolution();
 		});
 
 		buttons[3] = new JButton("Confirmar");
@@ -446,6 +451,7 @@ public class View implements Service {
 		private XYSeries selectedPoint;
 		private XYSeries nodesPoint;
 		private ArrayList<XYTextAnnotation> numbers;
+		private ArrayList<XYLineAnnotation> solutionLines;
 		private boolean enableDistanceDisplay;
 
 		public MapPlot(
@@ -458,6 +464,7 @@ public class View implements Service {
 			this.nodeLinesColor = nodeLinesColor;
 			this.enableDistanceDisplay = enableDistanceDisplay;
 			this.numbers = new ArrayList<>();
+			this.solutionLines = new ArrayList<>();
 		}
 
 		private JFreeChart createPlot() {
@@ -560,6 +567,29 @@ public class View implements Service {
 			this.numbers.add(textAnnotation);
 			plot.addAnnotation(textAnnotation);
 			this.selectedPoint.add(point.x(), point.y());
+		}
+
+		private void addSolution(List<Node> solution) {
+			for (int i = 0; i < solution.size() - 1; i++) {
+				Node node1 = solution.get(i);
+				Node node2 = solution.get(i + 1);
+				XYLineAnnotation line = new XYLineAnnotation(
+						node1.geoPoint().x(),
+						node1.geoPoint().y(), // x and y coordinates of point 1
+						node2.geoPoint().x(),
+						node2.geoPoint().y(), // x and y coordinates of point 2
+						new BasicStroke(1.0f),
+						Color.RED);
+				plot.addAnnotation(line);
+				this.solutionLines.add(line);
+			}
+		}
+
+		private void cleanSolution() {
+			for (XYLineAnnotation line : this.solutionLines) {
+				plot.removeAnnotation(line);
+			}
+			this.solutionLines.clear();
 		}
 
 		private void clear() {
