@@ -20,6 +20,15 @@ public record Graph(Node[] content) implements Serializable {
 		return content[n];
 	}
 
+	public Node findNodeById(String id) {
+		for (Node node : content) {
+			if (node.id().equals(id)) {
+				return node;
+			}
+		}
+		return null;
+	}
+
 	@Override
 	public String toString() {
 		return Arrays.deepToString(content);
