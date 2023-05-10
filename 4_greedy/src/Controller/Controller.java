@@ -85,7 +85,7 @@ public class Controller implements Service {
 				Graph graph = fetchMap().graph();
 				ArrayList<GeoPoint> geoPoints = (ArrayList<GeoPoint>) request.body.content;
 				Node[] nodes = geoPoints.stream().map(x -> this.geoPointToNode(graph, x)).toArray(Node[]::new);
-				List<Node> path = this.dijkstra(graph, nodes[0], nodes[nodes.length - 1]);
+				List<Node> path = this.dijkstra(graph, nodes[0], nodes[1]);
 				for (Node node : path) {
 					System.out.println(node.id());
 				}
