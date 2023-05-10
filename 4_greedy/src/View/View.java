@@ -26,6 +26,7 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.sound.sampled.SourceDataLine;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -158,6 +159,11 @@ public class View implements Service {
 					this.textArea.append("\nClicked point is not valid.");
 					return;
 				}
+				while (this.removedPoints.size() != 0) {
+					this.scatterPlot.removeLastNumber();
+					this.removedPoints.remove(removedPoints.size()-1);
+				}
+
 				GeoPoint point = (GeoPoint) request.body.content;
 				this.textArea.append("\nClicked point is valid.\n  =>" + point.toString());
 				if (!this.pointsSelected.contains(point)) {
@@ -169,6 +175,7 @@ public class View implements Service {
 							.log(Level.SEVERE, "Clicked point is already selected.");
 					this.textArea.append("\nClicked point is already selected.");
 				}
+
 			}
 			default -> {
 				Logger
@@ -289,7 +296,7 @@ public class View implements Service {
 				new MouseListener() {
 					@Override
 					public void mouseClicked(MouseEvent e) {
-						if (SwingUtilities.isLeftMouseButton(e) && removedPoints.size() == 0) {
+						if (SwingUtilities.isLeftMouseButton(e)) {
 							// Get the mouse click coordinates
 							int x = e.getX();
 							int y = e.getY();
@@ -360,10 +367,10 @@ public class View implements Service {
 			if (removedPoints.size() > 0) {
 				this.pointsSelected.add(removedPoints.get(removedPoints.size() - 1));
 				this.scatterPlot.restoreLastPoint();
-				removedPoints.remove(removedPoints.size() - 1);
+				this.removedPoints.remove(this.removedPoints.size() - 1);
 			} else {
 				this.textArea.append("No points to redo\n");
-				this.removedPoints = new ArrayList<>();
+
 			}
 		});
 		buttons[2] = new JButton("Limpiar");
@@ -551,9 +558,6 @@ public class View implements Service {
 					point.x(), // x coordinate of text
 					point.y() + 2 // y coordinate of text
 			);
-			if (this.selectedPoint.getItemCount() == 0) {
-				this.numbers.clear();
-			}
 			this.numbers.add(textAnnotation);
 			plot.addAnnotation(textAnnotation);
 			this.selectedPoint.add(point.x(), point.y());
@@ -581,6 +585,11 @@ public class View implements Service {
 					this.numbers.get(this.selectedPoint.getItemCount()));
 			GeoPoint lPoint = removedPoints.get(removedPoints.size() - 1);
 			this.selectedPoint.add(lPoint.x(), lPoint.y());
+
+		}
+
+		private void removeLastNumber() {
+			this.numbers.remove(this.numbers.size()-1);
 		}
 
 		private void changePlotBackground(String image) {
