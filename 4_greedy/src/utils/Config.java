@@ -46,4 +46,8 @@ public class Config {
 	 * Indicates what is the server host of the {@code MVC (Hub)}.
 	 */
 	public static final String SERVER_HOST = "localhost";
+	/**
+	 * Indicates the path to the icon of the application.
+	 */
+	public static final String APP_UI_ICON_PATH = "./assets/icon.png";
 }

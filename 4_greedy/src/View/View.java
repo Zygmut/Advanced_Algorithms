@@ -12,7 +12,9 @@ import betterSwing.utils.DirectionAndPosition;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
@@ -28,6 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -60,6 +63,7 @@ import Model.Node;
 import Model.PairPoint;
 import Model.Path;
 import utils.Algorithms;
+import utils.Config;
 import utils.Maps;
 
 public class View implements Service {
@@ -181,7 +185,7 @@ public class View implements Service {
 				this.textArea.append("\nClicked point is valid.\n  =>" + point.toString());
 				if (!this.pointsSelected.contains(point)) {
 
-					if(this.pointsSelected.isEmpty()){
+					if (this.pointsSelected.isEmpty()) {
 						this.scatterPlot.clear();
 						this.pointsSelected = new ArrayList<>();
 						this.removedPoints = new ArrayList<>();
@@ -248,7 +252,17 @@ public class View implements Service {
 	private JPanel sideBar() {
 		JPanel sideBar = new JPanel();
 		sideBar.setBackground(Color.WHITE);
-		sideBar.setLayout(new GridLayout(2, 1));
+		sideBar.setLayout(new GridLayout(3, 1));
+		JPanel logoPanel = new JPanel();
+		logoPanel.setBackground(Color.WHITE);
+		JPanel iconPanel = new JPanel();
+		iconPanel.setBackground(Color.WHITE);
+		JLabel icon = new JLabel();
+		icon.setBackground(Color.WHITE);
+		icon.setIcon(this.escalateImageIcon(Config.APP_UI_ICON_PATH, 128, 128));
+		iconPanel.add(icon);
+		logoPanel.add(iconPanel);
+		sideBar.add(logoPanel);
 		JPanel actionsPanel = new JPanel();
 		actionsPanel.setBackground(Color.WHITE);
 		actionsPanel.setLayout(new BoxLayout(actionsPanel, BoxLayout.Y_AXIS));
@@ -286,7 +300,7 @@ public class View implements Service {
 		algorithmMenu.addActionListener(e -> {
 			String algorithm = (String) algorithmMenu.getSelectedItem();
 			switch (algorithm.toLowerCase()) {
-				case "greedy"-> {
+				case "greedy" -> {
 					this.selectedAlgorithm = Algorithms.GREEDY;
 				}
 				case "dijkstra" -> {
@@ -359,6 +373,11 @@ public class View implements Service {
 		sideBar.add(infoPanel);
 
 		return sideBar;
+	}
+
+	private ImageIcon escalateImageIcon(String iconPath, int width, int height) {
+		Image image = new ImageIcon(iconPath).getImage();
+		return new ImageIcon(image.getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH));
 	}
 
 	private void initSplitPane() {
