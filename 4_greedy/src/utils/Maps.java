@@ -1,7 +1,9 @@
 package utils;
 
 public enum Maps {
-	IBIZA_FORMENTERA("Ibiza-Formentera");
+	IBIZA_FORMENTERA("Ibiza-Formentera"),
+	IBIZA("Ibiza"),
+	FORMENTERA("Formentera");
 
 	private String message;
 
