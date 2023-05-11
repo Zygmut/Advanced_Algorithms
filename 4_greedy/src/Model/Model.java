@@ -14,10 +14,12 @@ public class Model implements Service {
 
 	private Map map;
 	private List<GeoPoint> path;
+	private Path solution;
 
 	public Model() {
 		this.path = new ArrayList<>();
 		this.map = new Map("", null);
+		this.solution = new Path(null, 0.0);
 	}
 
 	@Override
@@ -59,6 +61,9 @@ public class Model implements Service {
 							new Body(this.map)
 						)
 					);
+			}
+			case SOLUTION -> {
+				this.solution = (Path) request.body.content;
 			}
 			default -> {
 				Logger

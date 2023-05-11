@@ -56,6 +56,7 @@ import Model.GeoPoint;
 import Model.Map;
 import Model.Node;
 import Model.PairPoint;
+import Model.Path;
 import utils.Algorithms;
 import utils.Maps;
 
@@ -177,6 +178,21 @@ public class View implements Service {
 				}
 
 			}
+			case SOLUTION -> {
+				Logger
+						.getLogger(this.getClass().getSimpleName())
+						.log(Level.INFO, "Response [VIEW]: {0}", request);
+				if (Objects.isNull(request.body.content)) {
+					Logger
+							.getLogger(this.getClass().getSimpleName())
+							.log(Level.SEVERE, "Solution is not valid.");
+					this.textArea.append("\nSolution is not valid.");
+					return;
+				}
+				Path path = (Path) request.body.content;
+				this.textArea.append("\nSolution found. \n  =>" + path.toString());
+				this.scatterPlot.addSolution(path.path());
+			}
 			default -> {
 				Logger
 						.getLogger(this.getClass().getSimpleName())
@@ -285,7 +301,7 @@ public class View implements Service {
 		JPanel content = new JPanel();
 		content.setLayout(new BorderLayout());
 		content.setBackground(Color.WHITE);
-		this.scatterPlot = new MapPlot(Color.MAGENTA, Color.BLACK, Color.PINK, true);
+		this.scatterPlot = new MapPlot(Color.MAGENTA, Color.BLACK, Color.PINK, true, Color.RED);
 
 		JFreeChart chart = this.scatterPlot.createPlot();
 		ChartPanel chartPanel = new ChartPanel(chart);
@@ -447,6 +463,7 @@ public class View implements Service {
 		private Color mapNodesColor;
 		private Color selectPointColor;
 		private Color nodeLinesColor;
+		private Color solutionLinesColor;
 		private XYPlot plot;
 		private XYSeries selectedPoint;
 		private XYSeries nodesPoint;
@@ -458,10 +475,12 @@ public class View implements Service {
 				Color mapNodesColor,
 				Color selectPointColor,
 				Color nodeLinesColor,
-				boolean enableDistanceDisplay) {
+				boolean enableDistanceDisplay,
+				Color solutionLinesColor) {
 			this.mapNodesColor = mapNodesColor;
 			this.selectPointColor = selectPointColor;
 			this.nodeLinesColor = nodeLinesColor;
+			this.solutionLinesColor = solutionLinesColor;
 			this.enableDistanceDisplay = enableDistanceDisplay;
 			this.numbers = new ArrayList<>();
 			this.solutionLines = new ArrayList<>();
@@ -578,8 +597,8 @@ public class View implements Service {
 						node1.geoPoint().y(), // x and y coordinates of point 1
 						node2.geoPoint().x(),
 						node2.geoPoint().y(), // x and y coordinates of point 2
-						new BasicStroke(1.0f),
-						Color.RED);
+						new BasicStroke(1.5f),
+						this.solutionLinesColor);
 				plot.addAnnotation(line);
 				this.solutionLines.add(line);
 			}

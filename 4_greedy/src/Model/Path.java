@@ -1,8 +1,9 @@
 package Model;
 
+import java.io.Serializable;
 import java.util.List;
 
-public record Path(List<Node> path, double totalCost) {
+public record Path(List<Node> path, double totalCost) implements Serializable{
 
 	@Override
 	public String toString() {
@@ -10,7 +11,7 @@ public record Path(List<Node> path, double totalCost) {
 		sb.append("Path: path=[ ");
 		for (Node node : path) {
 			sb.append(node.id())
-					.append(" ");
+					.append(",");
 		}
 		sb.append("] totalCost=")
 				.append(totalCost);

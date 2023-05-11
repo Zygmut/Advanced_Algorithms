@@ -4,6 +4,7 @@ import Model.GeoPoint;
 import Model.Graph;
 import Model.Map;
 import Model.Node;
+import Model.Path;
 import Services.Comunication.Content.Body;
 import Services.Comunication.Helpers;
 import Services.Comunication.Request.Request;
@@ -29,7 +30,7 @@ public class Controller implements Service {
 	private Map map;
 
 	public Controller() {
-		// Initialize controller things here
+		this.map = null;
 	}
 
 	@Override
@@ -104,18 +105,17 @@ public class Controller implements Service {
 				// Clean path to avoid to finish and start in the same node as the algorithm
 				// returns the init node and start, and when it's added to the path it's added
 				// twice
+				double distance = 0;
 				for (int i = 0; i < path.size() - 1; i++) {
 					Node actual = path.get(i);
 					Node next = path.get(i + 1);
-					if (actual.id() == next.id()) {
+					if (Objects.equals(actual.id(), next.id())) {
 						path.remove(i);
 					}
+					distance += actual.geoPoint().euclideanDistanceTo(next.geoPoint());
 				}
-				// TODO: Send nodes to model and view
-				// TODO: Del this sout
-				for (Node node : path) {
-					System.out.println(node.id());
-				}
+				Body body = new Body(new Path(path, distance));
+				this.sendResponse(new Response(ResponseCode.SOLUTION, this, body));
 			}
 			case PARSE_MAP -> {
 				Gson gson = new Gson();
@@ -175,23 +175,23 @@ public class Controller implements Service {
 	}
 
 	private List<Node> dijkstra(Graph graph, Node startNode, Node endNode) {
-
 		int numNodes = graph.content().length; // Número de nodos en el grafo
 
 		// Creamos un HashMap para guardar el id de cada nodo para acceder a los arrays
-		// directamente,
-		// además también coincide con el índice del nodo en el arreglo de contenido del
-		// grafo
+		// directamente, además también coincide con el índice del nodo en el arreglo de
+		// contenido del grafo
 		HashMap<Node, Integer> idMap = new HashMap<>();
 		for (int i = 0; i < numNodes; i++) {
 			idMap.put(graph.content()[i], i);
 		}
-
-		double[] distances = new double[numNodes]; // Arreglo para guardar las distancias más cortas desde el nodo
-													// inicial
-		boolean[] visited = new boolean[numNodes]; // Arreglo para marcar los nodos visitados
-		Node[] previous = new Node[numNodes]; // Arreglo para guardar el nodo anterior en la ruta más corta
-		List<Node> path = new ArrayList<>(); // Lista para guardar la ruta más corta
+		// Arreglo para guardar las distancias más cortas desde el nodo inicial
+		double[] distances = new double[numNodes];
+		// Arreglo para marcar los nodos visitados
+		boolean[] visited = new boolean[numNodes];
+		// Arreglo para guardar el nodo anterior en la ruta más corta
+		Node[] previous = new Node[numNodes];
+		// Lista para guardar la ruta más corta
+		List<Node> path = new ArrayList<>();
 
 		// Inicializamos las distancias a un valor grande y el nodo anterior a null
 		for (int i = 0; i < numNodes; i++) {
