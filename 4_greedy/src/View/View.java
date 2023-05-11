@@ -157,6 +157,7 @@ public class View implements Service {
 		switch (request.code) {
 			case LOAD_MAP -> {
 				Map map = (Map) request.body.content;
+				this.scatterPlot.clearMap();
 				this.scatterPlot.addMap(this.selectedMap, map);
 			}
 			case CHECK_GEOPOINT -> {
@@ -173,7 +174,7 @@ public class View implements Service {
 
 				while (!this.removedPoints.isEmpty()) {
 					this.scatterPlot.removeLastNumber();
-					this.removedPoints.remove(removedPoints.size()-1);
+					this.removedPoints.remove(removedPoints.size() - 1);
 				}
 
 				GeoPoint point = (GeoPoint) request.body.content;
@@ -265,6 +266,7 @@ public class View implements Service {
 			String map = (String) mapOptions.getSelectedItem();
 			String[] mapsNames = Maps.getMaps();
 			int index = Arrays.asList(mapsNames).indexOf(map);
+			this.selectedMap = map;
 			Body body = new Body(Maps.values()[index].toString());
 			Request request = new Request(RequestCode.PARSE_MAP, this, body);
 			this.sendRequest(request);
@@ -402,8 +404,8 @@ public class View implements Service {
 											dataArea,
 											plot.getRangeAxisEdge());
 							Logger
-							.getLogger(this.getClass().getSimpleName())
-							.log(Level.INFO, "Clicked at x: {0} y: {1}", new Object[]{xValue, yValue});
+									.getLogger(this.getClass().getSimpleName())
+									.log(Level.INFO, "Clicked at x: {0} y: {1}", new Object[] { xValue, yValue });
 							GeoPoint point = new GeoPoint(xValue, yValue);
 							Body body = new Body(point);
 							Request request = new Request(
@@ -675,6 +677,14 @@ public class View implements Service {
 			}
 		}
 
+		private void clearMap() {
+			this.clear();
+			this.cleanSolution();
+			this.changePlotBackground(null);
+			this.nodesPoint.clear();
+			this.plot.clearAnnotations();
+		}
+
 		private void cleanSolution() {
 			for (XYLineAnnotation line : this.solutionLines) {
 				plot.removeAnnotation(line);
@@ -708,10 +718,15 @@ public class View implements Service {
 		}
 
 		private void removeLastNumber() {
-			this.numbers.remove(this.numbers.size()-1);
+			this.numbers.remove(this.numbers.size() - 1);
 		}
 
 		private void changePlotBackground(String image) {
+			if (Objects.isNull(image)) {
+				plot.setBackgroundPaint(Color.WHITE);
+				plot.setBackgroundImage(null);
+				return;
+			}
 			plot.setBackgroundImage(
 					Toolkit.getDefaultToolkit().getImage(image));
 			plot.setBackgroundImageAlpha(1);
