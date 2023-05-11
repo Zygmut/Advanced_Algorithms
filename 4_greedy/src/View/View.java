@@ -160,6 +160,7 @@ public class View implements Service {
 					this.textArea.append("\nClicked point is not valid.");
 					return;
 				}
+
 				while (!this.removedPoints.isEmpty()) {
 					this.scatterPlot.removeLastNumber();
 					this.removedPoints.remove(removedPoints.size()-1);
@@ -168,8 +169,17 @@ public class View implements Service {
 				GeoPoint point = (GeoPoint) request.body.content;
 				this.textArea.append("\nClicked point is valid.\n  =>" + point.toString());
 				if (!this.pointsSelected.contains(point)) {
+
+					if(this.pointsSelected.isEmpty()){
+						this.scatterPlot.clear();
+						this.pointsSelected = new ArrayList<>();
+						this.removedPoints = new ArrayList<>();
+						this.scatterPlot.cleanSolution();
+					}
+
 					this.scatterPlot.addSelectPoint(point);
 					this.pointsSelected.add(point);
+
 				} else {
 					Logger
 							.getLogger(this.getClass().getSimpleName())
