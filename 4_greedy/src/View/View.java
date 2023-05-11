@@ -52,6 +52,7 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
 import Model.Connection;
+import Model.DistanceType;
 import Model.Execution;
 import Model.GeoPoint;
 import Model.Map;
@@ -103,6 +104,10 @@ public class View implements Service {
 	 * The actual selected algorithm.
 	 */
 	private Algorithms selectedAlgorithm;
+	/**
+	 * The distance calulation method.
+	 */
+	private DistanceType selectedDistanceType;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -284,6 +289,45 @@ public class View implements Service {
 		algSelectorPanel.add(algSelectorLabel);
 		algSelectorPanel.add(algorithmMenu);
 		actionsPanel.add(algSelectorPanel);
+
+		JPanel disntanceTypePanel = new JPanel();
+		disntanceTypePanel.setBackground(Color.WHITE);
+		JLabel distanceTypeLabel = new JLabel("Tipo de distancia: ");
+		String[] distanceTypes = Arrays
+				.stream(DistanceType.values())
+				.map(Enum::toString)
+				.toArray(String[]::new);
+		JComboBox<String> distanceTypeMenu = new JComboBox<>(distanceTypes);
+		distanceTypeMenu.addActionListener(e -> {
+			String distanceType = (String) distanceTypeMenu.getSelectedItem();
+			switch (distanceType.toLowerCase()) {
+				case "euclidean" -> {
+					this.selectedDistanceType = DistanceType.EUCLIDEAN;
+				}
+				case "manhattan" -> {
+					this.selectedDistanceType = DistanceType.MANHATTAN;
+				}
+				case "chebyshev" -> {
+					this.selectedDistanceType = DistanceType.CHEBYSHEV;
+				}
+				case "cosine" -> {
+					this.selectedDistanceType = DistanceType.COSINE;
+				}
+				case "minkwoski" -> {
+					this.selectedDistanceType = DistanceType.MINKOWSKI;
+				}
+				case "haversine" -> {
+					this.selectedDistanceType = DistanceType.HAVERSINE;
+				}
+				default -> {
+					this.selectedDistanceType = DistanceType.EUCLIDEAN;
+				}
+			}
+		});
+		this.selectedDistanceType = DistanceType.EUCLIDEAN;
+		disntanceTypePanel.add(distanceTypeLabel);
+		disntanceTypePanel.add(distanceTypeMenu);
+		actionsPanel.add(disntanceTypePanel);
 		sideBar.add(actionsPanel);
 
 		JPanel infoPanel = new JPanel();
@@ -418,13 +462,14 @@ public class View implements Service {
 
 		buttons[3] = new JButton("Confirmar");
 		buttons[3].addActionListener(e -> {
-			Body body = new Body(new Execution(this.pointsSelected, this.selectedAlgorithm));
+			Body body = new Body(new Execution(this.pointsSelected, this.selectedAlgorithm, this.selectedDistanceType));
 			Request request = new Request(
 					RequestCode.SEND_GEOPOINTS,
 					this,
 					body);
 			View.this.sendRequest(request);
 			this.pointsSelected = new ArrayList<>();
+			this.removedPoints = new ArrayList<>();
 		});
 
 		buttonSection.createButtons(
@@ -576,7 +621,7 @@ public class View implements Service {
 				// Create a text annotation
 				double distance = pairPoint
 						.p1()
-						.euclideanDistanceTo(pairPoint.p2());
+						.distanceTo(pairPoint.p2(), DistanceType.EUCLIDEAN);
 				// Round to 2 decimals
 				distance = Math.round(distance * 100.0) / 100.0;
 				XYTextAnnotation textAnnotation = new XYTextAnnotation(

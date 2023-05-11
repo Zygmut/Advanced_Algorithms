@@ -1,6 +1,7 @@
 package Controller;
 
 import Model.Connection;
+import Model.DistanceType;
 import Model.Execution;
 import Model.GeoPoint;
 import Model.Graph;
@@ -34,9 +35,11 @@ import utils.Exceptions.GraphException;
 public class Controller implements Service {
 
 	private Map map;
+	private DistanceType distanceType;
 
 	public Controller() {
 		this.map = null;
+		this.distanceType = null;
 	}
 
 	@Override
@@ -98,6 +101,14 @@ public class Controller implements Service {
 				Execution execution = (Execution) content;
 				ArrayList<GeoPoint> geoPoints = execution.geoPoints();
 				Algorithms algorithm = execution.algorithm();
+				this.distanceType = execution.distanceType();
+				if (Objects.isNull(geoPoints) || geoPoints.isEmpty() || Objects.isNull(algorithm)
+						|| Objects.isNull(distanceType)) {
+					Logger
+							.getLogger(this.getClass().getSimpleName())
+							.log(Level.SEVERE, "Invalid data.");
+					return;
+				}
 				Node[] nodes = geoPoints.stream().map(x -> this.geoPointToNode(graph, x)).toArray(Node[]::new);
 				List<Node> path = new ArrayList<>();
 				if (geoPoints.size() < 2) {
@@ -124,10 +135,11 @@ public class Controller implements Service {
 					if (Objects.equals(actual.id(), next.id())) {
 						path.remove(i);
 					}
-					distance += actual.geoPoint().euclideanDistanceTo(next.geoPoint());
+					distance += actual.geoPoint().distanceTo(next.geoPoint(), this.distanceType);
 				}
 				Body body = new Body(new Path(path, distance));
 				this.sendResponse(new Response(ResponseCode.SOLUTION, this, body));
+				this.distanceType = null;
 			}
 			case PARSE_MAP -> {
 				Gson gson = new Gson();
@@ -169,7 +181,7 @@ public class Controller implements Service {
 		}
 
 		for (Node node : graphNodes) {
-			if (clickedPoint.euclideanDistanceTo(node.geoPoint()) <= radius) {
+			if (clickedPoint.distanceTo(node.geoPoint(), this.distanceType) <= radius) {
 				return node.geoPoint();
 			}
 		}
@@ -241,7 +253,7 @@ public class Controller implements Service {
 			for (Node neighbor : nodes) {
 				if (!visited[idMap.get(neighbor)]) {
 					double tentativeDistance = distances[idMap.get(currentNode)]
-							+ currentNode.geoPoint().euclideanDistanceTo(neighbor.geoPoint());
+							+ currentNode.geoPoint().distanceTo(neighbor.geoPoint(), this.distanceType);
 					if (tentativeDistance < distances[idMap.get(neighbor)]) {
 						distances[idMap.get(neighbor)] = tentativeDistance;
 						previous[idMap.get(neighbor)] = currentNode;
@@ -264,9 +276,9 @@ public class Controller implements Service {
 
 	private List<Node> greedy(Graph graph, Node startNode, Node endNode) {
 		PriorityQueue<Node> startQueue = new PriorityQueue<>(
-				Comparator.comparingDouble(node -> node.geoPoint().euclideanDistanceTo(endNode.geoPoint())));
+				Comparator.comparingDouble(node -> node.geoPoint().distanceTo(endNode.geoPoint(), this.distanceType)));
 		PriorityQueue<Node> endQueue = new PriorityQueue<>(
-				Comparator.comparingDouble(node -> node.geoPoint().euclideanDistanceTo(startNode.geoPoint())));
+				Comparator.comparingDouble(node -> node.geoPoint().distanceTo(startNode.geoPoint(), this.distanceType)));
 
 		startQueue.add(startNode);
 		endQueue.add(endNode);
@@ -353,6 +365,5 @@ public class Controller implements Service {
 
 		return null;
 	}
-
 
 }

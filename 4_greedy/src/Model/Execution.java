@@ -5,5 +5,6 @@ import java.util.ArrayList;
 
 import utils.Algorithms;
 
-public record Execution(ArrayList<GeoPoint> geoPoints, Algorithms algorithm) implements Serializable{
+public record Execution(ArrayList<GeoPoint> geoPoints, Algorithms algorithm, DistanceType distanceType)
+		implements Serializable {
 }
