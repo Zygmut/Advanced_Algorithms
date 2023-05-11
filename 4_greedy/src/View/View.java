@@ -52,6 +52,7 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
 import Model.Connection;
+import Model.Execution;
 import Model.GeoPoint;
 import Model.Map;
 import Model.Node;
@@ -98,6 +99,10 @@ public class View implements Service {
 	 * The list of removed points.
 	 */
 	private ArrayList<GeoPoint> removedPoints;
+	/**
+	 * The actual selected algorithm.
+	 */
+	private Algorithms selectedAlgorithm;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -263,8 +268,19 @@ public class View implements Service {
 		JComboBox<String> algorithmMenu = new JComboBox<>(algorithms);
 		algorithmMenu.addActionListener(e -> {
 			String algorithm = (String) algorithmMenu.getSelectedItem();
-			System.out.println(algorithm);
+			switch (algorithm.toLowerCase()) {
+				case "greedy"-> {
+					this.selectedAlgorithm = Algorithms.GREEDY;
+				}
+				case "dijkstra" -> {
+					this.selectedAlgorithm = Algorithms.DIJKSTRA;
+				}
+				default -> {
+					this.selectedAlgorithm = Algorithms.DIJKSTRA;
+				}
+			}
 		});
+		this.selectedAlgorithm = Algorithms.DIJKSTRA;
 		algSelectorPanel.add(algSelectorLabel);
 		algSelectorPanel.add(algorithmMenu);
 		actionsPanel.add(algSelectorPanel);
@@ -402,7 +418,7 @@ public class View implements Service {
 
 		buttons[3] = new JButton("Confirmar");
 		buttons[3].addActionListener(e -> {
-			Body body = new Body(this.pointsSelected); // Geopoints might be Serializable
+			Body body = new Body(new Execution(this.pointsSelected, this.selectedAlgorithm));
 			Request request = new Request(
 					RequestCode.SEND_GEOPOINTS,
 					this,
