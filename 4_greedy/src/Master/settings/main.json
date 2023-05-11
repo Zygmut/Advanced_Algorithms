@@ -33,6 +33,10 @@
 		{
 			"code": "CHECK_GEOPOINT",
 			"services": ["VIEW"]
+		},
+		{
+			"code": "SOLUTION",
+			"services": ["MODEL", "VIEW"]
 		}
 	],
 	"resToReqMap": [
@@ -47,6 +51,10 @@
 		{
 			"responseCode": "LOAD_MAP",
 			"requestCode": "LOAD_MAP"
+		},
+		{
+			"responseCode": "SOLUTION",
+			"requestCode": "SOLUTION"
 		}
 	]
 }
