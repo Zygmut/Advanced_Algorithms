@@ -19,6 +19,14 @@
 		{
 			"code": "LOAD_MAP",
 			"services": ["MODEL"]
+		},
+		{
+			"code": "STORE_STATISTICS",
+			"services": ["MODEL"]
+		},
+		{
+			"code": "GET_STATS",
+			"services": ["MODEL"]
 		}
 	],
 	"responseMap": [
@@ -37,6 +45,10 @@
 		{
 			"code": "SOLUTION",
 			"services": ["MODEL", "VIEW"]
+		},
+		{
+			"code": "SEND_STATS",
+			"services": ["VIEW"]
 		}
 	],
 	"resToReqMap": [
@@ -55,6 +67,10 @@
 		{
 			"responseCode": "SOLUTION",
 			"requestCode": "SOLUTION"
+		},
+		{
+			"responseCode": "SEND_STATS",
+			"requestCode": "GET_STATS"
 		}
 	]
 }

@@ -12,7 +12,6 @@ import betterSwing.utils.DirectionAndPosition;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Toolkit;
@@ -62,6 +61,7 @@ import Model.Map;
 import Model.Node;
 import Model.PairPoint;
 import Model.Path;
+import Model.Statistics.Statistics;
 import utils.Algorithms;
 import utils.Config;
 import utils.Maps;
@@ -157,6 +157,7 @@ public class View implements Service {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public void notifyRequest(Request request) {
 		switch (request.code) {
 			case LOAD_MAP -> {
@@ -217,6 +218,18 @@ public class View implements Service {
 				Path path = (Path) request.body.content;
 				this.textArea.append("\nSolution found. \n  =>" + path.toString());
 				this.scatterPlot.addSolution(path.path());
+			}
+			case GET_STATS -> {
+				Object content = request.body.content;
+				if (Objects.isNull(content) || !(content instanceof Statistics)){
+					Logger
+							.getLogger(this.getClass().getSimpleName())
+							.log(Level.SEVERE, "Stats are not valid.");
+					this.textArea.append("\nStats are not valid.");
+					return;
+				}
+				WindowStats stats = new WindowStats((Statistics) content);
+				stats.show();
 			}
 			default -> {
 				Logger
@@ -519,9 +532,7 @@ public class View implements Service {
 		JMenu options = new JMenu("Opciones");
 		JMenu stats = new JMenu("Estadisticas");
 		JMenuItem alg = new JMenuItem("Algoritmos");
-		alg.addActionListener(e -> {
-			// TODO
-		});
+		alg.addActionListener(e -> this.sendRequest(new Request(RequestCode.GET_STATS, this)));
 		JMenuItem jvm = new JMenuItem("JVM");
 		jvm.addActionListener(e -> {
 			WindowJVMStats jvmStats = new WindowJVMStats();

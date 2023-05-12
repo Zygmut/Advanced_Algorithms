@@ -9,5 +9,7 @@ public enum RequestCode {
 	LOAD_MAP,
 	PARSE_MAP,
 	GET_MAP,
-	SOLUTION
+	SOLUTION,
+	STORE_STATISTICS,
+	GET_STATS
 }

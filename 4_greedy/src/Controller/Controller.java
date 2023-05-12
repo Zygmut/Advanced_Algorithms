@@ -8,6 +8,8 @@ import Model.Graph;
 import Model.Map;
 import Model.Node;
 import Model.Path;
+import Model.Statistics.AtomIteration;
+import Model.Statistics.Statistics;
 import Services.Comunication.Content.Body;
 import Services.Comunication.Helpers;
 import Services.Comunication.Request.Request;
@@ -19,6 +21,7 @@ import com.google.gson.Gson;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -36,10 +39,14 @@ public class Controller implements Service {
 
 	private Map map;
 	private DistanceType distanceType;
+	private Statistics statistics;
+	private List<AtomIteration> dataPerIteration;
 
 	public Controller() {
 		this.map = null;
 		this.distanceType = null;
+		this.statistics = null;
+		this.dataPerIteration = null;
 	}
 
 	@Override
@@ -109,6 +116,7 @@ public class Controller implements Service {
 							.log(Level.SEVERE, "Invalid data.");
 					return;
 				}
+
 				Node[] nodes = geoPoints.stream().map(x -> this.geoPointToNode(graph, x)).toArray(Node[]::new);
 				List<Node> path = new ArrayList<>();
 				if (geoPoints.size() < 2) {
@@ -117,14 +125,21 @@ public class Controller implements Service {
 							.log(Level.SEVERE, "Not enough geopoints.");
 					return;
 				}
+
+				this.statistics = new Statistics(this.distanceType, algorithm);
+				Instant start = Instant.now();
 				// Search path between nodes
 				for (int i = 0; i < nodes.length - 1; i++) {
+					this.dataPerIteration = new ArrayList<>();
 					switch (algorithm) {
 						case DIJKSTRA -> path.addAll(dijkstra(graph, nodes[i], nodes[i + 1]));
 						case GREEDY -> path.addAll(greedy(graph, nodes[i], nodes[i + 1]));
 						default -> path.addAll(dijkstra(graph, nodes[i], nodes[i + 1]));
 					}
+					this.statistics.addIteration(this.dataPerIteration);
 				}
+				this.dataPerIteration = null;
+				Instant end = Instant.now();
 				// Clean path to avoid to finish and start in the same node as the algorithm
 				// returns the init node and start, and when it's added to the path it's added
 				// twice
@@ -134,12 +149,34 @@ public class Controller implements Service {
 					Node next = path.get(i + 1);
 					if (Objects.equals(actual.id(), next.id())) {
 						path.remove(i);
+						continue;
 					}
 					distance += actual.geoPoint().distanceTo(next.geoPoint(), this.distanceType);
 				}
-				Body body = new Body(new Path(path, distance));
+				Path p = new Path(path, distance);
+				this.statistics.setNodes(graph.content().length);
+				this.statistics.setSolution(p);
+				this.statistics.setTime(end.getNano() - start.getNano());
+				int iterations = 0;
+				int numberOfVisitedNodes = 0;
+				for (int i = 0; i < this.statistics.getDataPerIteration().size(); i++) {
+					List<AtomIteration> atomIteration = this.statistics.getDataPerIteration().get(i);
+					for (int j = 0; j < atomIteration.size(); j++) {
+						AtomIteration atom = atomIteration.get(j);
+						iterations += atom.interation();
+						numberOfVisitedNodes += atom.numberOfVisitedNodes();
+					}
+				}
+				this.statistics.setIterations(iterations);
+				this.statistics.setNumberOfVisitedNodes(numberOfVisitedNodes);
+
+				Body body = new Body(this.statistics);
+				this.sendRequest(new Request(RequestCode.STORE_STATISTICS, this, body));
+
+				body = new Body(p);
 				this.sendResponse(new Response(ResponseCode.SOLUTION, this, body));
 				this.distanceType = null;
+				this.statistics = null;
 			}
 			case PARSE_MAP -> {
 				Gson gson = new Gson();
@@ -199,6 +236,10 @@ public class Controller implements Service {
 	}
 
 	private List<Node> dijkstra(Graph graph, Node startNode, Node endNode) {
+		int totalIterations = 0;
+		long memoryUsed = 0;
+		int numberOfVisitedNodes = 0;
+
 		int numNodes = graph.content().length; // Número de nodos en el grafo
 
 		// Creamos un HashMap para guardar el id de cada nodo para acceder a los arrays
@@ -228,7 +269,7 @@ public class Controller implements Service {
 
 		// Iteramos sobre todos los nodos
 		for (int i = 0; i < numNodes - 1; i++) {
-
+			final Instant start = Instant.now();
 			// Encontramos el nodo no visitado con la menor distancia desde el nodo inicial
 			Node currentNode = null;
 			double shortestDistance = Double.MAX_VALUE;
@@ -237,6 +278,7 @@ public class Controller implements Service {
 					// currentNode = j;
 					currentNode = graph.content()[j];
 					shortestDistance = distances[j];
+					numberOfVisitedNodes++;
 				}
 			}
 
@@ -258,9 +300,20 @@ public class Controller implements Service {
 						distances[idMap.get(neighbor)] = tentativeDistance;
 						previous[idMap.get(neighbor)] = currentNode;
 					}
+					numberOfVisitedNodes++;
 				}
 			}
+			final Instant end = Instant.now();
+
+			// Guardamos los datos de la iteración
+			totalIterations++;
+			final long auxMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+			memoryUsed += auxMem;
+			this.dataPerIteration.add(new AtomIteration(i, end.getNano() - start.getNano(),
+					numberOfVisitedNodes, auxMem));
 		}
+
+		this.statistics.setMemoryUsed(memoryUsed / totalIterations);
 
 		// Construimos la ruta más corta desde el nodo final hacia el nodo inicial
 		Node currentNode = endNode;
@@ -275,10 +328,15 @@ public class Controller implements Service {
 	}
 
 	private List<Node> greedy(Graph graph, Node startNode, Node endNode) {
+		int totalIterations = 0;
+		long memoryUsed = 0;
+		int numberOfVisitedNodes = 0;
+
 		PriorityQueue<Node> startQueue = new PriorityQueue<>(
 				Comparator.comparingDouble(node -> node.geoPoint().distanceTo(endNode.geoPoint(), this.distanceType)));
 		PriorityQueue<Node> endQueue = new PriorityQueue<>(
-				Comparator.comparingDouble(node -> node.geoPoint().distanceTo(startNode.geoPoint(), this.distanceType)));
+				Comparator
+						.comparingDouble(node -> node.geoPoint().distanceTo(startNode.geoPoint(), this.distanceType)));
 
 		startQueue.add(startNode);
 		endQueue.add(endNode);
@@ -294,6 +352,8 @@ public class Controller implements Service {
 		Node meetingNode = null;
 
 		while (!startQueue.isEmpty() && !endQueue.isEmpty()) {
+			Instant startT = Instant.now();
+
 			Node start = startQueue.poll();
 			Node end = endQueue.poll();
 
@@ -312,6 +372,7 @@ public class Controller implements Service {
 					// neighbor.setHeuristicCost(endNode); // set heuristic cost to the goal node
 					startQueue.add(neighbor);
 				}
+				numberOfVisitedNodes++;
 			}
 
 			for (Connection connection : end.connections()) {
@@ -324,8 +385,19 @@ public class Controller implements Service {
 					// neighbor.setHeuristicCost(startNode); // set heuristic cost to the start node
 					endQueue.add(neighbor);
 				}
+				numberOfVisitedNodes++;
 			}
+
+			Instant endT = Instant.now();
+
+			totalIterations++;
+			final long auxMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+			memoryUsed += auxMem;
+			this.dataPerIteration.add(new AtomIteration(totalIterations, endT.getNano() - startT.getNano(),
+					numberOfVisitedNodes, auxMem));
 		}
+
+		this.statistics.setMemoryUsed(memoryUsed / totalIterations);
 
 		List<Node> path = new ArrayList<>();
 		Node current = meetingNode;
