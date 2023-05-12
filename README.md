@@ -9,6 +9,8 @@ El repositorio está organizado de la siguiente manera:
 ├── 1_general_concepts/  # Capítulo 1: Conceptos generales
 ├── 2_backtracking/      # Capítulo 2: Backtracking
 ├── 3_dandq/             # Capítulo 3: Divide y vencerás
+├── 4_greedy/            # Capítulo 4: Greedy algorithms
+├── assets/              # Imágenes y otros recursos
 └── Templates/           # Plantillas para las prácticas
 ```
 
@@ -31,3 +33,7 @@ Ver más en [Backtracking](./2_backtracking/README.md).
 Ver más en [Divide y vencerás](./3_dandq/README.md).
 
 ![Práctica 3](./assets/p3.png)
+
+### Práctica 4: Greedy algorithms
+
+Ver más en [Greedy algorithms](./4_greedy/README.md).

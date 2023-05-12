@@ -1,0 +1,76 @@
+{
+	"requestMap": [
+		{
+			"code": "SEND_GEOPOINTS",
+			"services": ["MODEL", "CONTROLLER"]
+		},
+		{
+			"code": "CHECK_GEOPOINT",
+			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "PARSE_MAP",
+			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "GET_MAP",
+			"services": ["MODEL"]
+		},
+		{
+			"code": "LOAD_MAP",
+			"services": ["MODEL"]
+		},
+		{
+			"code": "STORE_STATISTICS",
+			"services": ["MODEL"]
+		},
+		{
+			"code": "GET_STATS",
+			"services": ["MODEL"]
+		}
+	],
+	"responseMap": [
+		{
+			"code": "LOAD_MAP",
+			"services": ["VIEW"]
+		},
+		{
+			"code": "GET_MAP",
+			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "CHECK_GEOPOINT",
+			"services": ["VIEW"]
+		},
+		{
+			"code": "SOLUTION",
+			"services": ["MODEL", "VIEW"]
+		},
+		{
+			"code": "SEND_STATS",
+			"services": ["VIEW"]
+		}
+	],
+	"resToReqMap": [
+		{
+			"responseCode": "CHECK_GEOPOINT",
+			"requestCode": "CHECK_GEOPOINT"
+		},
+		{
+			"responseCode": "GET_MAP",
+			"requestCode": "GET_MAP"
+		},
+		{
+			"responseCode": "LOAD_MAP",
+			"requestCode": "LOAD_MAP"
+		},
+		{
+			"responseCode": "SOLUTION",
+			"requestCode": "SOLUTION"
+		},
+		{
+			"responseCode": "SEND_STATS",
+			"requestCode": "GET_STATS"
+		}
+	]
+}

@@ -1,0 +1,20 @@
+{
+	"requestMap": [
+		{
+			"code": "GREET",
+			"services": ["CONTROLLER", "MODEL"]
+		}
+	],
+	"responseMap": [
+		{
+			"code": "GREET_BACK",
+			"services": ["VIEW"]
+		}
+	],
+	"resToReqMap": [
+		{
+			"responseCode": "GREET_BACK",
+			"requestCode": "GREET"
+		}
+	]
+}
