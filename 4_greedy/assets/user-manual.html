@@ -10,6 +10,7 @@
 		h1 {
 			color: black;
 		}
+
 		p {
 			color: black;
 		}
@@ -17,8 +18,97 @@
 </head>
 
 <body>
-	<h1>User Manual</h1>
-	<p>Coming soon...</p>
+	<h1>Manual de usuario</h1>
+	<p>Para el correcto uso de la aplicación, el conjunto de acciones que se pueden realizar en dicho programa serán
+		definidas a continuación. También, la distribución de las secciones de la interfaz junto a su explicación y
+		funcionalidad.</p>
+	<p>Cuando se ejecute el programa por primera vez en la pantalla se debe mostrar la siguiente interfaz de usuario:
+	</p>
+	<img src="GUI.png" alt="Interfaz de usuario" width="550" height="350">
+	<h2>Menu</h2>
+	<p>El menú de la aplicación se trata de la barra que se sitúa debajo del marco superior de la ventana. En esta se
+		puede encontrar un conjunto de opciones para que el usuario pueda interactuar con la aplicación, modificar y
+		analizar el comportamiento de esta. En concreto, se encuentran las opciones de "Opciones" y "Ayuda".</p>
+	<p>En la primera se sitúan las acciones para salir del programa y para borrar y/o resetear datos e iniciar las
+		ventanas de estadísticas.</p>
+	<p>En la otra opción se encuentra un menú desplegable con un manual de usuario con la explicación del funcionamiento
+		de la aplicación.</p>
+	<h2>Main</h2>
+	<p>El "Main" es el bloque principal de la vista, donde se representará el mapa con las poblaciones, aquí el usuario
+		podrá seleccionar los puntos/poblaciones para encontrar el camino mínimo. El usuario deberá clicar de manera
+		precisa en el punto, debido a que éste tiene un radio de detección del ratón determinado. De esta manera, al
+		clicar en el mapa, no se seleccionará ningún punto de manera errónea. No podrá clicar dos veces sobre el mismo
+		punto.</p>
+	<h2>Sidebar</h2>
+	<p id="Sidebar">El "Sidebar" contiene un conjunto de opciones para modificar los datos y el modo de ejecución de la
+		aplicación. A continuación, se explicará cada una de estas opciones y su función.</p>
+
+	<h3>Selección de mapa</h3>
+	<p>En primer lugar, se encuentra la opción para seleccionar el "Mapa". En esta, se puede escoger el mapa que
+		queremos representar. En esta práctica, se han implementado los siguientes mapas:</p>
+	<ul>
+		<li>Ibiza-Formentera</li>
+		<li>Ibiza</li>
+		<li>Formentera</li>
+	</ul>
+
+	<h3>Selección de algoritmo</h3>
+	<p>En segundo lugar, se halla la opción para elegir el "Algoritmo". En esta opción, se tiene la opción cambiar el
+		algoritmo a aplicar sobre los puntos seleccionados. De manera que el resultado podría cambiar dependiendo del
+		algoritmo ejecutado. Los algoritmos implementados son:</p>
+	<ul>
+		<li>Dijkstra</li>
+		<li>Greedy</li>
+	</ul>
+
+	<h3>Tipo de distancia</h3>
+	<p>En tercer lugar, se encuentra el "Tipo de distancia". Esta opción permite definir una heurística para calcular la
+		distancia. Las heurísticas implementadas son:</p>
+	<ul>
+		<li>Euclidean</li>
+		<li>Manhattan</li>
+		<li>Chebyshev</li>
+		<li>Cosine</li>
+		<li>Minkowski</li>
+		<li>Haversine</li>
+	</ul>
+
+	<h3>Logs</h3>
+	<p>En cuarto lugar, se encuentra una ventana de "logs". En esta ventana el usuario tendrá una noción de lo que está
+		ocurriendo en el programa, indicando los puntos seleccionados y si se ha seleccionado fuera del mapa.</p>
+	<h2>Footer</h2>
+	<p>En la sección "Footer", se hallan cuatro botones para interactuar con los puntos seleccionados sobre el mapa.</p>
+	<ol>
+		<li>En primer lugar, empezando por la izquierda de la interfaz, tenemos el botón "Deshacer". Cuando el botón sea
+			pulsado, el último punto añadido al mapa será borrado.</li>
+		<li>En segundo lugar, tenemos el botón "Rehacer". Cuando se pulse este botón, el último punto eliminado será
+			añadido sobre el mapa de nuevo. En el momento en el que el usuario añada un nuevo punto después de haber
+			pulsado "Deshacer", no podrá rehacer ningún punto.</li>
+		<li>En tercer lugar, se encuentra el botón "Limpiar", con este botón desaparecerán todos los elementos añadidos
+			sobre el mapa tras haber iniciado el programa y volverá a su estado inicial. Este botón es útil para borrar
+			todos los puntos seleccionados o la solución del camino.</li>
+		<li>Por último, se halla el botón "Confirmar". Este botón envía al Controlador los puntos seleccionados y
+			ejecuta el algoritmo, una vez ejecutado se representará el camino en el mapa, con una línea de color rojo.
+		</li>
+	</ol>
+
+	<h2>Ejemplo ejecución</h2>
+	<p>Al iniciar la aplicación se mostrará una interfaz como la expuesta en la imagen <a
+			href="#fig:Ejemplo-ejecución">User_interface</a>. Para poder iniciar la ejecución del algoritmo, es
+		necesario seleccionar dos o más puntos sobre el mapa, en el caso de equivocarse podrá "Deshacer" y "Rehacer" los
+		puntos. Además, de poder borrarlos todos con el botón "Limpiar". Al clicar en "Confirmar", si hay dos o más
+		puntos en el mapa, se ejecutará el algoritmo y se pintará sobre el mapa el camino mínimo entre los puntos
+		seleccionados. A continuación, la siguiente imagen, muestra un ejemplo de la interfaz en mitad de la ejecución:
+	</p>
+	<figure>
+		<img src="ejecucion.png" alt="Interfaz de usuario" width="550" height="350">
+		<figcaption>Ejemplo de ejecución</figcaption>
+		<label for="fig:Ejemplo-ejecución"></label>
+	</figure>
+	<p>A partir de aquí, el usuario puede reiniciar la ejecución para ejecutar nuevamente el algoritmo, borrar las
+		soluciones obtenidas, ejecutar otros algoritmos, cambiar el tipo de distancia, cambiar el mapa y ver
+		estadísticas de la ejecución.</p>
+
 </body>
 
 </html>
