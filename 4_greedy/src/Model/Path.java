@@ -3,7 +3,7 @@ package Model;
 import java.io.Serializable;
 import java.util.List;
 
-public record Path(List<Node> path, double totalCost) implements Serializable{
+public record Path(List<Node> path, double totalCost) implements Serializable {
 
 	@Override
 	public String toString() {

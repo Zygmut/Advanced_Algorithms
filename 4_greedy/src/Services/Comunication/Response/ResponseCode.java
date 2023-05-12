@@ -8,5 +8,6 @@ public enum ResponseCode {
 	CHECK_GEOPOINT,
 	LOAD_MAP,
 	GET_MAP,
-	SOLUTION
+	SOLUTION,
+	SEND_STATS
 }
