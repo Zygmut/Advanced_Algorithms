@@ -157,7 +157,6 @@ public class View implements Service {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public void notifyRequest(Request request) {
 		switch (request.code) {
 			case LOAD_MAP -> {

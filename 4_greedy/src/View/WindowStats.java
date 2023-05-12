@@ -5,10 +5,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Label;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 import java.util.function.LongUnaryOperator;
 
 import javax.swing.JPanel;
@@ -17,7 +14,6 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.data.category.DefaultCategoryDataset;
-import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
@@ -72,7 +68,7 @@ public class WindowStats {
 		panelData.setLayout(new GridLayout(1, 2, 1, 0));
 		panelData.setBackground(Color.BLACK);
 		XYSeriesCollection dataset = createDataSet();
-		ChartPanel chartPanel = createLineChartPanel(dataset, "Por iteración", "Iteration", "Value");
+		ChartPanel chartPanel = createLineChartPanel(dataset, "Por iteración", "Iteración", "Valor");
 		panelData.add(chartPanel);
 
 		double time = this.statistics.getTime() / 1000;
@@ -146,8 +142,8 @@ public class WindowStats {
 		// Create a chart
 		JFreeChart chart = ChartFactory.createBarChart(
 				title, // chart title
-				"Category", // category axis label
-				"Value", // value axis label
+				"Categoría", // category axis label
+				"Valor", // value axis label
 				dataset // data
 		);
 		// Create a chart panel
