@@ -1,0 +1,15 @@
+{
+	"width": "500",
+	"height": "500",
+	"x": "0",
+	"y": "0",
+	"title": "Práctica 5 - Dynamic Programming - Manual de usuario",
+	"lookAndFeel": "Nimbus",
+	"windowOnCenter": "false",
+	"windowResizable": "true",
+	"windowCloseOperation": "DISPOSE_ON_CLOSE",
+	"windowIcon": "",
+	"windowWidthCenter": "false",
+	"windowOnLoadVisible": "true",
+	"bgColor": "black"
+}
