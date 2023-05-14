@@ -9,7 +9,6 @@ public enum Idiomas {
 	ALEMAN,
 	PORTUGUES,
 	DANES,
-	BULGARO,
+	HUNGARO,
 	CROATA
-
 }
