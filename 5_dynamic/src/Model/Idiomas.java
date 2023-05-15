@@ -1,0 +1,14 @@
+package Model;
+
+public enum Idiomas {
+	CASTELLANO,
+	CATALAN,
+	INGLES,
+	FRANCES,
+	ITALIANO,
+	ALEMAN,
+	PORTUGUES,
+	DANES,
+	HUNGARO,
+	CROATA
+}
