@@ -6,14 +6,24 @@ import Services.Service;
 import betterSwing.Section;
 import betterSwing.Window;
 import betterSwing.utils.DirectionAndPosition;
+import utils.Config;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
+import java.awt.Image;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -22,6 +32,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
+
+import Model.Language;
 
 public class View implements Service {
 
@@ -41,6 +53,10 @@ public class View implements Service {
 	 * The text area of the view to display logs.
 	 */
 	private JTextArea textArea;
+	/**
+	 *
+	 */
+	private String selectedDictionary;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -115,6 +131,34 @@ public class View implements Service {
 		sideBar.setBackground(Color.WHITE);
 		sideBar.setLayout(new GridLayout(3, 1));
 
+		// Logo panel
+		JPanel logoPanel = new JPanel();
+		logoPanel.setBackground(Color.WHITE);
+		JPanel iconPanel = new JPanel();
+		iconPanel.setBackground(Color.WHITE);
+		JLabel icon = new JLabel();
+		icon.setBackground(Color.WHITE);
+		icon.setIcon(this.escalateImageIcon(Config.APP_UI_ICON_PATH, 128, 128));
+		iconPanel.add(icon);
+		logoPanel.add(iconPanel);
+		sideBar.add(logoPanel);
+
+		// Actions panel
+		JPanel actionsPanel = new JPanel();
+		actionsPanel.setBackground(Color.WHITE);
+		actionsPanel.setLayout(new BoxLayout(actionsPanel, BoxLayout.Y_AXIS));
+		actionsPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+
+		String[] dictLanguages = Arrays.stream(Language.values())
+				.map(Language::toString)
+				.toArray(String[]::new);
+
+		// TODO
+
+		actionsPanel.add(Box.createVerticalStrut(10));
+		sideBar.add(actionsPanel);
+
+		// Log panel
 		JPanel infoPanel = new JPanel();
 		infoPanel.setBackground(Color.WHITE);
 		infoPanel.setLayout(new BorderLayout());
@@ -131,6 +175,11 @@ public class View implements Service {
 		sideBar.add(infoPanel);
 
 		return sideBar;
+	}
+
+	private ImageIcon escalateImageIcon(String iconPath, int width, int height) {
+		Image image = new ImageIcon(iconPath).getImage();
+		return new ImageIcon(image.getScaledInstance(width, height, Image.SCALE_SMOOTH));
 	}
 
 	private void initSplitPane() {
@@ -156,9 +205,10 @@ public class View implements Service {
 		Section buttonSection = new Section();
 		this.buttons = new JButton[4];
 
-		for (int i = 0; i < this.buttons.length; i++) {
-			this.buttons[i] = new JButton();
-		}
+		this.buttons[0] = new JButton("");
+		this.buttons[1] = new JButton("");
+		this.buttons[2] = new JButton("");
+		this.buttons[3] = new JButton("Inciar");
 
 		buttonSection.createButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
 		return buttonSection;
