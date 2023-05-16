@@ -9,26 +9,33 @@ import betterSwing.utils.DirectionAndPosition;
 import utils.Config;
 
 import java.awt.BorderLayout;
+import java.awt.Button;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
@@ -57,6 +64,10 @@ public class View implements Service {
 	 *
 	 */
 	private String selectedDictionary;
+	/**
+	 *
+	 */
+	private List<String> optionsAnalysisMode;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -147,15 +158,46 @@ public class View implements Service {
 		JPanel actionsPanel = new JPanel();
 		actionsPanel.setBackground(Color.WHITE);
 		actionsPanel.setLayout(new BoxLayout(actionsPanel, BoxLayout.Y_AXIS));
-		actionsPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+		actionsPanel.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));
 
-		String[] dictLanguages = Arrays.stream(Language.values())
-				.map(Language::toString)
-				.toArray(String[]::new);
-
-		// TODO
+		JLabel analysisMode = new JLabel("Modo de análisis: ");
+		analysisMode.setFont(new Font("Arial", Font.ITALIC, 14));
+		this.optionsAnalysisMode = new ArrayList<>();
+		JCheckBox statsMode = new JCheckBox("Aplicar estadísticas");
+		statsMode.addActionListener(e -> {
+			if (statsMode.isSelected()) {
+				this.optionsAnalysisMode.add("stats");
+			} else {
+				this.optionsAnalysisMode.remove("stats");
+			}
+		});
+		JCheckBox paralel = new JCheckBox("Paralelizar");
+		paralel.addActionListener(e -> {
+			if (paralel.isSelected()) {
+				this.optionsAnalysisMode.add("paralel");
+			} else {
+				this.optionsAnalysisMode.remove("paralel");
+			}
+		});
+		JCheckBox sorted = new JCheckBox("Ordenar");
+		sorted.addActionListener(e -> {
+			if (sorted.isSelected()) {
+				this.optionsAnalysisMode.add("sorted");
+			} else {
+				this.optionsAnalysisMode.remove("sorted");
+			}
+		});
 
 		actionsPanel.add(Box.createVerticalStrut(10));
+		actionsPanel.add(analysisMode);
+		actionsPanel.add(Box.createVerticalStrut(5));
+		actionsPanel.add(statsMode);
+		actionsPanel.add(Box.createVerticalStrut(5));
+		actionsPanel.add(paralel);
+		actionsPanel.add(Box.createVerticalStrut(5));
+		actionsPanel.add(sorted);
+		actionsPanel.add(Box.createVerticalStrut(5));
+
 		sideBar.add(actionsPanel);
 
 		// Log panel
@@ -194,6 +236,25 @@ public class View implements Service {
 		JPanel content = new JPanel();
 		content.setLayout(new BorderLayout());
 		content.setBackground(Color.WHITE);
+
+		String[] dictLanguages = Arrays.stream(Language.values())
+				.map(Language::toString)
+				.toArray(String[]::new);
+
+		JPanel dictPanel = new JPanel();
+		dictPanel.setBackground(Color.WHITE);
+		dictPanel.setLayout(new GridLayout(4, 3));
+
+		for (int i = 0; i < dictLanguages.length; i++) {
+			JButton dict = new JButton(dictLanguages[i]);
+			if (i == dictLanguages.length - 1) {
+				JPanel spacingPanel = new JPanel();
+				spacingPanel.setBackground(Color.WHITE);
+				dictPanel.add(spacingPanel);
+			}
+			dictPanel.add(dict);
+		}
+		content.add(dictPanel, BorderLayout.CENTER);
 
 		splitPane.setLeftComponent(content);
 		Section body = new Section();
