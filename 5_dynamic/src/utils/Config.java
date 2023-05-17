@@ -69,4 +69,8 @@ public class Config {
 	 * Indicates the amount of inserts per instruction when populating the database.
 	 */
 	public static final int BATCH_SIZE = 50_000;
+	/**
+	 * Indicates the path to the icon of the flags.
+	 */
+    public static final String ICON_FLAGS_PATH = "./assets/flags/";
 }

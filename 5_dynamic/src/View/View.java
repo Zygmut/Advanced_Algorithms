@@ -36,7 +36,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
@@ -54,6 +53,7 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.w3c.dom.Node;
 
+import Model.ExecResultData;
 import Model.Language;
 
 public class View implements Service {
@@ -82,6 +82,14 @@ public class View implements Service {
 	 * The list of dictionaries of the view.
 	 */
 	private List<String> optionsDictionary;
+	/**
+	 *
+	 */
+	private JPanel[] bodyScreens;
+	/**
+	 *
+	 */
+	private int currentBodyScreenIndex;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -131,6 +139,22 @@ public class View implements Service {
 						.log(Level.INFO, "Data Base languages are: {0}.", Arrays.deepToString(names));
 
 			}
+			/*
+			 * case EXEC_RESULTS -> {
+			 * this.buttons[0].setEnabled(true);
+			 * this.buttons[1].setEnabled(true);
+			 * DistanceGraph distanceGraph = new DistanceGraph(null, null, null, true,
+			 * null);
+			 * BarChartPlot barChartPlot = new BarChartPlot();
+			 * LexicalTree lexicalTree = new LexicalTree();
+			 * this.bodyScreens[1] = distanceGraph.createPlot();
+			 * this.bodyScreens[2] = barChartPlot.createBarChartPlot(new double[0], null,
+			 * null, null, null);
+			 * this.bodyScreens[3] = lexicalTree.createTree();
+			 * this.splitPane.setLeftComponent(this.bodyScreens[1]);
+			 * this.currentBodyScreenIndex = 1;
+			 * }
+			 */
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
@@ -252,6 +276,8 @@ public class View implements Service {
 	}
 
 	private Section body() {
+		this.bodyScreens = new JPanel[4];
+
 		JPanel content = new JPanel();
 		content.setLayout(new BorderLayout());
 		content.setBackground(Color.WHITE);
@@ -268,6 +294,12 @@ public class View implements Service {
 		for (int i = 0; i < dictLanguages.length; i++) {
 			JButton dict = new JButton(dictLanguages[i]);
 			dict.setBackground(Color.LIGHT_GRAY);
+
+			// Leer el icono de la bandera hace que el programa se ejecute más lento
+			final String pathToIcon = Config.ICON_FLAGS_PATH + dictLanguages[i].toLowerCase() + ".png";
+			dict.setIcon(this.escalateImageIcon(pathToIcon, 32, 32));
+			//
+
 			dict.addActionListener(e -> {
 				dict.setSelected(!dict.isSelected());
 				if (dict.isSelected()) {
@@ -288,6 +320,8 @@ public class View implements Service {
 		}
 		content.add(dictPanel, BorderLayout.CENTER);
 
+		this.bodyScreens[0] = content;
+
 		splitPane.setLeftComponent(content);
 		Section body = new Section();
 		body.createJSplitPaneSection(splitPane);
@@ -296,29 +330,43 @@ public class View implements Service {
 
 	private Section footer() {
 		Section buttonSection = new Section();
-		this.buttons = new JButton[5];
+		this.buttons = new JButton[3];
 
-		this.buttons[0] = new JButton("Cargar BD");
+		this.buttons[0] = new JButton("<");
+		this.buttons[0].setEnabled(false);
 		this.buttons[0].addActionListener(e -> {
-			JFileChooser fileChooser = new JFileChooser();
-			fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-			int returnValue = fileChooser.showOpenDialog(null);
-			if (returnValue == JFileChooser.APPROVE_OPTION) {
-				File selectedDirectory = fileChooser.getSelectedFile();
-
-				Body body = new Body(selectedDirectory.getAbsolutePath());
-				Request request = new Request(RequestCode.LOAD_DB, this, body);
-				this.sendRequest(request);
+			if (this.currentBodyScreenIndex > 0) {
+				this.currentBodyScreenIndex--;
+				this.splitPane.setLeftComponent(this.bodyScreens[this.currentBodyScreenIndex]);
 			}
 		});
-		this.buttons[1] = new JButton("GET NAMES TEST");
+
+		this.buttons[1] = new JButton(">");
+		this.buttons[1].setEnabled(false);
 		this.buttons[1].addActionListener(e -> {
-			Request request = new Request(RequestCode.GET_LANG_NAMES, this);
-			this.sendRequest(request);
+			if (this.currentBodyScreenIndex < this.bodyScreens.length - 1) {
+				this.currentBodyScreenIndex++;
+				this.splitPane.setLeftComponent(this.bodyScreens[this.currentBodyScreenIndex]);
+			}
 		});
-		this.buttons[2] = new JButton("<");
-		this.buttons[3] = new JButton(">");
-		this.buttons[4] = new JButton("Inciar");
+
+		this.buttons[2] = new JButton("Inciar");
+		this.buttons[2].addActionListener(e -> {
+			// TODO: Remove this
+			// INICIO DE PRUEBA
+			this.buttons[0].setEnabled(true);
+			this.buttons[1].setEnabled(true);
+			DistanceGraph distanceGraph = new DistanceGraph(null, null, null, true,
+					null);
+			BarChartPlot barChartPlot = new BarChartPlot();
+			LexicalTree lexicalTree = new LexicalTree();
+			this.bodyScreens[1] = distanceGraph.createPlot();
+			this.bodyScreens[2] = barChartPlot.createBarChartPlot(new ExecResultData[0], null, "Bar Plot", null, null);
+			this.bodyScreens[3] = lexicalTree.createTree();
+			this.splitPane.setLeftComponent(this.bodyScreens[1]);
+			this.currentBodyScreenIndex = 1;
+			// FIN DE PRUEBA
+		});
 
 		buttonSection.createButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
 		return buttonSection;
@@ -331,6 +379,7 @@ public class View implements Service {
 	 */
 	private JMenuBar menu() {
 		JMenuBar menuBar = new JMenuBar();
+
 		JMenu options = new JMenu("Opciones");
 		JMenu stats = new JMenu("Estadisticas");
 		JMenuItem alg = new JMenuItem("Algoritmos");
@@ -343,6 +392,7 @@ public class View implements Service {
 			jvmStats.show();
 			jvmStats.start();
 		});
+
 		JMenuItem exit = new JMenuItem("Salir");
 		exit.addActionListener(e -> System.exit(0));
 		stats.add(alg);
@@ -352,6 +402,29 @@ public class View implements Service {
 		options.addSeparator();
 		options.add(exit);
 		menuBar.add(options);
+
+		JMenu db = new JMenu("Base de Datos");
+		JMenuItem load = new JMenuItem("Cargar");
+		load.addActionListener(e -> {
+			JFileChooser fileChooser = new JFileChooser();
+			fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			int returnValue = fileChooser.showOpenDialog(null);
+			if (returnValue == JFileChooser.APPROVE_OPTION) {
+				File selectedDirectory = fileChooser.getSelectedFile();
+				Body body = new Body(selectedDirectory.getAbsolutePath());
+				Request request = new Request(RequestCode.LOAD_DB, this, body);
+				this.sendRequest(request);
+			}
+
+		});
+		JMenuItem getNames = new JMenuItem("Obtener Nombres");
+		getNames.addActionListener(e -> {
+			Request request = new Request(RequestCode.GET_LANG_NAMES, this);
+			this.sendRequest(request);
+		});
+		db.add(load);
+		db.add(getNames);
+		menuBar.add(db);
 
 		JMenu help = new JMenu("Ayuda");
 		JMenuItem about = new JMenuItem("Manual de Usuario");
@@ -389,7 +462,7 @@ public class View implements Service {
 			this.solutionLines = new ArrayList<>();
 		}
 
-		private JFreeChart createPlot() {
+		private ChartPanel createPlot() {
 			XYSeriesCollection dataset = new XYSeriesCollection();
 			this.selectedPoint = new XYSeries("selectedPoint", false);
 			this.nodesPoint = new XYSeries("nodesPoint");
@@ -397,7 +470,7 @@ public class View implements Service {
 			dataset.addSeries(this.nodesPoint);
 
 			JFreeChart chart = ChartFactory.createXYLineChart(
-					"",
+					"Distance Graph",
 					"X",
 					"Y",
 					dataset);
@@ -419,10 +492,10 @@ public class View implements Service {
 			plot.getRangeAxis().setRange(0, 100);
 			chart.removeLegend();
 
-			return chart;
+			return new ChartPanel(chart);
 		}
 
-		private void addGraph(Data[] data) {
+		private void addGraph(ExecResultData[] data) {
 			// TODO
 			/*
 			 * Node[] nodes = map.graph().content();
@@ -481,20 +554,16 @@ public class View implements Service {
 			 */
 		}
 
-		private void addSolution(List<Node> solution) {
-			// TODO
-		}
-
 	}
 
 	private class BarChartPlot {
 
-		private ChartPanel createBarChartPlot(double[] data, String[] labels, String title, String xAxisLabel,
+		private ChartPanel createBarChartPlot(ExecResultData[] data, String[] labels, String title, String xAxisLabel,
 				String yAxisLabel) {
 			// Create dataset
 			DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 			for (int i = 0; i < data.length; i++) {
-				dataset.addValue(data[i], labels[i], labels[i]);
+				dataset.addValue(data[i].value(), labels[i], labels[i]);
 			}
 			// Create chart
 			JFreeChart chart = ChartFactory.createBarChart(
@@ -513,9 +582,12 @@ public class View implements Service {
 
 	private class LexicalTree {
 
-	}
-
-	private class Data {
+		public JPanel createTree() {
+			JPanel panel = new JPanel();
+			JLabel label = new JLabel("Lexical Tree ó Clustering Data");
+			panel.add(label);
+			return panel;
+		}
 
 	}
 
