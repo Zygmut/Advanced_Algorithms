@@ -61,13 +61,13 @@ public class View implements Service {
 	 */
 	private JTextArea textArea;
 	/**
-	 *
-	 */
-	private String selectedDictionary;
-	/**
-	 *
+	 * The list of dictionaries of the view.
 	 */
 	private List<String> optionsAnalysisMode;
+	/**
+	 * The list of dictionaries of the view.
+	 */
+	private List<String> optionsDictionary;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -245,8 +245,21 @@ public class View implements Service {
 		dictPanel.setBackground(Color.WHITE);
 		dictPanel.setLayout(new GridLayout(4, 3));
 
+		this.optionsDictionary = new ArrayList<>();
 		for (int i = 0; i < dictLanguages.length; i++) {
 			JButton dict = new JButton(dictLanguages[i]);
+			dict.setBackground(Color.LIGHT_GRAY);
+			dict.addActionListener(e -> {
+				dict.setSelected(!dict.isSelected());
+				if (dict.isSelected()) {
+					dict.setBackground(Color.LIGHT_GRAY.darker());
+					this.optionsDictionary.add(dict.getText());
+				} else {
+					this.optionsDictionary.remove(dict.getText());
+					dict.setBackground(Color.LIGHT_GRAY);
+				}
+				System.out.println(this.optionsDictionary);
+			});
 			if (i == dictLanguages.length - 1) {
 				JPanel spacingPanel = new JPanel();
 				spacingPanel.setBackground(Color.WHITE);
