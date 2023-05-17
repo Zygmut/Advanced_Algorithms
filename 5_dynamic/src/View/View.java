@@ -1,6 +1,8 @@
 package View;
 
+import Services.Comunication.Content.Body;
 import Services.Comunication.Request.Request;
+import Services.Comunication.Request.RequestCode;
 import Services.Service;
 
 import betterSwing.Section;
@@ -8,32 +10,26 @@ import betterSwing.Window;
 import betterSwing.utils.DirectionAndPosition;
 import utils.Config;
 
-import java.awt.BasicStroke;
 import java.awt.BorderLayout;
-import java.awt.Button;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Image;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.geom.Ellipse2D;
-import java.sql.Connection;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -129,9 +125,14 @@ public class View implements Service {
 	@Override
 	public void notifyRequest(Request request) {
 		switch (request.code) {
+			case GET_LANG_NAMES -> {
+				String[] names = (String[]) request.body.content;
+				Logger.getLogger(this.getClass().getSimpleName())
+						.log(Level.INFO, "Data Base languages are: {0}.", Arrays.deepToString(names));
+
+			}
 			default -> {
-				Logger
-						.getLogger(this.getClass().getSimpleName())
+				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
 			}
 		}
@@ -295,11 +296,29 @@ public class View implements Service {
 
 	private Section footer() {
 		Section buttonSection = new Section();
-		this.buttons = new JButton[3];
+		this.buttons = new JButton[5];
 
-		this.buttons[0] = new JButton("<");
-		this.buttons[1] = new JButton(">");
-		this.buttons[2] = new JButton("Inciar");
+		this.buttons[0] = new JButton("Cargar BD");
+		this.buttons[0].addActionListener(e -> {
+			JFileChooser fileChooser = new JFileChooser();
+			fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			int returnValue = fileChooser.showOpenDialog(null);
+			if (returnValue == JFileChooser.APPROVE_OPTION) {
+				File selectedDirectory = fileChooser.getSelectedFile();
+
+				Body body = new Body(selectedDirectory.getAbsolutePath());
+				Request request = new Request(RequestCode.LOAD_DB, this, body);
+				this.sendRequest(request);
+			}
+		});
+		this.buttons[1] = new JButton("GET NAMES TEST");
+		this.buttons[1].addActionListener(e -> {
+			Request request = new Request(RequestCode.GET_LANG_NAMES, this);
+			this.sendRequest(request);
+		});
+		this.buttons[2] = new JButton("<");
+		this.buttons[3] = new JButton(">");
+		this.buttons[4] = new JButton("Inciar");
 
 		buttonSection.createButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
 		return buttonSection;
@@ -406,60 +425,60 @@ public class View implements Service {
 		private void addGraph(Data[] data) {
 			// TODO
 			/*
-			Node[] nodes = map.graph().content();
-
-			GeoPoint[] points = new GeoPoint[nodes.length];
-			for (int i = 0; i < points.length; i++) {
-				points[i] = nodes[i].geoPoint();
-			}
-
-			ArrayList<PairPoint> lines = new ArrayList<>();
-			for (Node node : nodes) {
-				GeoPoint originPoint = node.geoPoint();
-				for (Connection connection : node.connections()) {
-					String nodeId = connection.nodeId();
-					for (Node target : nodes) {
-						if (target.id().equals(nodeId)) {
-							GeoPoint targetPoint = target.geoPoint();
-							lines.add(new PairPoint(originPoint, targetPoint));
-							break;
-						}
-					}
-				}
-			}
-
-			changePlotBackground(backImgPath);
-
-			for (PairPoint pairPoint : lines) {
-				XYLineAnnotation line = new XYLineAnnotation(
-						pairPoint.p1().x(),
-						pairPoint.p1().y(), // x and y coordinates of point 1
-						pairPoint.p2().x(),
-						pairPoint.p2().y(), // x and y coordinates of point 2
-						new BasicStroke(1.0f),
-						this.nodeLinesColor);
-				plot.addAnnotation(line);
-				if (!this.enableDistanceDisplay) {
-					continue;
-				}
-				// Create a text annotation
-				double distance = pairPoint
-						.p1()
-						.distanceTo(pairPoint.p2(), DistanceType.EUCLIDEAN);
-				// Round to 2 decimals
-				distance = Math.round(distance * 100.0) / 100.0;
-				XYTextAnnotation textAnnotation = new XYTextAnnotation(
-						distance + " U", // Text to be displayed
-						(pairPoint.p1().x() + pairPoint.p2().x()) / 2, // x coordinate of text
-						(pairPoint.p1().y() + pairPoint.p2().y()) / 2 // y coordinate of text
-				);
-				plot.addAnnotation(textAnnotation);
-			}
-
-			for (GeoPoint point : points) {
-				this.nodesPoint.add(point.x(), point.y());
-			}
-			*/
+			 * Node[] nodes = map.graph().content();
+			 *
+			 * GeoPoint[] points = new GeoPoint[nodes.length];
+			 * for (int i = 0; i < points.length; i++) {
+			 * points[i] = nodes[i].geoPoint();
+			 * }
+			 *
+			 * ArrayList<PairPoint> lines = new ArrayList<>();
+			 * for (Node node : nodes) {
+			 * GeoPoint originPoint = node.geoPoint();
+			 * for (Connection connection : node.connections()) {
+			 * String nodeId = connection.nodeId();
+			 * for (Node target : nodes) {
+			 * if (target.id().equals(nodeId)) {
+			 * GeoPoint targetPoint = target.geoPoint();
+			 * lines.add(new PairPoint(originPoint, targetPoint));
+			 * break;
+			 * }
+			 * }
+			 * }
+			 * }
+			 *
+			 * changePlotBackground(backImgPath);
+			 *
+			 * for (PairPoint pairPoint : lines) {
+			 * XYLineAnnotation line = new XYLineAnnotation(
+			 * pairPoint.p1().x(),
+			 * pairPoint.p1().y(), // x and y coordinates of point 1
+			 * pairPoint.p2().x(),
+			 * pairPoint.p2().y(), // x and y coordinates of point 2
+			 * new BasicStroke(1.0f),
+			 * this.nodeLinesColor);
+			 * plot.addAnnotation(line);
+			 * if (!this.enableDistanceDisplay) {
+			 * continue;
+			 * }
+			 * // Create a text annotation
+			 * double distance = pairPoint
+			 * .p1()
+			 * .distanceTo(pairPoint.p2(), DistanceType.EUCLIDEAN);
+			 * // Round to 2 decimals
+			 * distance = Math.round(distance * 100.0) / 100.0;
+			 * XYTextAnnotation textAnnotation = new XYTextAnnotation(
+			 * distance + " U", // Text to be displayed
+			 * (pairPoint.p1().x() + pairPoint.p2().x()) / 2, // x coordinate of text
+			 * (pairPoint.p1().y() + pairPoint.p2().y()) / 2 // y coordinate of text
+			 * );
+			 * plot.addAnnotation(textAnnotation);
+			 * }
+			 *
+			 * for (GeoPoint point : points) {
+			 * this.nodesPoint.add(point.x(), point.y());
+			 * }
+			 */
 		}
 
 		private void addSolution(List<Node> solution) {

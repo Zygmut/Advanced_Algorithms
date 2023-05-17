@@ -1,5 +1,24 @@
 {
-	"requestMap": [],
-	"responseMap": [],
-	"resToReqMap": []
+	"requestMap": [
+		{
+			"code": "LOAD_DB",
+			"services": ["MODEL"]
+		},
+		{
+			"code": "GET_LANG_NAMES",
+			"services": ["MODEL"]
+		}
+	],
+	"responseMap": [
+		{
+			"code": "GET_LANG_NAMES",
+			"services": ["VIEW"]
+		}
+	],
+	"resToReqMap": [
+		{
+			"responseCode": "GET_LANG_NAMES",
+			"requestCode": "GET_LANG_NAMES"
+		}
+	]
 }
