@@ -8,6 +8,7 @@ import betterSwing.Window;
 import betterSwing.utils.DirectionAndPosition;
 import utils.Config;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.Color;
@@ -16,9 +17,13 @@ import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.geom.Ellipse2D;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -39,6 +44,19 @@ import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
+
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.annotations.XYLineAnnotation;
+import org.jfree.chart.annotations.XYTextAnnotation;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+import org.w3c.dom.Node;
 
 import Model.Language;
 
@@ -277,12 +295,11 @@ public class View implements Service {
 
 	private Section footer() {
 		Section buttonSection = new Section();
-		this.buttons = new JButton[4];
+		this.buttons = new JButton[3];
 
-		this.buttons[0] = new JButton("");
-		this.buttons[1] = new JButton("");
-		this.buttons[2] = new JButton("");
-		this.buttons[3] = new JButton("Inciar");
+		this.buttons[0] = new JButton("<");
+		this.buttons[1] = new JButton(">");
+		this.buttons[2] = new JButton("Inciar");
 
 		buttonSection.createButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
 		return buttonSection;
@@ -327,6 +344,160 @@ public class View implements Service {
 		menuBar.add(help);
 
 		return menuBar;
+	}
+
+	private class DistanceGraph {
+
+		private Color mapNodesColor;
+		private Color selectPointColor;
+		private Color nodeLinesColor;
+		private Color solutionLinesColor;
+		private XYPlot plot;
+		private XYSeries selectedPoint;
+		private XYSeries nodesPoint;
+		private ArrayList<XYTextAnnotation> numbers;
+		private ArrayList<XYLineAnnotation> solutionLines;
+		private boolean enableDistanceDisplay;
+
+		public DistanceGraph(Color mapNodesColor, Color selectPointColor, Color nodeLinesColor,
+				boolean enableDistanceDisplay, Color solutionLinesColor) {
+			this.mapNodesColor = mapNodesColor;
+			this.selectPointColor = selectPointColor;
+			this.nodeLinesColor = nodeLinesColor;
+			this.solutionLinesColor = solutionLinesColor;
+			this.enableDistanceDisplay = enableDistanceDisplay;
+			this.numbers = new ArrayList<>();
+			this.solutionLines = new ArrayList<>();
+		}
+
+		private JFreeChart createPlot() {
+			XYSeriesCollection dataset = new XYSeriesCollection();
+			this.selectedPoint = new XYSeries("selectedPoint", false);
+			this.nodesPoint = new XYSeries("nodesPoint");
+			dataset.addSeries(this.selectedPoint);
+			dataset.addSeries(this.nodesPoint);
+
+			JFreeChart chart = ChartFactory.createXYLineChart(
+					"",
+					"X",
+					"Y",
+					dataset);
+			chart.setAntiAlias(true);
+			plot = chart.getXYPlot();
+			plot.setBackgroundPaint(Color.WHITE);
+			plot.getDomainAxis().setVisible(false);
+			plot.getRangeAxis().setVisible(false);
+			XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(
+					false,
+					true);
+			renderer.setSeriesPaint(1, this.mapNodesColor);
+			renderer.setSeriesShape(1, new Ellipse2D.Double(-4, -4, 8, 8));
+			renderer.setSeriesPaint(0, this.selectPointColor);
+			renderer.setSeriesShape(0, new Ellipse2D.Double(-4, -4, 8, 8));
+			plot.setRenderer(renderer);
+
+			plot.getDomainAxis().setRange(0, 100);
+			plot.getRangeAxis().setRange(0, 100);
+			chart.removeLegend();
+
+			return chart;
+		}
+
+		private void addGraph(Data[] data) {
+			// TODO
+			/*
+			Node[] nodes = map.graph().content();
+
+			GeoPoint[] points = new GeoPoint[nodes.length];
+			for (int i = 0; i < points.length; i++) {
+				points[i] = nodes[i].geoPoint();
+			}
+
+			ArrayList<PairPoint> lines = new ArrayList<>();
+			for (Node node : nodes) {
+				GeoPoint originPoint = node.geoPoint();
+				for (Connection connection : node.connections()) {
+					String nodeId = connection.nodeId();
+					for (Node target : nodes) {
+						if (target.id().equals(nodeId)) {
+							GeoPoint targetPoint = target.geoPoint();
+							lines.add(new PairPoint(originPoint, targetPoint));
+							break;
+						}
+					}
+				}
+			}
+
+			changePlotBackground(backImgPath);
+
+			for (PairPoint pairPoint : lines) {
+				XYLineAnnotation line = new XYLineAnnotation(
+						pairPoint.p1().x(),
+						pairPoint.p1().y(), // x and y coordinates of point 1
+						pairPoint.p2().x(),
+						pairPoint.p2().y(), // x and y coordinates of point 2
+						new BasicStroke(1.0f),
+						this.nodeLinesColor);
+				plot.addAnnotation(line);
+				if (!this.enableDistanceDisplay) {
+					continue;
+				}
+				// Create a text annotation
+				double distance = pairPoint
+						.p1()
+						.distanceTo(pairPoint.p2(), DistanceType.EUCLIDEAN);
+				// Round to 2 decimals
+				distance = Math.round(distance * 100.0) / 100.0;
+				XYTextAnnotation textAnnotation = new XYTextAnnotation(
+						distance + " U", // Text to be displayed
+						(pairPoint.p1().x() + pairPoint.p2().x()) / 2, // x coordinate of text
+						(pairPoint.p1().y() + pairPoint.p2().y()) / 2 // y coordinate of text
+				);
+				plot.addAnnotation(textAnnotation);
+			}
+
+			for (GeoPoint point : points) {
+				this.nodesPoint.add(point.x(), point.y());
+			}
+			*/
+		}
+
+		private void addSolution(List<Node> solution) {
+			// TODO
+		}
+
+	}
+
+	private class BarChartPlot {
+
+		private ChartPanel createBarChartPlot(double[] data, String[] labels, String title, String xAxisLabel,
+				String yAxisLabel) {
+			// Create dataset
+			DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+			for (int i = 0; i < data.length; i++) {
+				dataset.addValue(data[i], labels[i], labels[i]);
+			}
+			// Create chart
+			JFreeChart chart = ChartFactory.createBarChart(
+					title,
+					xAxisLabel,
+					yAxisLabel,
+					dataset,
+					PlotOrientation.VERTICAL,
+					false, true, false);
+
+			// Create Panel
+			return new ChartPanel(chart);
+		}
+
+	}
+
+	private class LexicalTree {
+
+	}
+
+	private class Data {
+
 	}
 
 }
