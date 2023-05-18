@@ -55,14 +55,15 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import org.w3c.dom.Node;
 
+import com.mxgraph.layout.mxCompactTreeLayout;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.util.mxConstants;
 import com.mxgraph.view.mxGraph;
 import com.mxgraph.view.mxStylesheet;
 
 import Model.ExecResultData;
+import Model.ExecResultDataTreeNode;
 import Model.Language;
 
 public class View implements Service {
@@ -371,7 +372,7 @@ public class View implements Service {
 			this.buttons[1].setEnabled(true);
 			DistanceGraph distanceGraph = new DistanceGraph(Color.BLACK, Color.WHITE);
 			BarChartPlot barChartPlot = new BarChartPlot();
-			LexicalTree lexicalTree = new LexicalTree();
+			LexicalTree lexicalTree = new LexicalTree(Color.BLACK, Color.WHITE);
 			String[] connections = { "A", "B", "C", "D", "E", "F", "G", "H", "I" };
 			ExecResultData[] data = new ExecResultData[3];
 			data[0] = new ExecResultData(1, connections, "A");
@@ -381,7 +382,15 @@ public class View implements Service {
 			this.bodyScreens[1] = distanceGraph.createGraph(data, "Grafo de distancias");
 			String[] labels = { "A", "B", "C" };
 			this.bodyScreens[2] = barChartPlot.createBarChartPlot(data, labels, "Bar Plot", null, null);
-			this.bodyScreens[3] = lexicalTree.createTree();
+			ExecResultDataTreeNode[] nodes = new ExecResultDataTreeNode[3];
+			nodes[0] = new ExecResultDataTreeNode("Child 1", new ExecResultDataTreeNode[0]);
+			nodes[1] = new ExecResultDataTreeNode("Child 2", new ExecResultDataTreeNode[0]);
+			ExecResultDataTreeNode[] children = new ExecResultDataTreeNode[2];
+			children[0] = new ExecResultDataTreeNode("Child 3.1", new ExecResultDataTreeNode[0]);
+			children[1] = new ExecResultDataTreeNode("Child 3.2", new ExecResultDataTreeNode[0]);
+			nodes[2] = new ExecResultDataTreeNode("Child 3", children);
+			ExecResultDataTreeNode root = new ExecResultDataTreeNode("Root", nodes);
+			this.bodyScreens[3] = lexicalTree.createTree(root, "Árbol lexico");
 			this.splitPane.setLeftComponent(this.bodyScreens[1]);
 			this.currentBodyScreenIndex = 1;
 			// FIN DE PRUEBA
@@ -464,6 +473,10 @@ public class View implements Service {
 		return menuBar;
 	}
 
+	private String toHex(Color color) {
+		return String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
+	}
+
 	private class DistanceGraph {
 
 		private Color connectionLineColor;
@@ -486,12 +499,10 @@ public class View implements Service {
 			try {
 				Map<String, Object> map = new HashMap<>();
 				for (ExecResultData execResultData : data) {
-					final String hexColor = String.format("#%02x%02x%02x", this.nodesColor.getRed(),
-							this.nodesColor.getGreen(), this.nodesColor.getBlue());
 					int x = (int) (Math.random() * View.this.bodyScreens[0].getWidth());
 					int y = (int) (Math.random() * View.this.bodyScreens[0].getHeight());
 					Object v1 = graph.insertVertex(parent, null, execResultData.id(), x, y, 80, 30,
-							"fillColor=" + hexColor);
+							"fillColor=" + toHex(this.nodesColor));
 					map.put(execResultData.id(), v1);
 				}
 
@@ -515,9 +526,7 @@ public class View implements Service {
 			Map<String, Object> edgeStyle = stylesheet.getDefaultEdgeStyle();
 
 			// Customize the edge style properties
-			final String hexColor = String.format("#%02x%02x%02x", this.connectionLineColor.getRed(),
-					this.connectionLineColor.getGreen(), this.connectionLineColor.getBlue());
-			edgeStyle.put(mxConstants.STYLE_STROKECOLOR, hexColor); // Edge color
+			edgeStyle.put(mxConstants.STYLE_STROKECOLOR, toHex(this.connectionLineColor)); // Edge color
 			edgeStyle.put(mxConstants.STYLE_STROKEWIDTH, 2); // Line width
 			edgeStyle.put(mxConstants.STYLE_DASHED, true); // Dashed line
 			edgeStyle.put(mxConstants.STYLE_ENDARROW, mxConstants.NONE); // No arrow
@@ -566,11 +575,69 @@ public class View implements Service {
 
 	private class LexicalTree {
 
-		public JPanel createTree() {
+		private Color connectionLineColor;
+		private Color nodesColor;
+
+		public LexicalTree(Color connectionLineColor, Color nodesColor) {
+			this.connectionLineColor = connectionLineColor;
+			this.nodesColor = nodesColor;
+		}
+
+		public JPanel createTree(ExecResultDataTreeNode root, String title) {
 			JPanel panel = new JPanel();
-			JLabel label = new JLabel("Lexical Tree ó Clustering Data");
-			panel.add(label);
+			panel.setLayout(new BorderLayout());
+			JLabel label = new JLabel(title);
+			label.setBackground(Color.WHITE);
+			label.setHorizontalAlignment(SwingConstants.CENTER);
+			panel.add(label, BorderLayout.NORTH);
+
+			mxGraph graph = new mxGraph();
+			Object parent = graph.getDefaultParent();
+
+			graph.getModel().beginUpdate();
+			try {
+				buildTreeFromRoot(graph, parent, null, root);
+			} finally {
+				graph.getModel().endUpdate();
+			}
+			// Create a new stylesheet for the graph
+			mxStylesheet stylesheet = graph.getStylesheet();
+
+			// Get the default edge style
+			Map<String, Object> edgeStyle = stylesheet.getDefaultEdgeStyle();
+
+			// Customize the edge style properties
+			edgeStyle.put(mxConstants.STYLE_STROKECOLOR, toHex(this.connectionLineColor)); // Edge color
+			edgeStyle.put(mxConstants.STYLE_STROKEWIDTH, 1); // Line width
+			edgeStyle.put(mxConstants.STYLE_ENDARROW, mxConstants.NONE); // No arrow
+
+			// Apply tree layout
+			mxCompactTreeLayout layout = new mxCompactTreeLayout(graph);
+			layout.execute(parent);
+
+			mxGraphComponent graphComponent = new mxGraphComponent(graph);
+			graphComponent.setConnectable(false);
+			graphComponent.setToolTips(true);
+			graphComponent.getViewport().setBackground(Color.WHITE);
+
+			panel.add(graphComponent, BorderLayout.CENTER);
+
 			return panel;
+		}
+
+		private void buildTreeFromRoot(mxGraph graph, Object parent, Object previousNode,
+				ExecResultDataTreeNode currentNode) {
+
+			Object vertex = graph.insertVertex(parent, null, currentNode.id(), 10, 10, 80, 30,
+					"fillColor=" + toHex(this.nodesColor));
+
+			if (previousNode != null) {
+				graph.insertEdge(parent, null, "", previousNode, vertex);
+			}
+
+			for (ExecResultDataTreeNode child : currentNode.children()) {
+				buildTreeFromRoot(graph, parent, vertex, child);
+			}
 		}
 
 	}
