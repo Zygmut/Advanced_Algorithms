@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -22,29 +23,22 @@ import utils.Config;
 public class Model implements Service {
 
 	public Model() {
-	}
-
-	private ResultSet queryDB(String query) {
-		try (Connection connection = DriverManager.getConnection("jdbc:sqlite:src/Model/" + Config.DB_NAME + ".sqlite");
-			Statement statement = connection.createStatement()
-		){
-			statement.setQueryTimeout(30);
-			return statement.executeQuery(query);
-		}catch (Exception e){
-			Logger.getLogger(this.getClass().getSimpleName())
-					.log(Level.SEVERE, e.getLocalizedMessage());
-			return null;
-		}
+		removeDataBase();
+		populateDataBase("C:/Users/ruben/Documents/Github/Advanced_Algorithms/5_dynamic/assets/dictionaries/complete");
+		System.out.println(Arrays.deepToString(getLanguagesNames()));
 	}
 
 	private String[] getRandomWordsOfLength(int wordNumber, int wordLength, String lang) {
 		ArrayList<String> words = new ArrayList<>();
 
-		try {
-			ResultSet resultSet = queryDB("SELECT word FROM " + lang + " WHERE LENGTH(word) = " + wordLength
-					+ " ORDER BY RANDOM() LIMIT " + wordNumber);
+		try (Connection connection = DriverManager.getConnection("jdbc:sqlite:src/Model/" + Config.DB_NAME + ".sqlite");
+				Statement statement = connection.createStatement()) {
+			statement.setQueryTimeout(30);
+			ResultSet resultSet = statement
+					.executeQuery("SELECT word FROM " + lang + " WHERE LENGTH(word) = " + wordLength
+							+ " ORDER BY RANDOM() LIMIT " + wordNumber);
 
-			if (resultSet == null){
+			if (resultSet == null) {
 				return new String[] {};
 			}
 
@@ -64,10 +58,13 @@ public class Model implements Service {
 	private String[] getRandomWords(int wordNumber, String lang) {
 
 		ArrayList<String> words = new ArrayList<>();
-		try {
-			ResultSet resultSet = queryDB("SELECT * FROM " + lang + " ORDER BY RANDOM() LIMIT " + wordNumber);
+		try (Connection connection = DriverManager.getConnection("jdbc:sqlite:src/Model/" + Config.DB_NAME + ".sqlite");
+				Statement statement = connection.createStatement()) {
+			statement.setQueryTimeout(30);
+			ResultSet resultSet = statement
+					.executeQuery("SELECT * FROM " + lang + " ORDER BY RANDOM() LIMIT " + wordNumber);
 
-			if (resultSet == null){
+			if (resultSet == null) {
 				return new String[] {};
 			}
 
@@ -140,8 +137,14 @@ public class Model implements Service {
 	private String[] getLanguagesNames() {
 
 		ArrayList<String> languageNames = new ArrayList<>();
-		try {
-			ResultSet resultSet = queryDB("SELECT name FROM sqlite_master WHERE type='table'");
+		try (Connection connection = DriverManager.getConnection("jdbc:sqlite:src/Model/" + Config.DB_NAME + ".sqlite");
+				Statement statement = connection.createStatement()) {
+			statement.setQueryTimeout(30);
+			ResultSet resultSet = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table'");
+
+			if (resultSet == null) {
+				return new String[] {};
+			}
 
 			while (resultSet.next()) {
 				languageNames.add(resultSet.getString("name"));
@@ -199,8 +202,7 @@ public class Model implements Service {
 				dictionaryEntries.clear();
 			}
 		} catch (Exception e) {
-			Logger
-					.getLogger(this.getClass().getSimpleName())
+			Logger.getLogger(this.getClass().getSimpleName())
 					.log(Level.SEVERE, e.getLocalizedMessage());
 		}
 	}
