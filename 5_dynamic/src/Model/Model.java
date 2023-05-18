@@ -117,20 +117,6 @@ public class Model implements Service {
 		statement.executeUpdate("INSERT INTO " + language + " VALUES " + String.join(", ", dictionaryEntries));
 	}
 
-	private void populateDataBase() {
-		try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + Config.DB_NAME + ".sqlite");
-				Statement statement = connection.createStatement()) {
-			statement.setQueryTimeout(30);
-
-			for (Language lang : Language.values()) {
-				processLanguage(statement, lang.name());
-			}
-		} catch (Exception e) {
-			Logger.getLogger(this.getClass().getSimpleName())
-					.log(Level.SEVERE, e.getLocalizedMessage());
-		}
-	}
-
 	private String[] getLanguagesNames() {
 
 		ArrayList<String> languageNames = new ArrayList<>();
