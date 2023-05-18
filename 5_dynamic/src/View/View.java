@@ -19,7 +19,10 @@ import java.awt.geom.Ellipse2D;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -39,6 +42,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingConstants;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -52,6 +56,11 @@ import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.w3c.dom.Node;
+
+import com.mxgraph.swing.mxGraphComponent;
+import com.mxgraph.util.mxConstants;
+import com.mxgraph.view.mxGraph;
+import com.mxgraph.view.mxStylesheet;
 
 import Model.ExecResultData;
 import Model.Language;
@@ -298,6 +307,7 @@ public class View implements Service {
 			// Leer el icono de la bandera hace que el programa se ejecute más lento
 			final String pathToIcon = Config.ICON_FLAGS_PATH + dictLanguages[i].toLowerCase() + ".png";
 			dict.setIcon(this.escalateImageIcon(pathToIcon, 32, 32));
+			Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Icono de la bandera cargado: {0}", pathToIcon);
 			//
 
 			dict.addActionListener(e -> {
@@ -309,7 +319,10 @@ public class View implements Service {
 					this.optionsDictionary.remove(dict.getText());
 					dict.setBackground(Color.LIGHT_GRAY);
 				}
-				System.out.println(this.optionsDictionary);
+				Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Diccionarios seleccionados: {0}",
+						this.optionsDictionary);
+				String displayText = this.optionsDictionary.isEmpty() ? "Ninguno" : this.optionsDictionary.toString();
+				this.textArea.append("Diccionarios seleccionados: " + displayText + "\n");
 			});
 			if (i == dictLanguages.length - 1) {
 				JPanel spacingPanel = new JPanel();
@@ -352,16 +365,22 @@ public class View implements Service {
 
 		this.buttons[2] = new JButton("Inciar");
 		this.buttons[2].addActionListener(e -> {
-			// TODO: Remove this
+			// TODO: Remove this, esto tiene que ir en el notifyRquest
 			// INICIO DE PRUEBA
 			this.buttons[0].setEnabled(true);
 			this.buttons[1].setEnabled(true);
-			DistanceGraph distanceGraph = new DistanceGraph(null, null, null, true,
-					null);
+			DistanceGraph distanceGraph = new DistanceGraph(Color.BLACK, Color.WHITE);
 			BarChartPlot barChartPlot = new BarChartPlot();
 			LexicalTree lexicalTree = new LexicalTree();
-			this.bodyScreens[1] = distanceGraph.createPlot();
-			this.bodyScreens[2] = barChartPlot.createBarChartPlot(new ExecResultData[0], null, "Bar Plot", null, null);
+			String[] connections = { "A", "B", "C", "D", "E", "F", "G", "H", "I" };
+			ExecResultData[] data = new ExecResultData[3];
+			data[0] = new ExecResultData(1, connections, "A");
+			data[1] = new ExecResultData(2, connections, "B");
+			data[2] = new ExecResultData(3, connections, "C");
+
+			this.bodyScreens[1] = distanceGraph.createGraph(data, "Grafo de distancias");
+			String[] labels = { "A", "B", "C" };
+			this.bodyScreens[2] = barChartPlot.createBarChartPlot(data, labels, "Bar Plot", null, null);
 			this.bodyScreens[3] = lexicalTree.createTree();
 			this.splitPane.setLeftComponent(this.bodyScreens[1]);
 			this.currentBodyScreenIndex = 1;
@@ -440,118 +459,76 @@ public class View implements Service {
 
 	private class DistanceGraph {
 
-		private Color mapNodesColor;
-		private Color selectPointColor;
-		private Color nodeLinesColor;
-		private Color solutionLinesColor;
-		private XYPlot plot;
-		private XYSeries selectedPoint;
-		private XYSeries nodesPoint;
-		private ArrayList<XYTextAnnotation> numbers;
-		private ArrayList<XYLineAnnotation> solutionLines;
-		private boolean enableDistanceDisplay;
+		private Color connectionLineColor;
+		private Color nodesColor;
 
-		public DistanceGraph(Color mapNodesColor, Color selectPointColor, Color nodeLinesColor,
-				boolean enableDistanceDisplay, Color solutionLinesColor) {
-			this.mapNodesColor = mapNodesColor;
-			this.selectPointColor = selectPointColor;
-			this.nodeLinesColor = nodeLinesColor;
-			this.solutionLinesColor = solutionLinesColor;
-			this.enableDistanceDisplay = enableDistanceDisplay;
-			this.numbers = new ArrayList<>();
-			this.solutionLines = new ArrayList<>();
+		public DistanceGraph(Color connectionLineColor, Color nodesColor) {
+			this.connectionLineColor = connectionLineColor;
+			this.nodesColor = nodesColor;
 		}
 
-		private ChartPanel createPlot() {
-			XYSeriesCollection dataset = new XYSeriesCollection();
-			this.selectedPoint = new XYSeries("selectedPoint", false);
-			this.nodesPoint = new XYSeries("nodesPoint");
-			dataset.addSeries(this.selectedPoint);
-			dataset.addSeries(this.nodesPoint);
+		private JPanel createGraph(ExecResultData[] data, String title) {
+			// Create a new graph
+			mxGraph graph = new mxGraph();
 
-			JFreeChart chart = ChartFactory.createXYLineChart(
-					"Distance Graph",
-					"X",
-					"Y",
-					dataset);
-			chart.setAntiAlias(true);
-			plot = chart.getXYPlot();
-			plot.setBackgroundPaint(Color.WHITE);
-			plot.getDomainAxis().setVisible(false);
-			plot.getRangeAxis().setVisible(false);
-			XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(
-					false,
-					true);
-			renderer.setSeriesPaint(1, this.mapNodesColor);
-			renderer.setSeriesShape(1, new Ellipse2D.Double(-4, -4, 8, 8));
-			renderer.setSeriesPaint(0, this.selectPointColor);
-			renderer.setSeriesShape(0, new Ellipse2D.Double(-4, -4, 8, 8));
-			plot.setRenderer(renderer);
+			// Get the default parent for the graph
+			Object parent = graph.getDefaultParent();
 
-			plot.getDomainAxis().setRange(0, 100);
-			plot.getRangeAxis().setRange(0, 100);
-			chart.removeLegend();
+			// Begin a new transaction
+			graph.getModel().beginUpdate();
+			try {
+				Map<String, Object> map = new HashMap<>();
+				for (ExecResultData execResultData : data) {
+					final String hexColor = String.format("#%02x%02x%02x", this.nodesColor.getRed(),
+							this.nodesColor.getGreen(), this.nodesColor.getBlue());
+					int x = (int) (Math.random() * View.this.bodyScreens[0].getWidth());
+					int y = (int) (Math.random() * View.this.bodyScreens[0].getHeight());
+					Object v1 = graph.insertVertex(parent, null, execResultData.id(), x, y, 80, 30,
+							"fillColor=" + hexColor);
+					map.put(execResultData.id(), v1);
+				}
 
-			return new ChartPanel(chart);
-		}
+				for (ExecResultData execResultData : data) {
+					for (String id : execResultData.connnections()) {
+						graph.insertEdge(parent, null, "Poner valor aqui", map.get(execResultData.id()), map.get(id));
+					}
+				}
 
-		private void addGraph(ExecResultData[] data) {
-			// TODO
-			/*
-			 * Node[] nodes = map.graph().content();
-			 *
-			 * GeoPoint[] points = new GeoPoint[nodes.length];
-			 * for (int i = 0; i < points.length; i++) {
-			 * points[i] = nodes[i].geoPoint();
-			 * }
-			 *
-			 * ArrayList<PairPoint> lines = new ArrayList<>();
-			 * for (Node node : nodes) {
-			 * GeoPoint originPoint = node.geoPoint();
-			 * for (Connection connection : node.connections()) {
-			 * String nodeId = connection.nodeId();
-			 * for (Node target : nodes) {
-			 * if (target.id().equals(nodeId)) {
-			 * GeoPoint targetPoint = target.geoPoint();
-			 * lines.add(new PairPoint(originPoint, targetPoint));
-			 * break;
-			 * }
-			 * }
-			 * }
-			 * }
-			 *
-			 * changePlotBackground(backImgPath);
-			 *
-			 * for (PairPoint pairPoint : lines) {
-			 * XYLineAnnotation line = new XYLineAnnotation(
-			 * pairPoint.p1().x(),
-			 * pairPoint.p1().y(), // x and y coordinates of point 1
-			 * pairPoint.p2().x(),
-			 * pairPoint.p2().y(), // x and y coordinates of point 2
-			 * new BasicStroke(1.0f),
-			 * this.nodeLinesColor);
-			 * plot.addAnnotation(line);
-			 * if (!this.enableDistanceDisplay) {
-			 * continue;
-			 * }
-			 * // Create a text annotation
-			 * double distance = pairPoint
-			 * .p1()
-			 * .distanceTo(pairPoint.p2(), DistanceType.EUCLIDEAN);
-			 * // Round to 2 decimals
-			 * distance = Math.round(distance * 100.0) / 100.0;
-			 * XYTextAnnotation textAnnotation = new XYTextAnnotation(
-			 * distance + " U", // Text to be displayed
-			 * (pairPoint.p1().x() + pairPoint.p2().x()) / 2, // x coordinate of text
-			 * (pairPoint.p1().y() + pairPoint.p2().y()) / 2 // y coordinate of text
-			 * );
-			 * plot.addAnnotation(textAnnotation);
-			 * }
-			 *
-			 * for (GeoPoint point : points) {
-			 * this.nodesPoint.add(point.x(), point.y());
-			 * }
-			 */
+				graph.setCellsEditable(false);
+				graph.setEdgeLabelsMovable(false);
+			} finally {
+				// End the transaction
+				graph.getModel().endUpdate();
+			}
+
+			// Create a new stylesheet for the graph
+			mxStylesheet stylesheet = graph.getStylesheet();
+
+			// Get the default edge style
+			Map<String, Object> edgeStyle = stylesheet.getDefaultEdgeStyle();
+
+			// Customize the edge style properties
+			final String hexColor = String.format("#%02x%02x%02x", this.connectionLineColor.getRed(),
+					this.connectionLineColor.getGreen(), this.connectionLineColor.getBlue());
+			edgeStyle.put(mxConstants.STYLE_STROKECOLOR, hexColor); // Edge color
+			edgeStyle.put(mxConstants.STYLE_STROKEWIDTH, 2); // Line width
+			edgeStyle.put(mxConstants.STYLE_DASHED, true); // Dashed line
+			edgeStyle.put(mxConstants.STYLE_ENDARROW, mxConstants.NONE); // No arrow
+
+			// Create a Swing component for the graph
+			mxGraphComponent graphComponent = new mxGraphComponent(graph);
+			graphComponent.setConnectable(false);
+			graphComponent.setToolTips(true);
+			graphComponent.getViewport().setBackground(Color.WHITE);
+
+			JPanel panel = new JPanel();
+			panel.setLayout(new BorderLayout());
+			panel.setBackground(Color.WHITE);
+			JLabel label = new JLabel(title);
+			label.setHorizontalAlignment(SwingConstants.CENTER);
+			panel.add(label, BorderLayout.NORTH);
+			panel.add(graphComponent, BorderLayout.CENTER);
+			return panel;
 		}
 
 	}
