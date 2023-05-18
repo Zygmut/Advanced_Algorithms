@@ -3,11 +3,14 @@ package Model;
 import Services.Comunication.Request.Request;
 import Services.Service;
 import java.io.File;
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -19,6 +22,27 @@ public class Model implements Service {
 
 	public Model() {
 		populateDataBase();
+	}
+
+	private String[] getRandomWordsOfLength(int wordNumber, int wordLength, String lang){
+		ArrayList<String> words = new ArrayList<>();
+		try (Connection connection = DriverManager.getConnection("jdbc:sqlite:src/Model/" + Config.DB_NAME + ".sqlite");
+				Statement statement = connection.createStatement()) {
+			statement.setQueryTimeout(30);
+
+			ResultSet resultSet = statement.executeQuery("SELECT word FROM " + lang + " WHERE LENGTH(word) = " + wordLength + " ORDER BY RANDOM() LIMIT " + wordNumber);
+
+			while (resultSet.next()) {
+				words.add(resultSet.getString("word"));
+			}
+
+		} catch (Exception e) {
+			Logger.getLogger(this.getClass().getSimpleName())
+					.log(Level.SEVERE, e.getLocalizedMessage());
+			return new String[] {};
+		}
+
+		return words.toArray(String[]::new);
 	}
 
 	private void processLanguage(Statement statement, String language)
