@@ -35,10 +35,6 @@ public class Model implements Service {
 					.executeQuery("SELECT word FROM " + lang + " WHERE LENGTH(word) = " + wordLength
 							+ " ORDER BY RANDOM() LIMIT " + wordNumber);
 
-			if (resultSet == null) {
-				return new String[] {};
-			}
-
 			while (resultSet.next()) {
 				words.add(resultSet.getString("word"));
 			}
@@ -60,10 +56,6 @@ public class Model implements Service {
 			statement.setQueryTimeout(30);
 			ResultSet resultSet = statement
 					.executeQuery("SELECT * FROM " + lang + " ORDER BY RANDOM() LIMIT " + wordNumber);
-
-			if (resultSet == null) {
-				return new String[] {};
-			}
 
 			while (resultSet.next()) {
 				words.add(resultSet.getString("word"));
@@ -124,10 +116,6 @@ public class Model implements Service {
 				Statement statement = connection.createStatement()) {
 			statement.setQueryTimeout(30);
 			ResultSet resultSet = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table'");
-
-			if (resultSet == null) {
-				return new String[] {};
-			}
 
 			while (resultSet.next()) {
 				languageNames.add(resultSet.getString("name"));
