@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import utils.Config;
 
 public class Model implements Service {
@@ -24,13 +25,64 @@ public class Model implements Service {
 	public Model() {
 	}
 
+	private String[] getRandomWordsOfLength(int wordNumber, int wordLength, String lang) {
+		ArrayList<String> words = new ArrayList<>();
+
+		try (Connection connection = DriverManager.getConnection("jdbc:sqlite:src/Model/" + Config.DB_NAME + ".sqlite");
+				Statement statement = connection.createStatement()) {
+			statement.setQueryTimeout(30);
+			ResultSet resultSet = statement
+					.executeQuery("SELECT word FROM " + lang + " WHERE LENGTH(word) = " + wordLength
+							+ " ORDER BY RANDOM() LIMIT " + wordNumber);
+
+			while (resultSet.next()) {
+				words.add(resultSet.getString("word"));
+			}
+
+		} catch (Exception e) {
+			Logger.getLogger(this.getClass().getSimpleName())
+					.log(Level.SEVERE, e.getLocalizedMessage());
+			return new String[] {};
+		}
+
+		return words.toArray(String[]::new);
+	}
+
+	private String[] getRandomWords(int wordNumber, String lang) {
+
+		ArrayList<String> words = new ArrayList<>();
+		try (Connection connection = DriverManager.getConnection("jdbc:sqlite:src/Model/" + Config.DB_NAME + ".sqlite");
+				Statement statement = connection.createStatement()) {
+			statement.setQueryTimeout(30);
+			ResultSet resultSet = statement
+					.executeQuery("SELECT * FROM " + lang + " ORDER BY RANDOM() LIMIT " + wordNumber);
+
+			while (resultSet.next()) {
+				words.add(resultSet.getString("word"));
+			}
+
+		} catch (Exception e) {
+			Logger.getLogger(this.getClass().getSimpleName())
+					.log(Level.SEVERE, e.getLocalizedMessage());
+			return new String[] {};
+		}
+
+		return words.toArray(String[]::new);
+	}
+
+	private void insertDictionaryEntries(Statement statement, String language, List<String> dictionaryEntries)
+			throws SQLException {
+		Logger.getLogger(this.getClass().getSimpleName())
+				.log(Level.INFO, "Inserting {0} into {1}", new Object[] { dictionaryEntries.size(), language });
+
+		statement.executeUpdate("INSERT INTO " + language + " VALUES " + String.join(", ", dictionaryEntries));
+	}
 	private String[] getLanguagesNames() {
 
 		ArrayList<String> languageNames = new ArrayList<>();
 		try (Connection connection = DriverManager.getConnection("jdbc:sqlite:src/Model/" + Config.DB_NAME + ".sqlite");
 				Statement statement = connection.createStatement()) {
 			statement.setQueryTimeout(30);
-
 			ResultSet resultSet = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table'");
 
 			while (resultSet.next()) {
@@ -89,20 +141,9 @@ public class Model implements Service {
 				dictionaryEntries.clear();
 			}
 		} catch (Exception e) {
-			Logger
-					.getLogger(this.getClass().getSimpleName())
+			Logger.getLogger(this.getClass().getSimpleName())
 					.log(Level.SEVERE, e.getLocalizedMessage());
 		}
-	}
-
-	private void insertDictionaryEntries(
-			Statement statement,
-			String language,
-			List<String> dictionaryEntries) throws SQLException {
-		Logger.getLogger(this.getClass().getSimpleName())
-				.log(Level.INFO, "Inserting {0} into {1}", new Object[] { dictionaryEntries.size(), language });
-
-		statement.executeUpdate("INSERT INTO " + language + " VALUES " + String.join(", ", dictionaryEntries));
 	}
 
 	private void populateDataBase(String pathToDicts) {
