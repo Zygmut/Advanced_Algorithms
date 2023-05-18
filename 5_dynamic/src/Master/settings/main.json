@@ -7,18 +7,42 @@
 		{
 			"code": "GET_LANG_NAMES",
 			"services": ["MODEL"]
+		},
+		{
+			"code": "LEVENSHTEIN",
+			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "FETCH_LANGS",
+			"services": ["MODEL"]
 		}
 	],
 	"responseMap": [
 		{
 			"code": "GET_LANG_NAMES",
 			"services": ["VIEW"]
+		},
+		{
+			"code": "LEVENSHTEIN",
+			"services": ["VIEW"]
+		},
+		{
+			"code": "FETCH_LANGS",
+			"services": ["CONTROLLER"]
 		}
 	],
 	"resToReqMap": [
 		{
 			"responseCode": "GET_LANG_NAMES",
 			"requestCode": "GET_LANG_NAMES"
+		},
+		{
+			"responseCode": "LEVENSHTEIN",
+			"requestCode": "LEVENSHTEIN"
+		},
+		{
+			"responseCode": "FETCH_LANGS",
+			"requestCode": "FETCH_LANGS"
 		}
 	]
 }

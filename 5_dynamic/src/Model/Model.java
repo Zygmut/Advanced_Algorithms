@@ -21,6 +21,8 @@ import utils.Config;
 
 public class Model implements Service {
 
+	private final int nWordsPerLang = 10;
+
 	public Model() {
 	}
 
@@ -185,6 +187,16 @@ public class Model implements Service {
 				String pathToDicts = (String) request.body.content;
 				removeDataBase();
 				populateDataBase(pathToDicts);
+			}
+			case FETCH_LANGS -> {
+				final String[] langs = (String[]) request.body.content;
+				final String[] sourceWords = getRandomWords(this.nWordsPerLang, langs[0]);
+				final String[] targetWords = getRandomWords(this.nWordsPerLang, langs[1]);
+
+				Body body = new Body(
+						new String[][] { new String[] { langs[0] + "-" + langs[1] }, sourceWords, targetWords });
+				Response response = new Response(ResponseCode.FETCH_LANGS, this, body);
+				this.sendResponse(response);
 			}
 			case GET_LANG_NAMES ->
 				this.sendResponse(new Response(ResponseCode.GET_LANG_NAMES, this, new Body(getLanguagesNames())));
