@@ -5,5 +5,4 @@ package Services.Comunication.Request;
  */
 public enum RequestCode {
     LOAD_DB, GET_LANG_NAMES
-
 }
