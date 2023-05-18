@@ -427,11 +427,17 @@ public class View implements Service {
 			wordGuesserWindow.show();
 		});
 
+		JMenuItem reiniciar = new JMenuItem("Reiniciar");
+		reiniciar.addActionListener(e -> {
+			this.window.updateSection(body(), "Body", DirectionAndPosition.POSITION_CENTER);
+
+		});
 		JMenuItem exit = new JMenuItem("Salir");
 		exit.addActionListener(e -> System.exit(0));
 		stats.add(alg);
 		stats.add(jvm);
 		options.add(stats);
+		options.add(reiniciar);
 		options.add(wordGuesser);
 
 		options.addSeparator();
