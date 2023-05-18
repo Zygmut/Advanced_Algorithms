@@ -12,7 +12,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -68,37 +67,6 @@ public class Model implements Service {
 		}
 
 		return words.toArray(String[]::new);
-	}
-
-	private void processLanguage(Statement statement, String language)
-			throws SQLException {
-		statement.executeUpdate("DROP TABLE IF EXISTS " + language);
-		statement.executeUpdate("CREATE TABLE " + language + " (word string)");
-
-		try (Scanner dictionaryReader = new Scanner(new File(Config.DIC_PATH + "complete/" + language + ".dic"))) {
-			ArrayList<String> dictionaryEntries = new ArrayList<>();
-			while (dictionaryReader.hasNextLine()) {
-				String line = dictionaryReader.nextLine();
-				if (line.length() == 0) {
-					continue;
-				}
-
-				dictionaryEntries.add("(\"" + line + "\")");
-
-				if (dictionaryEntries.size() >= Config.BATCH_SIZE) {
-					insertDictionaryEntries(statement, language, dictionaryEntries);
-					dictionaryEntries.clear();
-				}
-			}
-
-			if (!dictionaryEntries.isEmpty()) {
-				insertDictionaryEntries(statement, language, dictionaryEntries);
-				dictionaryEntries.clear();
-			}
-		} catch (Exception e) {
-			Logger.getLogger(this.getClass().getSimpleName())
-					.log(Level.SEVERE, e.getLocalizedMessage());
-		}
 	}
 
 	private void insertDictionaryEntries(Statement statement, String language, List<String> dictionaryEntries)
