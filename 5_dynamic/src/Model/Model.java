@@ -23,9 +23,6 @@ import utils.Config;
 public class Model implements Service {
 
 	public Model() {
-		removeDataBase();
-		populateDataBase("C:/Users/ruben/Documents/Github/Advanced_Algorithms/5_dynamic/assets/dictionaries/complete");
-		System.out.println(Arrays.deepToString(getLanguagesNames()));
 	}
 
 	private String[] getRandomWordsOfLength(int wordNumber, int wordLength, String lang) {
