@@ -411,12 +411,19 @@ public class View implements Service {
 			jvmStats.show();
 			jvmStats.start();
 		});
+		JMenuItem wordGuesser = new JMenuItem("Adivinador de palabras");
+		wordGuesser.addActionListener(e -> {
+			// TODO
+			WindowWordGuesser wordGuesserWindow = new WindowWordGuesser();
+			wordGuesserWindow.show();
+		});
 
 		JMenuItem exit = new JMenuItem("Salir");
 		exit.addActionListener(e -> System.exit(0));
 		stats.add(alg);
 		stats.add(jvm);
 		options.add(stats);
+		options.add(wordGuesser);
 
 		options.addSeparator();
 		options.add(exit);

@@ -9,7 +9,8 @@ public class Config {
 	/**
 	 * This class should not be instantiated.
 	 */
-	private Config() {}
+	private Config() {
+	}
 
 	/**
 	 * Indicates whether the application is in debug mode or not.
@@ -18,30 +19,30 @@ public class Config {
 	/**
 	 * Indicates where is the {@code View} configuration file located at.
 	 */
-	public static final String VIEW_MAIN_WIN_CONFIG_PATH =
-		"./src/view/settings/main.json";
+	public static final String VIEW_MAIN_WIN_CONFIG_PATH = "./src/view/settings/main.json";
 	/**
 	 * Indicates where is the {@code View-Stats} configuration file located at.
 	 */
-	public static final String VIEW_STATS_WIN_CONFIG_PATH =
-		"./src/view/settings/stats.json";
+	public static final String VIEW_STATS_WIN_CONFIG_PATH = "./src/view/settings/stats.json";
 	/**
 	 * Indicates where is the {@code View-User-Manual} configuration file located
 	 * at.
 	 */
-	public static final String VIEW_USER_MANUAL_WIN_CONFIG_PATH =
-		"./src/view/settings/usage.json";
+	public static final String VIEW_USER_MANUAL_WIN_CONFIG_PATH = "./src/view/settings/usage.json";
+	/**
+	 * Indicates where is the {@code View-Word-Guesser} configuration file located
+	 * at.
+	 */
+	public static final String VIEW_WORD_GUESSER_WIN_CONFIG_PATH = "./src/view/settings/word-guesser.json";
 	/**
 	 * Indicates where is the {@code MVC (Hub)} configuration file located at.
 	 */
-	public static final String MVC_CONFIG_PATH =
-		"./src/master/settings/main.json";
+	public static final String MVC_CONFIG_PATH = "./src/master/settings/main.json";
 	/**
 	 * Indicates where is the content HTML file located at for the
 	 * {@code View-Usage}.
 	 */
-	public static final String USER_MANUAL_CONTENT_FILE_PATH =
-		"file:./assets/user-manual.html";
+	public static final String USER_MANUAL_CONTENT_FILE_PATH = "file:./assets/user-manual.html";
 	/**
 	 * Indicates what is the server port of the {@code MVC (Hub)}.
 	 */
@@ -72,5 +73,5 @@ public class Config {
 	/**
 	 * Indicates the path to the icon of the flags.
 	 */
-    public static final String ICON_FLAGS_PATH = "./assets/flags/";
+	public static final String ICON_FLAGS_PATH = "./assets/flags/";
 }
