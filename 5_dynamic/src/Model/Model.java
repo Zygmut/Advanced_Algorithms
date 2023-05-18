@@ -24,14 +24,38 @@ public class Model implements Service {
 		populateDataBase();
 	}
 
+
 	private String[] getRandomWordsOfLength(int wordNumber, int wordLength, String lang){
+
 		ArrayList<String> words = new ArrayList<>();
 		try (Connection connection = DriverManager.getConnection("jdbc:sqlite:src/Model/" + Config.DB_NAME + ".sqlite");
 				Statement statement = connection.createStatement()) {
 			statement.setQueryTimeout(30);
 
+
 			ResultSet resultSet = statement.executeQuery("SELECT word FROM " + lang + " WHERE LENGTH(word) = " + wordLength + " ORDER BY RANDOM() LIMIT " + wordNumber);
 
+			while (resultSet.next()) {
+				words.add(resultSet.getString("word"));
+			}
+
+		} catch (Exception e) {
+			Logger.getLogger(this.getClass().getSimpleName())
+					.log(Level.SEVERE, e.getLocalizedMessage());
+			return new String[] {};
+		}
+
+		return words.toArray(String[]::new);
+	}
+  
+ 	private String[] getRandomWords(int wordNumber, String lang) {
+		ArrayList<String> words = new ArrayList<>();
+		try (Connection connection = DriverManager.getConnection("jdbc:sqlite:src/Model/" + Config.DB_NAME + ".sqlite");
+				Statement statement = connection.createStatement()) {
+			statement.setQueryTimeout(30);
+
+			ResultSet resultSet = statement
+					.executeQuery("SELECT * FROM " + lang + " ORDER BY RANDOM() LIMIT " + wordNumber);
 			while (resultSet.next()) {
 				words.add(resultSet.getString("word"));
 			}
