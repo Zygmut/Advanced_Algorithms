@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -78,7 +79,6 @@ public class Model implements Service {
 
 		statement.executeUpdate("INSERT INTO " + language + " VALUES " + String.join(", ", dictionaryEntries));
 	}
-
 	private String[] getLanguagesNames() {
 
 		ArrayList<String> languageNames = new ArrayList<>();

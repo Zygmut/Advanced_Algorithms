@@ -6,9 +6,9 @@ public enum Language {
 	EN("English"),
 	FR("French"),
 	IT("Italian"),
-	DE("Deuch"),
+	DE("German"),
 	PT("Portuguese"),
-	DA("DAnish"),
+	DA("Danish"),
 	HU("Hungarian"),
 	HR("Croatian");
 
