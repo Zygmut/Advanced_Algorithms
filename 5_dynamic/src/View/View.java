@@ -293,7 +293,7 @@ public class View implements Service {
 		content.setBackground(Color.WHITE);
 
 		String[] dictLanguages = Arrays.stream(Language.values())
-				.map(Language::toString)
+				.map(Language::name)
 				.toArray(String[]::new);
 
 		JPanel dictPanel = new JPanel();
@@ -309,7 +309,6 @@ public class View implements Service {
 			final String pathToIcon = Config.ICON_FLAGS_PATH + dictLanguages[i].toLowerCase() + ".png";
 			dict.setIcon(this.escalateImageIcon(pathToIcon, 32, 32));
 			Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Icono de la bandera cargado: {0}", pathToIcon);
-			//
 
 			dict.addActionListener(e -> {
 				dict.setSelected(!dict.isSelected());
@@ -366,34 +365,9 @@ public class View implements Service {
 
 		this.buttons[2] = new JButton("Inciar");
 		this.buttons[2].addActionListener(e -> {
-			// TODO: Remove this, esto tiene que ir en el notifyRquest
-			// INICIO DE PRUEBA
-			this.buttons[0].setEnabled(true);
-			this.buttons[1].setEnabled(true);
-			DistanceGraph distanceGraph = new DistanceGraph(Color.BLACK, Color.WHITE);
-			BarChartPlot barChartPlot = new BarChartPlot();
-			LexicalTree lexicalTree = new LexicalTree(Color.BLACK, Color.WHITE);
-			String[] connections = { "A", "B", "C", "D", "E", "F", "G", "H", "I" };
-			ExecResultData[] data = new ExecResultData[3];
-			data[0] = new ExecResultData(1, connections, "A");
-			data[1] = new ExecResultData(2, connections, "B");
-			data[2] = new ExecResultData(3, connections, "C");
-
-			this.bodyScreens[1] = distanceGraph.createGraph(data, "Grafo de distancias");
-			String[] labels = { "A", "B", "C" };
-			this.bodyScreens[2] = barChartPlot.createBarChartPlot(data, labels, "Bar Plot", null, null);
-			ExecResultDataTreeNode[] nodes = new ExecResultDataTreeNode[3];
-			nodes[0] = new ExecResultDataTreeNode("Child 1", new ExecResultDataTreeNode[0]);
-			nodes[1] = new ExecResultDataTreeNode("Child 2", new ExecResultDataTreeNode[0]);
-			ExecResultDataTreeNode[] children = new ExecResultDataTreeNode[2];
-			children[0] = new ExecResultDataTreeNode("Child 3.1", new ExecResultDataTreeNode[0]);
-			children[1] = new ExecResultDataTreeNode("Child 3.2", new ExecResultDataTreeNode[0]);
-			nodes[2] = new ExecResultDataTreeNode("Child 3", children);
-			ExecResultDataTreeNode root = new ExecResultDataTreeNode("Root", nodes);
-			this.bodyScreens[3] = lexicalTree.createTree(root, "Árbol lexico");
-			this.splitPane.setLeftComponent(this.bodyScreens[1]);
-			this.currentBodyScreenIndex = 1;
-			// FIN DE PRUEBA
+			Body body = new Body(new String[][] { this.optionsDictionary.toArray(String[]::new),
+					new String[] { optionsAnalysisMode.contains("paralel") ? "True" : "False" } });
+			this.sendRequest(new Request(RequestCode.LEVENSHTEIN, this, body));
 		});
 
 		buttonSection.createButtons(buttons, DirectionAndPosition.DIRECTION_ROW);

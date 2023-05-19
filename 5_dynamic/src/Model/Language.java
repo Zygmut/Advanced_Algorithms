@@ -1,7 +1,7 @@
 package Model;
 
 public enum Language {
-	ES("Español"),
+	ES("Spanish"),
 	CA("Catalan"),
 	EN("English"),
 	FR("French"),

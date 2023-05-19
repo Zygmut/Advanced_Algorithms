@@ -69,10 +69,6 @@ public class MVC implements Server {
 	public void start() {
 		SwingUtilities.invokeLater(() -> this.view.start());
 		this.running = true;
-		// TODO REMOVE START
-		Thread thread = new Thread(() -> this.controller.start());
-		thread.start();
-		// TODO REMOVE END
 		this.initServer();
 	}
 

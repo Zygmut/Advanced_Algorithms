@@ -71,11 +71,13 @@ public class Controller implements Service {
 	private int levenshtein(String[] source, String[] target) {
 		int score = 0;
 		for (String sourceWord : source) {
+			int tmpScore = Integer.MAX_VALUE;
 			for (String targetWord : target) {
-				score += levenshtein(sourceWord, targetWord);
+				tmpScore = Math.min(tmpScore, levenshtein(sourceWord, targetWord));
 			}
+			score += tmpScore;
 		}
-		return score;
+		return score / source.length;
 	}
 
 	private Map<String, Double> levenshtein(String[] languages, boolean isParallel) {
@@ -99,20 +101,24 @@ public class Controller implements Service {
 
 				// Barrera polling
 				if (!isParallel) {
-					Helpers.await();
+					while (Helpers.syncCount.get() != 0) {
+						Helpers.await();
+					}
 				}
 			}
 		}
 
 		// Barrera polling
 		if (isParallel) {
-			Helpers.await();
+			while (Helpers.syncCount.get() != 0) {
+				Helpers.await();
+			}
 		}
 
 		// All langs were calculated. Get pairs and calculate the euclidean distance
 		// from their scores
 		Map<String, Double> langScore = new HashMap<>();
-		while (this.lang.entrySet().isEmpty()) {
+		while (!this.lang.entrySet().isEmpty()) {
 			final Map.Entry<String, Integer> entry1 = this.lang.entrySet().iterator().next();
 			final Integer score1 = entry1.getValue();
 			this.lang.remove(entry1.getKey());
@@ -137,18 +143,20 @@ public class Controller implements Service {
 		switch (request.code) {
 			case FETCH_LANGS -> {
 				String[][] words = (String[][]) request.body.content;
-				System.out.println(Arrays.deepToString(words[0]));
-				System.out.println(Arrays.deepToString(words[1]));
-
-				levenshtein(words[0], words[1]);
+				lang.put(words[0][0], levenshtein(words[1], words[2]));
+				Helpers.syncCount.dec();
 			}
 			case LEVENSHTEIN -> {
 				String[][] parameters = (String[][]) request.body.content;
-				this.levenshtein(parameters[0], Boolean.parseBoolean(parameters[1][0]));
+				Logger.getLogger(this.getClass().getSimpleName())
+						.log(Level.INFO, "Executing Levenshtein for {0} and {1} with paralel = {2} .",
+								new Object[] { parameters[0][0], parameters[0][1], parameters[1][0] });
+				Map<String, Double> results = this.levenshtein(parameters[0], Boolean.parseBoolean(parameters[1][0]));
+				int a = 0;
+
 			}
 			default -> {
-				Logger
-						.getLogger(this.getClass().getSimpleName())
+				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
 			}
 		}
