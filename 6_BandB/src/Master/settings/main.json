@@ -3,6 +3,10 @@
 		{
 			"code": "GREET",
 			"services": ["CONTROLLER", "MODEL"]
+		},
+		{
+			"code": "CREATE_DB",
+			"services": ["MODEL"]
 		}
 	],
 	"responseMap": [

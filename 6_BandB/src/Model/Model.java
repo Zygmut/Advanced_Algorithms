@@ -1,5 +1,6 @@
 package Model;
 
+import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,6 +43,11 @@ public class Model implements Service {
 				this.saveToDB(message);
 				this.sendResponse(new Response(ResponseCode.GREET_BACK, this, new Body(message)));
 			}
+			case CREATE_DB -> {
+				Logger.getLogger(this.getClass().getSimpleName())
+						.log(Level.INFO, "Creating DB.");
+				this.createDB();
+			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
@@ -64,4 +70,31 @@ public class Model implements Service {
 		}
 	}
 
+	private void createDB() {
+		try {
+			this.dbApi.connect();
+			this.dbApi.setAutoCommit(false);
+			this.dbApi.executeUpdate(
+					"CREATE TABLE IF NOT EXISTS Strategy(id INTEGER PRIMARY KEY AUTOINCREMENT, message TEXT);");
+			this.dbApi.executeUpdate(
+					"CREATE TABLE IF NOT EXISTS RubikCube(id INTEGER PRIMARY KEY AUTOINCREMENT, size INTEGER, configuration TEXT);");
+			this.dbApi.executeUpdate(
+					"CREATE TABLE IF NOT EXISTS RubikCubeStrategy(id INTEGER PRIMARY KEY AUTOINCREMENT, idRubikCube INTEGER, idStrategy INTEGER);");
+			this.dbApi.executeUpdate(
+					"CREATE TABLE IF NOT EXISTS RubikCubeSolution(id INTEGER PRIMARY KEY AUTOINCREMENT, idRubikCube INTEGER, idStrategy INTEGER, solution TEXT, time INTEGER);");
+			this.dbApi.executeUpdate(
+					"CREATE TABLE IF NOT EXISTS RubikCubeSolutionStep(id INTEGER PRIMARY KEY AUTOINCREMENT, idRubikCubeSolution INTEGER, step INTEGER, move TEXT);");
+			this.dbApi.commit();
+			this.dbApi.disconnect();
+		} catch (SQLException e) {
+			Logger.getLogger(this.getClass().getSimpleName())
+					.log(Level.SEVERE, "Error while creating DB.", e);
+			try {
+				this.dbApi.rollback();
+			} catch (Exception e2) {
+				Logger.getLogger(this.getClass().getSimpleName())
+						.log(Level.SEVERE, "Error while rolling back DB.", e2);
+			}
+		}
+	}
 }
