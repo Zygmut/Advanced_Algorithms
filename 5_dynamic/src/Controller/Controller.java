@@ -81,7 +81,6 @@ public class Controller implements Service {
 	}
 
 	private Map<String, Double> levenshtein(String[] languages, boolean isParallel) {
-		// es-ca
 		for (int i = 0; i < languages.length; i++) {
 			for (int j = 0; j < languages.length; j++) {
 				if (i == j) {
@@ -152,8 +151,6 @@ public class Controller implements Service {
 						.log(Level.INFO, "Executing Levenshtein for {0} and {1} with paralel = {2} .",
 								new Object[] { parameters[0][0], parameters[0][1], parameters[1][0] });
 				Map<String, Double> results = this.levenshtein(parameters[0], Boolean.parseBoolean(parameters[1][0]));
-				int a = 0;
-
 			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
