@@ -27,6 +27,7 @@ import java.util.List;
 public class Controller implements Service {
 
 	private Map<String, Double> lang;
+	private String[] words;
 
 	public Controller() {
 		this.lang = new HashMap<>();
@@ -82,7 +83,7 @@ public class Controller implements Service {
 		for (String sourceWord : source) {
 			int tmpScore = Integer.MAX_VALUE;
 			for (String targetWord : target) {
-				tmpScore = Math.min(tmpScore, levenshtein(sourceWord, targetWord)) ;
+				tmpScore = Math.min(tmpScore, levenshtein(sourceWord, targetWord));
 			}
 			score += (double) tmpScore / sourceWord.length();
 		}
@@ -103,7 +104,7 @@ public class Controller implements Service {
 
 				// Create a request to fetch those two languages words, then the calculation
 				// will be done within the request
-				Body body = new Body(new Object[] { languages[i], languages[j], batchSize});
+				Body body = new Body(new Object[] { languages[i], languages[j], batchSize });
 				Request request = new Request(RequestCode.FETCH_LANGS, this, body);
 				this.sendRequest(request);
 
@@ -176,8 +177,7 @@ public class Controller implements Service {
 	private ExecResultDataTreeNode resultToTreeData(Map<String, Double> result, ExecResultData[] graph) {
 		Set<String> langs = this.getIdLangs(result);
 		PriorityQueue<ExecResultData.Connection> pq = new PriorityQueue<>(
-				(a, b) -> Double.compare(a.value(), b.value())
-		);
+				(a, b) -> Double.compare(a.value(), b.value()));
 
 		ExecResultDataTreeNode root = new ExecResultDataTreeNode("", null);
 		return root;
@@ -211,19 +211,36 @@ public class Controller implements Service {
 							.log(Level.SEVERE, "Parameters are not a Map<String, Integer>.");
 					return;
 				}
-				Map<String, Integer> options = (HashMap<String, Integer>)parameters[1];
+				this.lang.clear();
+				Map<String, Integer> options = (HashMap<String, Integer>) parameters[1];
 				Instant start = Instant.now();
-				Map<String, Double> results = this.levenshtein((String[]) parameters[0], options.get("parallel") == 1 , options.get("batchSize"));
+				Map<String, Double> results = this.levenshtein((String[]) parameters[0], options.get("parallel") == 1,
+						options.get("batchSize"));
 				Duration duration = Duration.between(start, Instant.now());
 
 				ExecResultData[] graphData = resultToGraphData(results);
 				ExecResultDataTreeNode treeData = resultToTreeData(results, graphData);
 
-				Body body = new Body(new Object[] { duration, graphData, treeData});
+				Body body = new Body(new Object[] { duration, graphData, treeData });
 				this.sendRequest(new Request(RequestCode.ADD_RESULT, this, body));
 			}
+			case GET_ALL_LANGS -> {
+				final Object[] parameters = (Object[]) request.body.content;
+				String[][] langWords = (String[][]) parameters[0];
+				String[] langNames = (String[]) parameters[1];
+
+				Instant start = Instant.now();
+				Map<String, Double> result = new HashMap<>();
+				for (int i = 0; i < langWords.length; i++) {
+					result.put("CUSTOM-" + langNames[i], levenshtein(this.words, langWords[i]));
+				}
+				Duration duration = Duration.between(start, Instant.now());
+
+				// TODO CREATE RESPONSE WITH THE MAP AND DURATION
+			}
 			case GUESS_LANG -> {
-				// TODO: Assign to @Zygmut
+				this.words = ((String) request.body.content).split(" ");
+				this.sendRequest(new Request(RequestCode.GET_ALL_LANGS, this));
 			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
@@ -231,5 +248,4 @@ public class Controller implements Service {
 			}
 		}
 	}
-
 }
