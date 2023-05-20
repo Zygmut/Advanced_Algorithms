@@ -19,6 +19,10 @@
 		{
 			"code": "FETCH_LANGS",
 			"services": ["MODEL"]
+		},
+		{
+			"code": "GET_LANG",
+			"services": ["CONTROLLER"]
 		}
 	],
 	"responseMap": [

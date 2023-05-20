@@ -395,8 +395,7 @@ public class View implements Service {
 		});
 		JMenuItem wordGuesser = new JMenuItem("Adivinador de palabras");
 		wordGuesser.addActionListener(e -> {
-			// TODO
-			WindowWordGuesser wordGuesserWindow = new WindowWordGuesser();
+			WindowWordGuesser wordGuesserWindow = new WindowWordGuesser(this);
 			wordGuesserWindow.show();
 		});
 

@@ -222,6 +222,9 @@ public class Controller implements Service {
 				Body body = new Body(new Object[] { duration, graphData, treeData});
 				this.sendRequest(new Request(RequestCode.ADD_RESULT, this, body));
 			}
+			case GUESS_LANG -> {
+				// TODO: Assign to @Zygmut
+			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
