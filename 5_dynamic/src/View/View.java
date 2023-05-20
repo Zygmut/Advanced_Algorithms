@@ -142,7 +142,6 @@ public class View implements Service {
 				String[] names = (String[]) request.body.content;
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.INFO, "Data Base languages are: {0}.", Arrays.deepToString(names));
-
 			}
 			case ADD_RESULT -> {
 				Object[] result = (Object[]) request.body.content;
@@ -155,7 +154,7 @@ public class View implements Service {
 				this.buttons[1].setEnabled(true);
 
 				// Init instances
-				DistanceGraph distanceGraph = new DistanceGraph(Color.BLACK, Color.WHITE);
+				DistanceGraph distanceGraph = new DistanceGraph(Color.BLACK, Color.LIGHT_GRAY);
 				BarChartPlot barChartPlot = new BarChartPlot();
 				LexicalTree lexicalTree = new LexicalTree(Color.BLACK, Color.WHITE);
 
