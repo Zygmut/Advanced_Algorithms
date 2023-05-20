@@ -6,17 +6,27 @@ import Services.Comunication.Request.RequestCode;
 import utils.Helpers;
 import Services.Service;
 
-import java.util.Arrays;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Set;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.swing.RowFilter.Entry;
+
+import Model.ExecResultData;
+import Model.ExecResultDataTreeNode;
+
 import java.util.List;
-import java.util.Vector;
 
 public class Controller implements Service {
 
-	private Map<String, Integer> lang;
+	private Map<String, Double> lang;
 
 	public Controller() {
 		this.lang = new HashMap<>();
@@ -24,7 +34,6 @@ public class Controller implements Service {
 
 	@Override
 	public void start() {
-		levenshtein(new String[] { "es", "ca" }, true);
 		Logger
 				.getLogger(this.getClass().getSimpleName())
 				.log(Level.INFO, "Controller started.");
@@ -68,19 +77,19 @@ public class Controller implements Service {
 		return memo[m][n];
 	}
 
-	private int levenshtein(String[] source, String[] target) {
-		int score = 0;
+	private double levenshtein(String[] source, String[] target) {
+		double score = 0;
 		for (String sourceWord : source) {
 			int tmpScore = Integer.MAX_VALUE;
 			for (String targetWord : target) {
-				tmpScore = Math.min(tmpScore, levenshtein(sourceWord, targetWord));
+				tmpScore = Math.min(tmpScore, levenshtein(sourceWord, targetWord)) ;
 			}
-			score += tmpScore;
+			score += (double) tmpScore / sourceWord.length();
 		}
 		return score / source.length;
 	}
 
-	private Map<String, Double> levenshtein(String[] languages, boolean isParallel) {
+	private Map<String, Double> levenshtein(String[] languages, boolean isParallel, int batchSize) {
 		for (int i = 0; i < languages.length; i++) {
 			for (int j = 0; j < languages.length; j++) {
 				if (i == j) {
@@ -90,11 +99,11 @@ public class Controller implements Service {
 				// Increment the counter by 1
 				Helpers.syncCount.inc();
 
-				lang.put(languages[i] + "-" + languages[j], 0);
+				lang.put(languages[i] + "-" + languages[j], 0.0);
 
 				// Create a request to fetch those two languages words, then the calculation
 				// will be done within the request
-				Body body = new Body(new String[] { languages[i], languages[j] });
+				Body body = new Body(new Object[] { languages[i], languages[j], batchSize});
 				Request request = new Request(RequestCode.FETCH_LANGS, this, body);
 				this.sendRequest(request);
 
@@ -118,13 +127,13 @@ public class Controller implements Service {
 		// from their scores
 		Map<String, Double> langScore = new HashMap<>();
 		while (!this.lang.entrySet().isEmpty()) {
-			final Map.Entry<String, Integer> entry1 = this.lang.entrySet().iterator().next();
-			final Integer score1 = entry1.getValue();
+			final Map.Entry<String, Double> entry1 = this.lang.entrySet().iterator().next();
+			final Double score1 = entry1.getValue();
 			this.lang.remove(entry1.getKey());
 
 			final String[] pair1 = entry1.getKey().split("-");
 			final String key2 = String.format("%s-%s", pair1[1], pair1[0]);
-			final Integer score2 = this.lang.get(key2);
+			final Double score2 = this.lang.get(key2);
 			this.lang.remove(key2);
 
 			langScore.put(key2, euclideanDistance(score1, score2));
@@ -133,11 +142,61 @@ public class Controller implements Service {
 		return langScore;
 	}
 
-	public double euclideanDistance(int x, int y) {
+	private double euclideanDistance(double x, double y) {
 		return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
 	}
 
+	private ExecResultData[] resultToGraphData(Map<String, Double> result) {
+		List<ExecResultData> data = new ArrayList<>();
+
+		Set<String> langs = this.getIdLangs(result);
+
+		for (String lang1 : langs) {
+			final List<ExecResultData.Connection> connections = new ArrayList<>();
+			for (String lang2 : langs) {
+				if (lang1.equals(lang2)) {
+					continue;
+				}
+
+				final String key = String.format("%s-%s", lang1, lang2);
+				final String key2 = String.format("%s-%s", lang2, lang1);
+
+				ExecResultData.Connection connection = result.containsKey(key)
+						? new ExecResultData.Connection(lang2, result.get(key))
+						: new ExecResultData.Connection(lang2, result.get(key2));
+
+				connections.add(connection);
+			}
+			data.add(new ExecResultData(lang1, connections.toArray(ExecResultData.Connection[]::new)));
+		}
+
+		return data.toArray(ExecResultData[]::new);
+	}
+
+	private ExecResultDataTreeNode resultToTreeData(Map<String, Double> result, ExecResultData[] graph) {
+		Set<String> langs = this.getIdLangs(result);
+		PriorityQueue<ExecResultData.Connection> pq = new PriorityQueue<>(
+				(a, b) -> Double.compare(a.value(), b.value())
+		);
+
+		ExecResultDataTreeNode root = new ExecResultDataTreeNode("", null);
+		return root;
+	}
+
+	private Set<String> getIdLangs(Map<String, Double> result) {
+		Set<String> langs = new HashSet<>();
+
+		for (Map.Entry<String, Double> entry : result.entrySet()) {
+			String[] pair = entry.getKey().split("-");
+			langs.add(pair[0]);
+			langs.add(pair[1]);
+		}
+
+		return langs;
+	}
+
 	@Override
+	@SuppressWarnings("unchecked")
 	public void notifyRequest(Request request) {
 		switch (request.code) {
 			case FETCH_LANGS -> {
@@ -146,11 +205,22 @@ public class Controller implements Service {
 				Helpers.syncCount.dec();
 			}
 			case LEVENSHTEIN -> {
-				String[][] parameters = (String[][]) request.body.content;
-				Logger.getLogger(this.getClass().getSimpleName())
-						.log(Level.INFO, "Executing Levenshtein for {0} and {1} with paralel = {2} .",
-								new Object[] { parameters[0][0], parameters[0][1], parameters[1][0] });
-				Map<String, Double> results = this.levenshtein(parameters[0], Boolean.parseBoolean(parameters[1][0]));
+				Object[] parameters = (Object[]) request.body.content;
+				if (!(parameters[1] instanceof Map<?, ?>)) {
+					Logger.getLogger(this.getClass().getSimpleName())
+							.log(Level.SEVERE, "Parameters are not a Map<String, Integer>.");
+					return;
+				}
+				Map<String, Integer> options = (HashMap<String, Integer>)parameters[1];
+				Instant start = Instant.now();
+				Map<String, Double> results = this.levenshtein((String[]) parameters[0], options.get("parallel") == 1 , options.get("batchSize"));
+				Duration duration = Duration.between(start, Instant.now());
+
+				ExecResultData[] graphData = resultToGraphData(results);
+				ExecResultDataTreeNode treeData = resultToTreeData(results, graphData);
+
+				Body body = new Body(new Object[] { duration, graphData, treeData});
+				this.sendRequest(new Request(RequestCode.ADD_RESULT, this, body));
 			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())

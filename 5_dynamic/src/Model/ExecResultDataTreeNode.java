@@ -1,8 +1,9 @@
 package Model;
 
 import java.util.Objects;
+import java.io.Serializable;
 
-public record ExecResultDataTreeNode(String id, ExecResultDataTreeNode[] children) {
+public record ExecResultDataTreeNode(String id, ExecResultDataTreeNode[] children) implements Serializable{
 
 	@Override
 	public boolean equals(Object o) {

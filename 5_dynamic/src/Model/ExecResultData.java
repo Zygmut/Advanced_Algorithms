@@ -1,26 +1,29 @@
 package Model;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public record ExecResultData(double value, String[] connnections, String id) {
+public record ExecResultData(String id, Connection[] connections) implements Serializable {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (Objects.isNull(obj) || !(obj instanceof ExecResultData)) {
+		if (this == obj)
+			return true;
+		if (!(obj instanceof ExecResultData))
 			return false;
-		}
 		ExecResultData other = (ExecResultData) obj;
-		return this.value == other.value && this.id.equals(other.id)
-				&& this.connnections.length == other.connnections.length;
+		return Objects.equals(connections, other.connections()) && Objects.equals(id, other.id);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(value, connnections, id);
+		return Objects.hash(connections, id);
 	}
 
 	@Override
 	public String toString() {
-		return "ExecResultData [value=" + value + ", connnections=" + connnections + ", id=" + id + "]";
+		return "ExecResultData [connnections=" + connections + ", id=" + id + "]";
 	}
+
+	public record Connection(String id, double value) implements Serializable{}
 }
