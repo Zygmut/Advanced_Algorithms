@@ -21,8 +21,12 @@
 			"services": ["MODEL"]
 		},
 		{
-			"code": "GET_LANG",
+			"code": "GUESS_LANG",
 			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "GET_STATS",
+			"services": ["MODEL"]
 		}
 	],
 	"responseMap": [
@@ -37,6 +41,10 @@
 		{
 			"code": "FETCH_LANGS",
 			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "GET_STATS",
+			"services": ["VIEW"]
 		}
 	],
 	"resToReqMap": [
@@ -51,6 +59,10 @@
 		{
 			"responseCode": "FETCH_LANGS",
 			"requestCode": "FETCH_LANGS"
+		},
+		{
+			"responseCode": "GET_STATS",
+			"requestCode": "GET_STATS"
 		}
 	]
 }

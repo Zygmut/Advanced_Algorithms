@@ -8,6 +8,7 @@ import Services.Service;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -166,7 +167,7 @@ public class Model implements Service {
 			}
 
 			statement.executeUpdate("DROP TABLE IF EXISTS TimedExecution");
-			statement.executeUpdate("CREATE TABLE TimedExecution (id INTEGER AUTOINCREMENT, nanos INTEGER)");
+			statement.executeUpdate("CREATE TABLE TimedExecution (id INTEGER PRIMARY KEY AUTOINCREMENT, nanos INTEGER)");
 		} catch (Exception e) {
 			Logger.getLogger(this.getClass().getSimpleName())
 					.log(Level.SEVERE, e.getLocalizedMessage());
@@ -177,10 +178,12 @@ public class Model implements Service {
 
 	private void addTimedExecution(Duration nanos) {
 		try (Connection connection = DriverManager.getConnection("jdbc:sqlite:src/Model/" + Config.DB_NAME + ".sqlite");
-				Statement statement = connection.createStatement()) {
+				PreparedStatement statement = connection.prepareStatement("INSERT INTO TimedExecution (nanos) VALUES (?)")) {
 			statement.setQueryTimeout(30);
 
-		statement.executeUpdate("INSERT INTO TimedExecution (nanos) VALUES " + nanos.toNanos());
+			// Insert the new timed execution with the prepared statement
+			statement.setLong(1, nanos.toNanos());
+			statement.executeUpdate();
 		} catch (Exception e) {
 			Logger.getLogger(this.getClass().getSimpleName())
 					.log(Level.SEVERE, e.getLocalizedMessage());
@@ -195,11 +198,11 @@ public class Model implements Service {
 				Statement statement = connection.createStatement()) {
 			statement.setQueryTimeout(30);
 
-		ResultSet query = statement.executeQuery("SELECT seconds FROM TimedExecution ORDER BY id");
+			ResultSet query = statement.executeQuery("SELECT nanos FROM TimedExecution ORDER BY id");
 
-		while(query.next()){
-			result.add(query.getLong("nanos"));
-		}
+			while(query.next()){
+				result.add(query.getLong("nanos"));
+			}
 
 		} catch (Exception e) {
 			Logger.getLogger(this.getClass().getSimpleName())
@@ -243,10 +246,13 @@ public class Model implements Service {
 				Response response = new Response(ResponseCode.FETCH_LANGS, this, body);
 				this.sendResponse(response);
 			}
-			case ADD_RESULT ->
+			case ADD_RESULT ->{
 				this.addTimedExecution(((Duration) ((Object[]) request.body.content)[0]));
+			}
 			case GET_LANG_NAMES ->
 				this.sendResponse(new Response(ResponseCode.GET_LANG_NAMES, this, new Body(getLanguagesNames())));
+			case GET_STATS ->
+				this.sendResponse(new Response(ResponseCode.GET_STATS, this, new Body(getTimedExecution())));
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
