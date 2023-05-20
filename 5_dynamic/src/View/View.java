@@ -15,14 +15,12 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Image;
-import java.awt.geom.Ellipse2D;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -39,23 +37,20 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.annotations.XYLineAnnotation;
-import org.jfree.chart.annotations.XYTextAnnotation;
+import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
-import org.jfree.data.xy.XYSeries;
-import org.jfree.data.xy.XYSeriesCollection;
-
 import com.mxgraph.layout.mxCompactTreeLayout;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.util.mxConstants;
@@ -87,7 +82,7 @@ public class View implements Service {
 	/**
 	 * The list of dictionaries of the view.
 	 */
-	private List<String> optionsAnalysisMode;
+	private Map<String, Integer> optionsAnalysisMode;
 	/**
 	 * The list of dictionaries of the view.
 	 */
@@ -147,24 +142,41 @@ public class View implements Service {
 				String[] names = (String[]) request.body.content;
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.INFO, "Data Base languages are: {0}.", Arrays.deepToString(names));
-
 			}
-			/*
-			 * case EXEC_RESULTS -> {
-			 * this.buttons[0].setEnabled(true);
-			 * this.buttons[1].setEnabled(true);
-			 * DistanceGraph distanceGraph = new DistanceGraph(null, null, null, true,
-			 * null);
-			 * BarChartPlot barChartPlot = new BarChartPlot();
-			 * LexicalTree lexicalTree = new LexicalTree();
-			 * this.bodyScreens[1] = distanceGraph.createPlot();
-			 * this.bodyScreens[2] = barChartPlot.createBarChartPlot(new double[0], null,
-			 * null, null, null);
-			 * this.bodyScreens[3] = lexicalTree.createTree();
-			 * this.splitPane.setLeftComponent(this.bodyScreens[1]);
-			 * this.currentBodyScreenIndex = 1;
-			 * }
-			 */
+			case ADD_RESULT -> {
+				Object[] result = (Object[]) request.body.content;
+
+				ExecResultData[] graphData = (ExecResultData[]) result[1];
+				ExecResultDataTreeNode treeData = (ExecResultDataTreeNode) result[2];
+
+				// Arrows
+				this.buttons[0].setEnabled(true);
+				this.buttons[1].setEnabled(true);
+
+				// Init instances
+				DistanceGraph distanceGraph = new DistanceGraph(Color.BLACK, Color.LIGHT_GRAY);
+				BarChartPlot barChartPlot = new BarChartPlot();
+				LexicalTree lexicalTree = new LexicalTree(Color.BLACK, Color.WHITE);
+
+				this.bodyScreens[1] = distanceGraph.createGraph(graphData, "Grafo de distancias");
+				JPanel panel = new JPanel();
+				panel.setLayout(new GridLayout(4, 3));
+				for (ExecResultData res : graphData) {
+					panel.add(barChartPlot.createBarChartPlot(res.connections(), res.id(), null, null));
+				}
+				final int totalPanels = 12;
+				for (int i = 0; i < totalPanels - graphData.length; i++) {
+					JPanel emptyPanel = new JPanel();
+					emptyPanel.setBackground(Color.WHITE);
+					panel.add(emptyPanel);
+				}
+				this.bodyScreens[2] = panel;
+				this.bodyScreens[3] = lexicalTree.createTree(treeData, "Árbol lexico");
+
+				// "Pagination"
+				this.splitPane.setLeftComponent(this.bodyScreens[1]);
+				this.currentBodyScreenIndex = 1;
+			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
@@ -213,32 +225,22 @@ public class View implements Service {
 		actionsPanel.setLayout(new BoxLayout(actionsPanel, BoxLayout.Y_AXIS));
 		actionsPanel.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));
 
-		JLabel analysisMode = new JLabel("Modo de análisis: ");
+		JLabel analysisMode = new JLabel("Tamaño de comparación: ");
+		this.optionsAnalysisMode = new HashMap<>();
+
 		analysisMode.setFont(new Font("Arial", Font.ITALIC, 14));
-		this.optionsAnalysisMode = new ArrayList<>();
-		JCheckBox statsMode = new JCheckBox("Aplicar estadísticas");
-		statsMode.addActionListener(e -> {
-			if (statsMode.isSelected()) {
-				this.optionsAnalysisMode.add("stats");
-			} else {
-				this.optionsAnalysisMode.remove("stats");
-			}
+		JSpinner statsMode = new JSpinner(new SpinnerNumberModel(1000, 1, Integer.MAX_VALUE, 1));
+		this.optionsAnalysisMode.put("batchSize", (int) statsMode.getValue());
+		statsMode.addChangeListener(e -> {
+			this.optionsAnalysisMode.put("batchSize", (int) statsMode.getValue());
 		});
-		JCheckBox paralel = new JCheckBox("Paralelizar");
-		paralel.addActionListener(e -> {
-			if (paralel.isSelected()) {
-				this.optionsAnalysisMode.add("paralel");
-			} else {
-				this.optionsAnalysisMode.remove("paralel");
-			}
-		});
-		JCheckBox sorted = new JCheckBox("Ordenar");
-		sorted.addActionListener(e -> {
-			if (sorted.isSelected()) {
-				this.optionsAnalysisMode.add("sorted");
-			} else {
-				this.optionsAnalysisMode.remove("sorted");
-			}
+
+		JCheckBox parallel = new JCheckBox("Paralelizar");
+		parallel.setSelected(true);
+		this.optionsAnalysisMode.put("parallel", 1);
+		parallel.addActionListener(e -> {
+			final Integer val = parallel.isSelected() ? 1 : 0;
+			this.optionsAnalysisMode.put("parallel", val);
 		});
 
 		actionsPanel.add(Box.createVerticalStrut(10));
@@ -246,9 +248,7 @@ public class View implements Service {
 		actionsPanel.add(Box.createVerticalStrut(5));
 		actionsPanel.add(statsMode);
 		actionsPanel.add(Box.createVerticalStrut(5));
-		actionsPanel.add(paralel);
-		actionsPanel.add(Box.createVerticalStrut(5));
-		actionsPanel.add(sorted);
+		actionsPanel.add(parallel);
 		actionsPanel.add(Box.createVerticalStrut(5));
 
 		sideBar.add(actionsPanel);
@@ -365,8 +365,7 @@ public class View implements Service {
 
 		this.buttons[2] = new JButton("Inciar");
 		this.buttons[2].addActionListener(e -> {
-			Body body = new Body(new String[][] { this.optionsDictionary.toArray(String[]::new),
-					new String[] { optionsAnalysisMode.contains("paralel") ? "True" : "False" } });
+			Body body = new Body(new Object[] { this.optionsDictionary.toArray(String[]::new), optionsAnalysisMode });
 			this.sendRequest(new Request(RequestCode.LEVENSHTEIN, this, body));
 		});
 
@@ -386,7 +385,7 @@ public class View implements Service {
 		JMenu stats = new JMenu("Estadisticas");
 		JMenuItem alg = new JMenuItem("Algoritmos");
 		alg.addActionListener(e -> {
-			// TODO
+			// TODO TIMED EXECTUION GRAPH
 		});
 		JMenuItem jvm = new JMenuItem("JVM");
 		jvm.addActionListener(e -> {
@@ -487,13 +486,19 @@ public class View implements Service {
 				}
 
 				for (ExecResultData execResultData : data) {
-					for (String id : execResultData.connnections()) {
-						graph.insertEdge(parent, null, "Poner valor aqui", map.get(execResultData.id()), map.get(id));
+					for (ExecResultData.Connection con : execResultData.connections()) {
+						final double value = Math.round(con.value() * 100.0) / 100.0;
+						graph.insertEdge(parent, null, value + "", map.get(execResultData.id()), map.get(con.id()));
 					}
 				}
 
 				graph.setCellsEditable(false);
 				graph.setEdgeLabelsMovable(false);
+				graph.setCellsCloneable(false);
+				graph.setCellsDeletable(false);
+				graph.setCellsDisconnectable(false);
+				graph.setCellsBendable(false);
+				graph.setCellsResizable(false);
 			} finally {
 				// End the transaction
 				graph.getModel().endUpdate();
@@ -507,7 +512,7 @@ public class View implements Service {
 
 			// Customize the edge style properties
 			edgeStyle.put(mxConstants.STYLE_STROKECOLOR, toHex(this.connectionLineColor)); // Edge color
-			edgeStyle.put(mxConstants.STYLE_STROKEWIDTH, 2); // Line width
+			edgeStyle.put(mxConstants.STYLE_STROKEWIDTH, 0.5); // Line width
 			edgeStyle.put(mxConstants.STYLE_DASHED, true); // Dashed line
 			edgeStyle.put(mxConstants.STYLE_ENDARROW, mxConstants.NONE); // No arrow
 
@@ -531,13 +536,15 @@ public class View implements Service {
 
 	private class BarChartPlot {
 
-		private ChartPanel createBarChartPlot(ExecResultData[] data, String[] labels, String title, String xAxisLabel,
+		private ChartPanel createBarChartPlot(ExecResultData.Connection[] data, String title, String xAxisLabel,
 				String yAxisLabel) {
 			// Create dataset
 			DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-			for (int i = 0; i < data.length; i++) {
-				dataset.addValue(data[i].value(), labels[i], labels[i]);
+
+			for (ExecResultData.Connection conn : data) {
+				dataset.addValue(conn.value(), title, conn.id());
 			}
+
 			// Create chart
 			JFreeChart chart = ChartFactory.createBarChart(
 					title,
@@ -546,6 +553,19 @@ public class View implements Service {
 					dataset,
 					PlotOrientation.VERTICAL,
 					false, true, false);
+
+			// Change the bar colors
+			CategoryPlot plot = chart.getCategoryPlot();
+			BarRenderer renderer = (BarRenderer) plot.getRenderer();
+			// Get all series
+			for (int i = 0; i < dataset.getRowCount(); i++) {
+				// Get all categories
+				for (int j = 0; j < dataset.getColumnCount(); j++) {
+					renderer.setSeriesPaint(i, new Color((int) (Math.random() * 0x1000000)));
+				}
+			}
+
+			plot.setRenderer(renderer);
 
 			// Create Panel
 			return new ChartPanel(chart);

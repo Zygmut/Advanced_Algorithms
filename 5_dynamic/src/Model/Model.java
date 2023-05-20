@@ -11,6 +11,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -75,10 +76,12 @@ public class Model implements Service {
 	private void insertDictionaryEntries(Statement statement, String language, List<String> dictionaryEntries)
 			throws SQLException {
 		Logger.getLogger(this.getClass().getSimpleName())
-				.log(Level.INFO, "Inserting {0} into {1}", new Object[] { dictionaryEntries.size(), language.toUpperCase() });
+				.log(Level.INFO, "Inserting {0} into {1}",
+						new Object[] { dictionaryEntries.size(), language.toUpperCase() });
 
 		statement.executeUpdate("INSERT INTO " + language + " VALUES " + String.join(", ", dictionaryEntries));
 	}
+
 	private String[] getLanguagesNames() {
 
 		ArrayList<String> languageNames = new ArrayList<>();
@@ -119,7 +122,7 @@ public class Model implements Service {
 	private void processLanguage(Statement statement, File languageFile)
 			throws SQLException {
 		final String languageName = languageFile.getName().substring(0, languageFile.getName().lastIndexOf('.'));
-		statement.executeUpdate("DROP TABLE IF EXISTS " + languageName.toUpperCase());
+		statement.executeUpdate("DROP TABLE IF EXISTS " + languageName);
 		statement.executeUpdate("CREATE TABLE " + languageName + " (word string)");
 
 		try (Scanner dictionaryReader = new Scanner(languageFile)) {
@@ -155,17 +158,56 @@ public class Model implements Service {
 
 			File dictionaryDir = new File(pathToDicts);
 			File[] dictionaries = dictionaryDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".dic"));
+
 			if (dictionaries != null) {
 				for (File languageFile : dictionaries) {
 					processLanguage(statement, languageFile);
 				}
 			}
+
+			statement.executeUpdate("DROP TABLE IF EXISTS TimedExecution");
+			statement.executeUpdate("CREATE TABLE TimedExecution (id INTEGER AUTOINCREMENT, nanos INTEGER)");
 		} catch (Exception e) {
 			Logger.getLogger(this.getClass().getSimpleName())
 					.log(Level.SEVERE, e.getLocalizedMessage());
 		}
 		Logger.getLogger(this.getClass().getSimpleName())
 				.log(Level.INFO, "Finished the population of the DB");
+	}
+
+	private void addTimedExecution(Duration nanos) {
+		try (Connection connection = DriverManager.getConnection("jdbc:sqlite:src/Model/" + Config.DB_NAME + ".sqlite");
+				Statement statement = connection.createStatement()) {
+			statement.setQueryTimeout(30);
+
+		statement.executeUpdate("INSERT INTO TimedExecution (nanos) VALUES " + nanos.toNanos());
+		} catch (Exception e) {
+			Logger.getLogger(this.getClass().getSimpleName())
+					.log(Level.SEVERE, e.getLocalizedMessage());
+		}
+		Logger.getLogger(this.getClass().getSimpleName())
+				.log(Level.INFO, "Added timedExecution of {0} nanos", nanos.toNanos());
+	}
+
+	private Long[] getTimedExecution() {
+		ArrayList<Long> result = new ArrayList<>();
+		try (Connection connection = DriverManager.getConnection("jdbc:sqlite:src/Model/" + Config.DB_NAME + ".sqlite");
+				Statement statement = connection.createStatement()) {
+			statement.setQueryTimeout(30);
+
+		ResultSet query = statement.executeQuery("SELECT seconds FROM TimedExecution ORDER BY id");
+
+		while(query.next()){
+			result.add(query.getLong("nanos"));
+		}
+
+		} catch (Exception e) {
+			Logger.getLogger(this.getClass().getSimpleName())
+					.log(Level.SEVERE, e.getLocalizedMessage());
+			return new Long[0];
+		}
+
+		return result.toArray(Long[]::new);
 	}
 
 	@Override
@@ -189,15 +231,20 @@ public class Model implements Service {
 				populateDataBase(pathToDicts);
 			}
 			case FETCH_LANGS -> {
-				final String[] langs = (String[]) request.body.content;
-				final String[] sourceWords = getRandomWords(this.nWordsPerLang, langs[0]);
-				final String[] targetWords = getRandomWords(this.nWordsPerLang, langs[1]);
+				final Object[] parameters = (Object []) request.body.content;
+				final int nWords = (int) parameters[2];
+				final String sourceLang = (String) parameters[0];
+				final String targetLang = (String) parameters[1];
+				final String[] sourceWords = getRandomWords(nWords, sourceLang);
+				final String[] targetWords = getRandomWords(nWords, targetLang);
 
 				Body body = new Body(
-						new String[][] { new String[] { langs[0] + "-" + langs[1] }, sourceWords, targetWords });
+						new String[][] { new String[] { sourceLang + "-" + targetLang }, sourceWords, targetWords });
 				Response response = new Response(ResponseCode.FETCH_LANGS, this, body);
 				this.sendResponse(response);
 			}
+			case ADD_RESULT ->
+				this.addTimedExecution(((Duration) ((Object[]) request.body.content)[0]));
 			case GET_LANG_NAMES ->
 				this.sendResponse(new Response(ResponseCode.GET_LANG_NAMES, this, new Body(getLanguagesNames())));
 			default -> {
