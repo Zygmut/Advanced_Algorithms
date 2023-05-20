@@ -68,6 +68,7 @@ public class MVC implements Server {
 	@Override
 	public void start() {
 		SwingUtilities.invokeLater(() -> this.view.start());
+		this.running = true;
 		this.initServer();
 	}
 
@@ -75,6 +76,7 @@ public class MVC implements Server {
 	public void stop() {
 		SwingUtilities.invokeLater(() -> this.view.stop());
 		this.running = false;
+		this.controller.stop();
 	}
 
 	/**

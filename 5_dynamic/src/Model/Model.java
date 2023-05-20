@@ -22,6 +22,8 @@ import utils.Config;
 
 public class Model implements Service {
 
+	private final int nWordsPerLang = 1000;
+
 	public Model() {
 	}
 
@@ -73,7 +75,7 @@ public class Model implements Service {
 	private void insertDictionaryEntries(Statement statement, String language, List<String> dictionaryEntries)
 			throws SQLException {
 		Logger.getLogger(this.getClass().getSimpleName())
-				.log(Level.INFO, "Inserting {0} into {1}", new Object[] { dictionaryEntries.size(), language });
+				.log(Level.INFO, "Inserting {0} into {1}", new Object[] { dictionaryEntries.size(), language.toUpperCase() });
 
 		statement.executeUpdate("INSERT INTO " + language + " VALUES " + String.join(", ", dictionaryEntries));
 	}
@@ -117,7 +119,7 @@ public class Model implements Service {
 	private void processLanguage(Statement statement, File languageFile)
 			throws SQLException {
 		final String languageName = languageFile.getName().substring(0, languageFile.getName().lastIndexOf('.'));
-		statement.executeUpdate("DROP TABLE IF EXISTS " + languageName);
+		statement.executeUpdate("DROP TABLE IF EXISTS " + languageName.toUpperCase());
 		statement.executeUpdate("CREATE TABLE " + languageName + " (word string)");
 
 		try (Scanner dictionaryReader = new Scanner(languageFile)) {
@@ -185,6 +187,16 @@ public class Model implements Service {
 				String pathToDicts = (String) request.body.content;
 				removeDataBase();
 				populateDataBase(pathToDicts);
+			}
+			case FETCH_LANGS -> {
+				final String[] langs = (String[]) request.body.content;
+				final String[] sourceWords = getRandomWords(this.nWordsPerLang, langs[0]);
+				final String[] targetWords = getRandomWords(this.nWordsPerLang, langs[1]);
+
+				Body body = new Body(
+						new String[][] { new String[] { langs[0] + "-" + langs[1] }, sourceWords, targetWords });
+				Response response = new Response(ResponseCode.FETCH_LANGS, this, body);
+				this.sendResponse(response);
 			}
 			case GET_LANG_NAMES ->
 				this.sendResponse(new Response(ResponseCode.GET_LANG_NAMES, this, new Body(getLanguagesNames())));
