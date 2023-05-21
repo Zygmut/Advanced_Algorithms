@@ -47,15 +47,15 @@ public class WindowStats {
 		// Create a dataset
 		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 		for (int i = 0; i < values.length; i++) {
-			String row = ("Row " + i);
-			String column = ("Column " + i);
+			String row = ("Ejecución " + (i + 1));
+			String column = ("Ejecución " + (i + 1));
 			dataset.addValue(values[i], row, column);
 		}
 		// Create a chart
 		JFreeChart chart = ChartFactory.createBarChart(
 				title, // chart title
 				"Categoría", // category axis label
-				"Valor", // value axis label
+				"Tiempo (ms)", // value axis label
 				dataset // data
 		);
 		// Create a chart panel
