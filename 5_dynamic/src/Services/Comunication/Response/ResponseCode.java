@@ -10,5 +10,5 @@ public enum ResponseCode {
 	LEVENSHTEIN,
 	GET_TIMED_EXEC,
 	GET_ALL_LANGS,
-  GET_STATS
+  	GET_STATS, GUESS_LANG
 }

@@ -96,6 +96,8 @@ public class View implements Service {
 	 */
 	private int currentBodyScreenIndex;
 
+	private WindowWordGuesser wordGuesserWindow;
+
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
 	 *
@@ -181,6 +183,12 @@ public class View implements Service {
 				Long[] stats = (Long[]) request.body.content;
 				WindowStats windowStats = new WindowStats(stats);
 				windowStats.show();
+			}
+			case GUESS_LANG -> {
+				final Object[] parameters = (Object[]) request.body.content;
+				final Map<String, Double> result = (Map<String, Double>) parameters[1];
+				// result tiene todos los datos con respecto a la distancia
+				// hay que pasarlo al windowWordGuesser y representar bien los datos
 			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
@@ -400,7 +408,7 @@ public class View implements Service {
 		});
 		JMenuItem wordGuesser = new JMenuItem("Adivinador de palabras");
 		wordGuesser.addActionListener(e -> {
-			WindowWordGuesser wordGuesserWindow = new WindowWordGuesser(this);
+			this.wordGuesserWindow = new WindowWordGuesser(this);
 			wordGuesserWindow.show();
 		});
 

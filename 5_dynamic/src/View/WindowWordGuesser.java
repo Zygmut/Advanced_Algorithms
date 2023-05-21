@@ -9,6 +9,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Objects;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -28,6 +30,7 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
 
+import Services.Service;
 import Services.Comunication.Content.Body;
 import Services.Comunication.Request.Request;
 import Services.Comunication.Request.RequestCode;
@@ -79,8 +82,10 @@ public class WindowWordGuesser {
 		resultPanel.add(resultLabel, BorderLayout.CENTER);
 		detect.addActionListener(e -> {
             String input = inputField.getText();
-            System.out.println("La palabra que buscamos es: " + input);
 
+			Body body = new Body(input);
+			Request request = new Request(RequestCode.GUESS_LANG, this, body);
+			this.view.sendRequest(request);
             // Crear el dataset con las probabilidades
             DefaultCategoryDataset dataset = new DefaultCategoryDataset();
             String[] languages = {"ESPAÑOL", "INGLES", "FRANCES", "ALEMAN", "ITALIANO", "PORTUGUES"};
