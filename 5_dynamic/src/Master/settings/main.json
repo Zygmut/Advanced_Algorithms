@@ -25,7 +25,7 @@
 			"services": ["MODEL"]
 		},
 		{
-			"code": "GET_LANG",
+			"code": "GUESS_LANG",
 			"services": ["CONTROLLER"]
 		}
 	],
