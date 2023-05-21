@@ -12,6 +12,7 @@ import java.util.Random;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -22,6 +23,7 @@ import javax.swing.SwingConstants;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartFrame;
+import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
@@ -70,38 +72,39 @@ public class WindowWordGuesser {
 		JButton detect = new JButton("Detect Language");
 		detect.setBounds(new Rectangle(new Dimension(10, 10)));
 		// Log panel
-
-		JPanel rightPanel = new JPanel();
-		rightPanel.setLayout(new BorderLayout());
-		// Wrap a scrollpane around it.
-		rightPanel.add(detect, BorderLayout.SOUTH);
-		panel.add(rightPanel, BorderLayout.EAST);
+		inputPanel.add(detect, BorderLayout.EAST);
+		JPanel resultPanel = new JPanel();
+		resultPanel.setLayout(new BorderLayout());
+		JLabel resultLabel = new JLabel("Introduce un fragmento de texto o una sola palabra y te diré a que idioma pertenece", SwingConstants.CENTER);
+		resultPanel.add(resultLabel, BorderLayout.CENTER);
 		detect.addActionListener(e -> {
-			String input = inputField.getText();
-			System.out.println("La palabra que buscamos es: " + input);
-			Body body = new Body(input);
-			this.view.sendRequest(new Request(RequestCode.GUESS_LANG, this, body));
-			// Si input existe, se muestra el resultado
-			JPanel resultPanel = new JPanel();
-			DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-			String[] languages = { "ESPAÑOL", "INGLES", "FRANCES", "ALEMAN", "ITALIANO", "PORTUGUES" };
-			for (String language : languages) {
-				Random rd = new Random();
-				double probability = rd.nextDouble(1);
-				dataset.addValue(probability, language, language);
-			}
-			// Create chart
-			JFreeChart chart = ChartFactory.createBarChart("Probabilidad de idioma", "Idioma", "Probabilidad", dataset,
-					PlotOrientation.VERTICAL, false, true, false);
-			ChartFrame frame = new ChartFrame("Language Probability", chart);
-			frame.pack();
-			frame.setVisible(true);
-			frame.setLocationRelativeTo(null);
-			frame.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-			resultPanel.add(frame);
-			panel.add(resultPanel, BorderLayout.CENTER);
-		});
+            String input = inputField.getText();
+            System.out.println("La palabra que buscamos es: " + input);
 
+            // Crear el dataset con las probabilidades
+            DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+            String[] languages = {"ESPAÑOL", "INGLES", "FRANCES", "ALEMAN", "ITALIANO", "PORTUGUES"};
+            for (String language : languages) {
+                Random rd = new Random();
+                double probability = rd.nextDouble();
+                dataset.addValue(probability, language, language);
+            }
+
+            // Crear el gráfico
+            JFreeChart chart = ChartFactory.createBarChart("Language Probability", "Language", "Probability", dataset,
+                    PlotOrientation.VERTICAL, false, true, false);
+
+            // Crear el panel del gráfico
+            ChartPanel chartPanel = new ChartPanel(chart);
+            chartPanel.setPreferredSize(new Dimension(400, 300));
+
+            // Limpiar el panel y agregar el chartPanel al centro
+            resultPanel.removeAll();
+            resultPanel.add(chartPanel, BorderLayout.CENTER);
+            resultPanel.revalidate();
+            resultPanel.repaint();
+        });
+		panel.add(resultPanel, BorderLayout.CENTER);
 		return section;
 	}
 
