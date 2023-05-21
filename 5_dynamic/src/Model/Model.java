@@ -189,7 +189,7 @@ public class Model implements Service {
 					.log(Level.SEVERE, e.getLocalizedMessage());
 		}
 		Logger.getLogger(this.getClass().getSimpleName())
-				.log(Level.INFO, "Added timedExecution of {0} nanos", nanos.toNanos());
+				.log(Level.INFO, "Added timedExecution of {0} nanos", nanos.toMillis());
 	}
 
 	private Long[] getTimedExecution() {
@@ -197,8 +197,6 @@ public class Model implements Service {
 		try (Connection connection = DriverManager.getConnection("jdbc:sqlite:src/Model/" + Config.DB_NAME + ".sqlite");
 				Statement statement = connection.createStatement()) {
 			statement.setQueryTimeout(30);
-
-			ResultSet query = statement.executeQuery("SELECT milis FROM TimedExecution ORDER BY id");
 
 			while(query.next()){
 				result.add(query.getLong("milis"));
@@ -234,7 +232,7 @@ public class Model implements Service {
 				populateDataBase(pathToDicts);
 			}
 			case FETCH_LANGS -> {
-				final Object[] parameters = (Object []) request.body.content;
+				final Object[] parameters = (Object[]) request.body.content;
 				final int nWords = (int) parameters[2];
 				final String sourceLang = (String) parameters[0];
 				final String targetLang = (String) parameters[1];
@@ -242,13 +240,22 @@ public class Model implements Service {
 				final String[] targetWords = getRandomWords(nWords, targetLang);
 
 				Body body = new Body(
-						new String[][] { new String[] { sourceLang + "-" + targetLang }, sourceWords, targetWords });
+						new Object[] { sourceLang + "-" + targetLang , sourceWords, targetWords });
 				Response response = new Response(ResponseCode.FETCH_LANGS, this, body);
 				this.sendResponse(response);
 			}
-			case ADD_RESULT ->{
-				this.addTimedExecution(((Duration) ((Object[]) request.body.content)[0]));
+			case GET_ALL_LANGS -> {
+				final String[] langNames = this.getLanguagesNames();
+				ArrayList<String[]> words = new ArrayList<>();
+				for (String langName : langNames) {
+					words.add(this.getRandomWords(1000, langName));
+				}
+				Body body = new Body(new Object[] { words.toArray(String[][]::new), langNames });
+				Response response = new Response(ResponseCode.GET_ALL_LANGS, this, body);
+				this.sendResponse(response);
 			}
+			case ADD_RESULT ->
+				this.addTimedExecution(((Duration) ((Object[]) request.body.content)[0]));
 			case GET_LANG_NAMES ->
 				this.sendResponse(new Response(ResponseCode.GET_LANG_NAMES, this, new Body(getLanguagesNames())));
 			case GET_STATS ->
