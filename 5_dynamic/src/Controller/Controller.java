@@ -126,21 +126,7 @@ public class Controller implements Service {
 
 		// All langs were calculated. Get pairs and calculate the euclidean distance
 		// from their scores
-		Map<String, Double> langScore = new HashMap<>();
-		while (!this.lang.entrySet().isEmpty()) {
-			final Map.Entry<String, Double> entry1 = this.lang.entrySet().iterator().next();
-			final Double score1 = entry1.getValue();
-			this.lang.remove(entry1.getKey());
-
-			final String[] pair1 = entry1.getKey().split("-");
-			final String key2 = String.format("%s-%s", pair1[1], pair1[0]);
-			final Double score2 = this.lang.get(key2);
-			this.lang.remove(key2);
-
-			langScore.put(key2, euclideanDistance(score1, score2));
-		}
-
-		return langScore;
+		return mergeLangScores(this.lang);
 	}
 
 	private double euclideanDistance(double x, double y) {
@@ -195,6 +181,25 @@ public class Controller implements Service {
 		return langs;
 	}
 
+	private Map<String, Double> mergeLangScores(Map<String,Double> langScores){
+
+		Map<String, Double> scores = new HashMap<>(langScores);
+		Map<String, Double> langScore = new HashMap<>();
+		while (!scores.entrySet().isEmpty()) {
+			final Map.Entry<String, Double> entry1 = scores.entrySet().iterator().next();
+			final Double score1 = entry1.getValue();
+			scores.remove(entry1.getKey());
+
+			final String[] pair1 = entry1.getKey().split("-");
+			final String key2 = String.format("%s-%s", pair1[1], pair1[0]);
+			final Double score2 = scores.get(key2);
+			scores.remove(key2);
+
+			langScore.put(key2, euclideanDistance(score1, score2));
+		}
+
+		return langScore;
+	}
 	@Override
 	@SuppressWarnings("unchecked")
 	public void notifyRequest(Request request) {
@@ -233,9 +238,13 @@ public class Controller implements Service {
 				Map<String, Double> result = new HashMap<>();
 				for (int i = 0; i < langWords.length; i++) {
 					result.put("CUSTOM-" + langNames[i], levenshtein(this.words, langWords[i]));
+					result.put(langNames[i] + "-CUSTOM", levenshtein(langWords[i], this.words));
 				}
+
+				Map<String, Double> mergedResult = mergeLangScores(result);
 				Duration duration = Duration.between(start, Instant.now());
 
+				Body body = new Body(new Object[]{mergedResult, duration});
 				// TODO CREATE RESPONSE WITH THE MAP AND DURATION
 			}
 			case GUESS_LANG -> {
