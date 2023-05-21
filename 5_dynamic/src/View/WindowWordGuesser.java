@@ -8,9 +8,11 @@ import java.awt.Rectangle;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Objects;
+import java.util.Random;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -19,6 +21,14 @@ import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartFrame;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.category.DefaultCategoryDataset;
+
+import Services.Comunication.Content.Body;
 import Services.Comunication.Request.Request;
 import Services.Comunication.Request.RequestCode;
 import betterSwing.Section;
@@ -47,14 +57,10 @@ public class WindowWordGuesser {
 		JPanel panel = new JPanel();
 		section.createFreeSection(panel);
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        panel.setLayout(new BorderLayout());
+		panel.setLayout(new BorderLayout());
 		JLabel titleLabel = new JLabel("Word Guesser", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        panel.add(titleLabel, BorderLayout.NORTH);
-
-		JLabel resultLabel = new JLabel("", SwingConstants.CENTER);
-		resultLabel.setFont(new Font("Arial", Font.BOLD, 20));
-		panel.add(resultLabel, BorderLayout.CENTER);
+		titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+		panel.add(titleLabel, BorderLayout.NORTH);
 
 		JPanel inputPanel = new JPanel();
 		inputPanel.setLayout(new BorderLayout());
@@ -66,32 +72,39 @@ public class WindowWordGuesser {
 		JButton detect = new JButton("Detect Language");
 		detect.setBounds(new Rectangle(new Dimension(10, 10)));
 		// Log panel
-
-		JPanel rightPanel = new JPanel();
-		rightPanel.setLayout(new BorderLayout());
-
-		JPanel infoPanel = new JPanel();
-		infoPanel.setBackground(Color.WHITE);
-		infoPanel.setLayout(new BorderLayout());
-		JTextArea textArea = new JTextArea();
-		textArea.setEditable(false);
-		textArea.setLineWrap(true);
-		textArea.setWrapStyleWord(true);
-		textArea.setText("Logs: \n");
-
-		// Wrap a scrollpane around it.
-		JScrollPane scrollPane = new JScrollPane(textArea);
-		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-		infoPanel.add(scrollPane, BorderLayout.CENTER);
-		rightPanel.add(infoPanel, BorderLayout.CENTER);
-		rightPanel.add(detect, BorderLayout.SOUTH);
-		panel.add(rightPanel, BorderLayout.EAST);
+		inputPanel.add(detect, BorderLayout.EAST);
+		JPanel resultPanel = new JPanel();
+		resultPanel.setLayout(new BorderLayout());
+		JLabel resultLabel = new JLabel("Introduce un fragmento de texto o una sola palabra y te diré a que idioma pertenece", SwingConstants.CENTER);
+		resultPanel.add(resultLabel, BorderLayout.CENTER);
 		detect.addActionListener(e -> {
-			String input = inputField.getText();
-			System.out.println("La palabra que buscamos es: " + input);
-			this.view.sendRequest(new Request(RequestCode.GUESS_LANG, this));
-		});
+            String input = inputField.getText();
+            System.out.println("La palabra que buscamos es: " + input);
 
+            // Crear el dataset con las probabilidades
+            DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+            String[] languages = {"ESPAÑOL", "INGLES", "FRANCES", "ALEMAN", "ITALIANO", "PORTUGUES"};
+            for (String language : languages) {
+                Random rd = new Random();
+                double probability = rd.nextDouble();
+                dataset.addValue(probability, language, language);
+            }
+
+            // Crear el gráfico
+            JFreeChart chart = ChartFactory.createBarChart("Language Probability", "Language", "Probability", dataset,
+                    PlotOrientation.VERTICAL, false, true, false);
+
+            // Crear el panel del gráfico
+            ChartPanel chartPanel = new ChartPanel(chart);
+            chartPanel.setPreferredSize(new Dimension(400, 300));
+
+            // Limpiar el panel y agregar el chartPanel al centro
+            resultPanel.removeAll();
+            resultPanel.add(chartPanel, BorderLayout.CENTER);
+            resultPanel.revalidate();
+            resultPanel.repaint();
+        });
+		panel.add(resultPanel, BorderLayout.CENTER);
 		return section;
 	}
 
