@@ -9,5 +9,6 @@ public enum ResponseCode {
 	FETCH_LANGS,
 	LEVENSHTEIN,
 	GET_TIMED_EXEC,
-	GET_ALL_LANGS
+	GET_ALL_LANGS,
+  GET_STATS
 }

@@ -1,14 +1,12 @@
 package View;
 
-import java.util.function.LongUnaryOperator;
-
 import javax.swing.JPanel;
+import java.awt.BorderLayout;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.data.category.DefaultCategoryDataset;
-import org.jfree.data.xy.XYSeriesCollection;
 
 import betterSwing.Section;
 import betterSwing.Window;
@@ -18,8 +16,10 @@ import utils.Config;
 public class WindowStats {
 
 	private Window window;
+	private Long[] times;
 
-	public WindowStats() {
+	public WindowStats(Long[] times) {
+		this.times = times;
 		this.window = new Window(Config.VIEW_STATS_WIN_CONFIG_PATH);
 		this.window.initConfig();
 		this.loadContent();
@@ -37,37 +37,25 @@ public class WindowStats {
 
 	private JPanel panelStats() {
 		JPanel panel = new JPanel();
-
+		panel.setLayout(new BorderLayout());
+		final String[] names = { "Tiempo de ejecución" };
+		panel.add(this.createBarPlot(this.times, "Estadísticas tiempo ejecución", names, names), BorderLayout.CENTER);
 		return panel;
 	}
 
-	private XYSeriesCollection createDataSet() {
-		LongUnaryOperator toMB = n -> n / 1024 / 1024;
-		XYSeriesCollection dataset = new XYSeriesCollection();
-
-		return dataset;
-	}
-
-	private ChartPanel createLineChartPanel(XYSeriesCollection dataset, String title, String xLabel, String yLabel) {
-		// Create chart
-		JFreeChart chart = ChartFactory.createXYLineChart(title, xLabel, yLabel, dataset);
-		// Create Panel
-		return new ChartPanel(chart);
-	}
-
-	private ChartPanel createBarPlot(Double[] values, String title, String[] columnNames, String[] rowNames) {
+	private ChartPanel createBarPlot(Long[] values, String title, String[] columnNames, String[] rowNames) {
 		// Create a dataset
 		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 		for (int i = 0; i < values.length; i++) {
-			String row = rowNames == null ? ("Row " + i) : rowNames[i];
-			String column = columnNames == null ? ("Column " + i) : columnNames[i];
+			String row = ("Ejecución " + (i + 1));
+			String column = ("Ejecución " + (i + 1));
 			dataset.addValue(values[i], row, column);
 		}
 		// Create a chart
 		JFreeChart chart = ChartFactory.createBarChart(
 				title, // chart title
 				"Categoría", // category axis label
-				"Valor", // value axis label
+				"Tiempo (ms)", // value axis label
 				dataset // data
 		);
 		// Create a chart panel

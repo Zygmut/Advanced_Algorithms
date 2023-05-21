@@ -177,6 +177,11 @@ public class View implements Service {
 				this.splitPane.setLeftComponent(this.bodyScreens[1]);
 				this.currentBodyScreenIndex = 1;
 			}
+			case GET_STATS -> {
+				Long[] stats = (Long[]) request.body.content;
+				WindowStats windowStats = new WindowStats(stats);
+				windowStats.show();
+			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
@@ -385,7 +390,7 @@ public class View implements Service {
 		JMenu stats = new JMenu("Estadisticas");
 		JMenuItem alg = new JMenuItem("Algoritmos");
 		alg.addActionListener(e -> {
-			// TODO TIMED EXECTUION GRAPH
+			this.sendRequest(new Request(RequestCode.GET_STATS, this));
 		});
 		JMenuItem jvm = new JMenuItem("JVM");
 		jvm.addActionListener(e -> {

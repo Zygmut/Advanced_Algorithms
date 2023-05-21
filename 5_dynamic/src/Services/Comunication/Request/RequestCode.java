@@ -9,6 +9,7 @@ public enum RequestCode {
     FETCH_LANGS,
     LEVENSHTEIN,
     ADD_RESULT,
-	GUESS_LANG,
-	GET_ALL_LANGS
+	  GUESS_LANG,
+	  GET_STATS,
+	  GET_ALL_LANGS
 }
