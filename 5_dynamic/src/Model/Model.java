@@ -239,7 +239,7 @@ public class Model implements Service {
 				final String[] targetWords = getRandomWords(nWords, targetLang);
 
 				Body body = new Body(
-						new String[][] { new String[] { sourceLang + "-" + targetLang }, sourceWords, targetWords });
+						new Object[] { sourceLang + "-" + targetLang , sourceWords, targetWords });
 				Response response = new Response(ResponseCode.FETCH_LANGS, this, body);
 				this.sendResponse(response);
 			}
@@ -247,7 +247,7 @@ public class Model implements Service {
 				final String[] langNames = this.getLanguagesNames();
 				ArrayList<String[]> words = new ArrayList<>();
 				for (String langName : langNames) {
-					words.add(this.getRandomWords(200, langName));
+					words.add(this.getRandomWords(1000, langName));
 				}
 				Body body = new Body(new Object[] { words.toArray(String[][]::new), langNames });
 				Response response = new Response(ResponseCode.GET_ALL_LANGS, this, body);
