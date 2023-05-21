@@ -9,15 +9,13 @@ import Services.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
-import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.swing.RowFilter.Entry;
 
 import Model.ExecResultData;
 import Model.ExecResultDataTreeNode;
@@ -203,44 +201,53 @@ public class Controller implements Service {
 	public void notifyRequest(Request request) {
 		switch (request.code) {
 			case FETCH_LANGS -> {
-				String[][] words = (String[][]) request.body.content;
-				lang.put(words[0][0], levenshtein(words[1], words[2]));
+				final Object[] paramenters = (Object[]) request.body.content;
+				final String langName = (String) paramenters[0];
+				final String[] sourceWords = (String[]) paramenters[1];
+				final String[] targetWords = (String[]) paramenters[2];
+				lang.put(langName, levenshtein(sourceWords, targetWords));
 				Helpers.syncCount.dec();
 			}
 			case LEVENSHTEIN -> {
-				Object[] parameters = (Object[]) request.body.content;
-				if (!(parameters[1] instanceof Map<?, ?>)) {
-					Logger.getLogger(this.getClass().getSimpleName())
-							.log(Level.SEVERE, "Parameters are not a Map<String, Integer>.");
-					return;
-				}
+				final Object[] parameters = (Object[]) request.body.content;
+				final String[] langNames = (String[]) parameters[0];
+				final Map<String, Integer> options = (HashMap<String, Integer>) parameters[1];
+
 				this.lang.clear();
-				Map<String, Integer> options = (HashMap<String, Integer>) parameters[1];
-				Instant start = Instant.now();
-				Map<String, Double> results = this.levenshtein((String[]) parameters[0], options.get("parallel") == 1,
+
+				final Instant start = Instant.now();
+				final Map<String, Double> results = this.levenshtein(langNames, options.get("parallel") == 1,
 						options.get("batchSize"));
-				Duration duration = Duration.between(start, Instant.now());
+				final Duration duration = Duration.between(start, Instant.now());
 
-				ExecResultData[] graphData = resultToGraphData(results);
-				ExecResultDataTreeNode treeData = resultToTreeData(results, graphData);
+				final ExecResultData[] graphData = resultToGraphData(results);
+				final ExecResultDataTreeNode treeData = resultToTreeData(results, graphData);
 
-				Body body = new Body(new Object[] { duration, graphData, treeData });
+				final Body body = new Body(new Object[] { duration, graphData, treeData });
 				this.sendRequest(new Request(RequestCode.ADD_RESULT, this, body));
 			}
 			case GET_ALL_LANGS -> {
 				final Object[] parameters = (Object[]) request.body.content;
-				String[][] langWords = (String[][]) parameters[0];
-				String[] langNames = (String[]) parameters[1];
+				final String[][] langWords = (String[][]) parameters[0];
+				final String[] langNames = (String[]) parameters[1];
 
-				Instant start = Instant.now();
+				final Instant start = Instant.now();
 				Map<String, Double> result = new HashMap<>();
+
+				// We create a division of the data, as we need different words for each
+				// iteration.
+				// As to not add more complexity to the software, we get double the words and
+				// slice it by half.
 				for (int i = 0; i < langWords.length; i++) {
-					result.put("CUSTOM-" + langNames[i], levenshtein(this.words, langWords[i]));
-					result.put(langNames[i] + "-CUSTOM", levenshtein(langWords[i], this.words));
+					result.put("CUSTOM-" + langNames[i],
+							levenshtein(this.words, Arrays.copyOfRange(langWords[i], 0, langWords[i].length / 2)));
+					result.put(langNames[i] + "-CUSTOM",
+							levenshtein(Arrays.copyOfRange(langWords[i], langWords[i].length / 2, langWords[i].length),
+									this.words));
 				}
 
-				Map<String, Double> mergedResult = mergeLangScores(result);
-				Duration duration = Duration.between(start, Instant.now());
+				final Map<String, Double> mergedResult = mergeLangScores(result);
+				final Duration duration = Duration.between(start, Instant.now());
 
 				Body body = new Body(new Object[] { mergedResult, duration });
 				// TODO CREATE RESPONSE WITH THE MAP AND DURATION
