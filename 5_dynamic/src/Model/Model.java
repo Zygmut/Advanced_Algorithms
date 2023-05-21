@@ -198,6 +198,7 @@ public class Model implements Service {
 				Statement statement = connection.createStatement()) {
 			statement.setQueryTimeout(30);
 
+			ResultSet query = statement.executeQuery("SELECT milis FROM TimedExecution ORDER BY id");
 			while(query.next()){
 				result.add(query.getLong("milis"));
 			}
