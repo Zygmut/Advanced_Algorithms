@@ -180,7 +180,7 @@ public class Model implements Service {
 				Statement statement = connection.createStatement()) {
 			statement.setQueryTimeout(30);
 
-		statement.executeUpdate("INSERT INTO TimedExecution (nanos) VALUES " + nanos.toNanos());
+			statement.executeUpdate("INSERT INTO TimedExecution (nanos) VALUES " + nanos.toNanos());
 		} catch (Exception e) {
 			Logger.getLogger(this.getClass().getSimpleName())
 					.log(Level.SEVERE, e.getLocalizedMessage());
@@ -195,11 +195,11 @@ public class Model implements Service {
 				Statement statement = connection.createStatement()) {
 			statement.setQueryTimeout(30);
 
-		ResultSet query = statement.executeQuery("SELECT seconds FROM TimedExecution ORDER BY id");
+			ResultSet query = statement.executeQuery("SELECT seconds FROM TimedExecution ORDER BY id");
 
-		while(query.next()){
-			result.add(query.getLong("nanos"));
-		}
+			while (query.next()) {
+				result.add(query.getLong("nanos"));
+			}
 
 		} catch (Exception e) {
 			Logger.getLogger(this.getClass().getSimpleName())
@@ -231,7 +231,7 @@ public class Model implements Service {
 				populateDataBase(pathToDicts);
 			}
 			case FETCH_LANGS -> {
-				final Object[] parameters = (Object []) request.body.content;
+				final Object[] parameters = (Object[]) request.body.content;
 				final int nWords = (int) parameters[2];
 				final String sourceLang = (String) parameters[0];
 				final String targetLang = (String) parameters[1];
@@ -239,8 +239,18 @@ public class Model implements Service {
 				final String[] targetWords = getRandomWords(nWords, targetLang);
 
 				Body body = new Body(
-						new String[][] { new String[] { sourceLang + "-" + targetLang }, sourceWords, targetWords });
+						new Object[] { sourceLang + "-" + targetLang , sourceWords, targetWords });
 				Response response = new Response(ResponseCode.FETCH_LANGS, this, body);
+				this.sendResponse(response);
+			}
+			case GET_ALL_LANGS -> {
+				final String[] langNames = this.getLanguagesNames();
+				ArrayList<String[]> words = new ArrayList<>();
+				for (String langName : langNames) {
+					words.add(this.getRandomWords(1000, langName));
+				}
+				Body body = new Body(new Object[] { words.toArray(String[][]::new), langNames });
+				Response response = new Response(ResponseCode.GET_ALL_LANGS, this, body);
 				this.sendResponse(response);
 			}
 			case ADD_RESULT ->

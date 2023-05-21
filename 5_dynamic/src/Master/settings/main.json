@@ -19,12 +19,24 @@
 		{
 			"code": "FETCH_LANGS",
 			"services": ["MODEL"]
+		},
+		{
+			"code": "GET_ALL_LANGS",
+			"services": ["MODEL"]
+		},
+		{
+			"code": "GUESS_LANG",
+			"services": ["CONTROLLER"]
 		}
 	],
 	"responseMap": [
 		{
 			"code": "GET_LANG_NAMES",
 			"services": ["VIEW"]
+		},
+		{
+			"code": "GET_ALL_LANGS",
+			"services": ["CONTROLLER"]
 		},
 		{
 			"code": "LEVENSHTEIN",
@@ -43,6 +55,10 @@
 		{
 			"responseCode": "LEVENSHTEIN",
 			"requestCode": "LEVENSHTEIN"
+		},
+		{
+			"responseCode": "GET_ALL_LANGS",
+			"requestCode": "GET_ALL_LANGS"
 		},
 		{
 			"responseCode": "FETCH_LANGS",

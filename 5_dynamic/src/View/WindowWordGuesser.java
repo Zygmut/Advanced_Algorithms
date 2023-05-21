@@ -19,6 +19,8 @@ import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 
+import Services.Comunication.Request.Request;
+import Services.Comunication.Request.RequestCode;
 import betterSwing.Section;
 import betterSwing.Window;
 import betterSwing.utils.DirectionAndPosition;
@@ -27,8 +29,10 @@ import utils.Config;
 public class WindowWordGuesser {
 
 	private Window window;
+	private View view;
 
-	public WindowWordGuesser() {
+	public WindowWordGuesser(View view) {
+		this.view = view;
 		this.window = new Window(Config.VIEW_USER_MANUAL_WIN_CONFIG_PATH);
 		this.window.initConfig();
 		this.loadContent();
@@ -85,10 +89,9 @@ public class WindowWordGuesser {
 		detect.addActionListener(e -> {
 			String input = inputField.getText();
 			System.out.println("La palabra que buscamos es: " + input);
-			//Llamar a una función para detectar el lenguaje
-			//String resultText = "Language detected: " + input;
-			//resultLabel.setText(resultText);
+			this.view.sendRequest(new Request(RequestCode.GUESS_LANG, this));
 		});
+
 		return section;
 	}
 
