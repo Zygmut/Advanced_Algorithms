@@ -161,12 +161,9 @@ public class Controller implements Service {
 	}
 
 	private ExecResultDataTreeNode resultToTreeData(Map<String, Double> result, ExecResultData[] graph) {
-		Set<String> langs = this.getIdLangs(result);
-		PriorityQueue<ExecResultData.Connection> pq = new PriorityQueue<>(
-				(a, b) -> Double.compare(a.value(), b.value()));
-
-		ExecResultDataTreeNode root = new ExecResultDataTreeNode("", null);
-		return root;
+		Logger.getLogger(this.getClass().getSimpleName())
+				.log(Level.SEVERE, "resultToTreeData is not implemented");
+		return new ExecResultDataTreeNode("", null);
 	}
 
 	private Set<String> getIdLangs(Map<String, Double> result) {
@@ -181,7 +178,7 @@ public class Controller implements Service {
 		return langs;
 	}
 
-	private Map<String, Double> mergeLangScores(Map<String,Double> langScores){
+	private Map<String, Double> mergeLangScores(Map<String, Double> langScores) {
 
 		Map<String, Double> scores = new HashMap<>(langScores);
 		Map<String, Double> langScore = new HashMap<>();
@@ -200,6 +197,7 @@ public class Controller implements Service {
 
 		return langScore;
 	}
+
 	@Override
 	@SuppressWarnings("unchecked")
 	public void notifyRequest(Request request) {
@@ -244,7 +242,7 @@ public class Controller implements Service {
 				Map<String, Double> mergedResult = mergeLangScores(result);
 				Duration duration = Duration.between(start, Instant.now());
 
-				Body body = new Body(new Object[]{mergedResult, duration});
+				Body body = new Body(new Object[] { mergedResult, duration });
 				// TODO CREATE RESPONSE WITH THE MAP AND DURATION
 			}
 			case GUESS_LANG -> {
