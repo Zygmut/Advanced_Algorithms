@@ -176,12 +176,48 @@ public class Controller implements Service {
 	private ExecResultDataTreeNode resultToTreeData(Map<String, Double> result, ExecResultData[] graph) {
 		Set<String> langs = this.getIdLangs(result);
 		PriorityQueue<ExecResultData.Connection> pq = new PriorityQueue<>(
-				(a, b) -> Double.compare(a.value(), b.value())
+			(a, b) -> Double.compare(a.value(), b.value())
 		);
-
 		ExecResultDataTreeNode root = new ExecResultDataTreeNode("", null);
-		return root;
+
+		//Añadimos los nodos hoja a un mapa para poder acceder a ellos por su id
+		Map<String, ExecResultDataTreeNode> languageNodes = new HashMap<>();
+		for (String lang : langs) {
+			ExecResultDataTreeNode leafNode = new ExecResultDataTreeNode(lang, null);
+			languageNodes.put(lang, leafNode);
+		}
+
+		//Recorremos las conexiones del grafo
+		for (ExecResultData connection : graph) {
+            String sourceLang = connection.getSourceLanguage();
+            String targetLang = connection.getTargetLanguage();
+            double connectionValue = connection.getConnectionValue();
+            ExecResultDataTreeNode sourceNode = languageNodes.get(sourceLang);
+            ExecResultDataTreeNode targetNode = languageNodes.get(targetLang);
+            ExecResultData.Connection connectionObj = new ExecResultData.Connection(sourceNode, connectionValue);
+            pq.offer(connectionObj);
+        }
+
+		while (!pq.isEmpty()) {
+            ExecResultData.Connection smallestConnection = pq.poll();
+            ExecResultDataTreeNode sourceNode = smallestConnection.getSourceNode();
+            ExecResultDataTreeNode targetNode = smallestConnection.getTargetNode();
+            double connectionValue = smallestConnection.value();
+
+            ExecResultDataTreeNode mergedNode = new ExecResultDataTreeNode("", root);
+            mergedNode.addChild(sourceNode);
+            mergedNode.addChild(targetNode);
+            root.addChild(mergedNode);
+		}
+
+
+		System.out.println(languageNodes.toString());
+
+		 return root;
 	}
+
+
+
 
 	private Set<String> getIdLangs(Map<String, Double> result) {
 		Set<String> langs = new HashSet<>();

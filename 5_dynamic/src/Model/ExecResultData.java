@@ -19,7 +19,16 @@ public record ExecResultData(String id, Connection[] connections) implements Ser
 	public int hashCode() {
 		return Objects.hash(connections, id);
 	}
+	public String getSourceLanguage() {
+		//Devolver el id del nodo raiz
+		return this.connections[0].id;
 
+	}
+
+	public String getTargetLanguage() {
+		//Devolver el id del nodo destino
+		return this.connections[1].id;
+	}
 	@Override
 	public String toString() {
 		return "ExecResultData [connnections=" + connections + ", id=" + id + "]";
