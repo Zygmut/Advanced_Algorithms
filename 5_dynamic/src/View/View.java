@@ -286,7 +286,7 @@ public class View implements Service {
 	}
 
 	private Section body() {
-		this.bodyScreens = new JPanel[5];
+		this.bodyScreens = new JPanel[4];
 
 		JPanel content = new JPanel();
 		content.setLayout(new BorderLayout());
@@ -334,12 +334,6 @@ public class View implements Service {
 		content.add(dictPanel, BorderLayout.CENTER);
 
 		this.bodyScreens[0] = content;
-		JPanel panelArbol = new JPanel();
-		panelArbol.setBackground(Color.WHITE);
-		panelArbol.setLayout(new BorderLayout());
-		panelArbol.add(new JLabel("Arbol"), BorderLayout.NORTH);
-		FiloGenGraph filoGenGraph = new FiloGenGraph(Color.BLACK, Color.WHITE);
-		this.bodyScreens[4] = filoGenGraph.createGraph(null, "FiloGen");
 		splitPane.setLeftComponent(content);
 		Section body = new Section();
 		body.createJSplitPaneSection(splitPane);
@@ -537,72 +531,6 @@ public class View implements Service {
 			return panel;
 		}
 
-	}
-
-	private class FiloGenGraph {
-
-		private Color connectionLineColor;
-		private Color nodesColor;
-
-		public FiloGenGraph(Color connectionLineColor, Color nodesColor) {
-			this.connectionLineColor = connectionLineColor;
-			this.nodesColor = nodesColor;
-		}
-
-		private JPanel createGraph(ExecResultData[] data, String title) {
-			// Create a new graph
-			mxGraph graph = new mxGraph();
-
-			// Get the default parent for the graph
-			Object parent = graph.getDefaultParent();
-
-			// Begin a new transaction
-			graph.getModel().beginUpdate();
-			Object nodeSpanish = graph.insertVertex(parent, null, "Spanish", 220, 20, 80, 30);
-			Object nodeCatalan = graph.insertVertex(parent, null, "Catalan", 120, 80, 80, 30);
-			Object nodeEnglish = graph.insertVertex(parent, null, "English", 620, 80, 80, 30);
-			Object nodeFrench = graph.insertVertex(parent, null, "French", 220, 140, 80, 30);
-			Object nodeItalian = graph.insertVertex(parent, null, "Italian", 420, 140, 80, 30);
-			Object nodeGerman = graph.insertVertex(parent, null, "German", 520, 200, 80, 30);
-			Object nodePortuguese = graph.insertVertex(parent, null, "Portuguese", 320, 80, 80, 30);
-			Object nodeDanish = graph.insertVertex(parent, null, "Danish", 620, 250, 80, 30);
-			Object nodeHungarian = graph.insertVertex(parent, null, "Hungarian", 520, 250, 80, 30);
-			Object nodeCroatian = graph.insertVertex(parent, null, "Croatian", 420, 250, 80, 30);
-
-
-			// Add edges
-			graph.insertEdge(parent, null, "", nodeSpanish, nodeCatalan);
-			graph.insertEdge(parent, null, "", nodeSpanish, nodePortuguese);
-			graph.insertEdge(parent, null, "", nodePortuguese, nodeItalian);
-			graph.insertEdge(parent, null, "", nodeItalian, nodeFrench);
-			graph.insertEdge(parent, null, "", nodeGerman, nodeFrench);
-			graph.insertEdge(parent, null, "", nodeGerman, nodeEnglish);
-			graph.insertEdge(parent, null, "", nodeGerman, nodeDanish);
-			graph.insertEdge(parent, null, "", nodeGerman, nodeHungarian);
-			graph.insertEdge(parent, null, "", nodeGerman, nodeCroatian);
-
-			graph.getModel().endUpdate();
-
-			// Configurar el estilo del grafo
-			graph.setCellsEditable(false);
-			graph.setCellsMovable(false);
-			graph.setCellsResizable(false);
-			graph.setCellsSelectable(false);
-			JPanel panel = new JPanel();
-			panel.setLayout(new BorderLayout());
-			panel.setBackground(Color.WHITE);
-			JLabel label = new JLabel("Phylogenetic Tree");
-			label.setHorizontalAlignment(SwingConstants.CENTER);
-			panel.add(label, BorderLayout.NORTH);
-
-			// Create a Swing component for the graph
-			mxGraphComponent graphComponent = new mxGraphComponent(graph);
-			graphComponent.setConnectable(false);
-			graphComponent.setToolTips(true);
-			graphComponent.getViewport().setBackground(Color.WHITE);
-			panel.add(graphComponent, BorderLayout.CENTER);
-			return panel;
-		}
 	}
 
 	private class BarChartPlot {
