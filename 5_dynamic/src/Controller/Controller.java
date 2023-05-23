@@ -189,15 +189,16 @@ public class Controller implements Service {
 		for (ExecResultData data : graph) {
 			for (ExecResultData.Connection connection : data.connections()) {
 				pq.offer(connection);
-
 			}
 		}
+
+
 		ExecResultDataTreeNode root = null;
 		ExecResultDataTreeNode[] children = new ExecResultDataTreeNode[pq.size()];
 		int i = 0;
 		ExecResultDataTreeNode previousTree = null;
 		// Construir el árbol a partir de los elementos de la cola de prioridad
-		while (!pq.isEmpty()) {
+		while (!pq.isEmpty() && i < langs.size()) {
 			ExecResultData.Connection connection = pq.poll();
 			ExecResultDataTreeNode node = languageNodes.get(connection.id());
 			System.out.println("Nodo" + node.toString() + connection.toString());
@@ -209,9 +210,11 @@ public class Controller implements Service {
 				children[i] = previousTree;
 			} else if (i > 1) {
 				ExecResultDataTreeNode[] subtreeNodes = new ExecResultDataTreeNode[i + 1];
-				System.arraycopy(children, i, subtreeNodes, 0, i + 1);
+				System.arraycopy(children, 0, subtreeNodes, 0, i);
+				subtreeNodes[i] = node;
 				previousTree = new ExecResultDataTreeNode(null, subtreeNodes);
 				children[i] = previousTree;
+
 			}
 			i++;
 		}
