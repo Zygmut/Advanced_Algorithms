@@ -82,7 +82,7 @@ public class Controller implements Service {
 		for (String sourceWord : source) {
 			int tmpScore = Integer.MAX_VALUE;
 			for (String targetWord : target) {
-				tmpScore = Math.min(tmpScore, levenshtein(sourceWord, targetWord)) ;
+				tmpScore = Math.min(tmpScore, levenshtein(sourceWord, targetWord));
 			}
 			score += (double) tmpScore / sourceWord.length();
 		}
@@ -103,7 +103,7 @@ public class Controller implements Service {
 
 				// Create a request to fetch those two languages words, then the calculation
 				// will be done within the request
-				Body body = new Body(new Object[] { languages[i], languages[j], batchSize});
+				Body body = new Body(new Object[] { languages[i], languages[j], batchSize });
 				Request request = new Request(RequestCode.FETCH_LANGS, this, body);
 				this.sendRequest(request);
 
@@ -176,53 +176,51 @@ public class Controller implements Service {
 	private ExecResultDataTreeNode resultToTreeData(Map<String, Double> result, ExecResultData[] graph) {
 		Set<String> langs = this.getIdLangs(result);
 		PriorityQueue<ExecResultData.Connection> pq = new PriorityQueue<>(
-			(a, b) -> Double.compare(a.value(), b.value())
-		);
+				(a, b) -> Double.compare(a.value(), b.value()));
 
-
-		//Añadimos los nodos hoja a un mapa para poder acceder a ellos por su id
+		// Añadimos los nodos hoja a un mapa para poder acceder a ellos por su id
 		Map<String, ExecResultDataTreeNode> languageNodes = new HashMap<>();
 		for (String lang : langs) {
 			ExecResultDataTreeNode leafNode = new ExecResultDataTreeNode(lang, null);
 			languageNodes.put(lang, leafNode);
 		}
 
-		    // Construir las conexiones en la cola de prioridad
-			for (ExecResultData data : graph) {
-				for (ExecResultData.Connection connection : data.connections()) {
-					pq.offer(connection);
-				}
+		// Construir las conexiones en la cola de prioridad
+		for (ExecResultData data : graph) {
+			for (ExecResultData.Connection connection : data.connections()) {
+				pq.offer(connection);
+
 			}
-			ExecResultDataTreeNode root = null;
-			ExecResultDataTreeNode[] children = new ExecResultDataTreeNode[pq.size()];
-			int i = 0;
-			// Construir el árbol a partir de los elementos de la cola de prioridad
-			while (!pq.isEmpty()) {
-				ExecResultData.Connection connection = pq.poll();
-				ExecResultDataTreeNode node = languageNodes.get(connection.id());
-				System.out.println("Nodo" + node.toString() + connection.toString());
-
-				children[i] = node;
-				//if (i == 1) {
-				//	root = new ExecResultDataTreeNode(null, children);
-				//}
-
-				if (i > 0) {
-					ExecResultDataTreeNode[] subtreeNodes = new ExecResultDataTreeNode[i + 1];
-					System.arraycopy(children, 0, subtreeNodes, 0, i + 1);
-					ExecResultDataTreeNode subtreeRoot = new ExecResultDataTreeNode(null, subtreeNodes);
-					children[i] = subtreeRoot;
-				}
-
-				i++;
-			}
-
-			if (i > 0) {
-				root = children[i - 1];
-			}
-
-			return root;
 		}
+		ExecResultDataTreeNode root = null;
+		ExecResultDataTreeNode[] children = new ExecResultDataTreeNode[pq.size()];
+		int i = 0;
+		ExecResultDataTreeNode previousTree = null;
+		// Construir el árbol a partir de los elementos de la cola de prioridad
+		while (!pq.isEmpty()) {
+			ExecResultData.Connection connection = pq.poll();
+			ExecResultDataTreeNode node = languageNodes.get(connection.id());
+			System.out.println("Nodo" + node.toString() + connection.toString());
+			children[i] = node;
+			if (i > 0 && i < 2) {
+				ExecResultDataTreeNode[] subtreeNodes = new ExecResultDataTreeNode[i + 1];
+				System.arraycopy(children, 0, subtreeNodes, 0, i + 1);
+				previousTree = new ExecResultDataTreeNode(null, subtreeNodes);
+				children[i] = previousTree;
+			} else if (i > 1) {
+				ExecResultDataTreeNode[] subtreeNodes = new ExecResultDataTreeNode[i + 1];
+				System.arraycopy(children, i, subtreeNodes, 0, i + 1);
+				previousTree = new ExecResultDataTreeNode(null, subtreeNodes);
+				children[i] = previousTree;
+			}
+			i++;
+		}
+		if (i > 0) {
+			root = children[i - 1];
+		}
+		return root;
+	}
+
 	private Set<String> getIdLangs(Map<String, Double> result) {
 		Set<String> langs = new HashSet<>();
 
@@ -251,15 +249,16 @@ public class Controller implements Service {
 							.log(Level.SEVERE, "Parameters are not a Map<String, Integer>.");
 					return;
 				}
-				Map<String, Integer> options = (HashMap<String, Integer>)parameters[1];
+				Map<String, Integer> options = (HashMap<String, Integer>) parameters[1];
 				Instant start = Instant.now();
-				Map<String, Double> results = this.levenshtein((String[]) parameters[0], options.get("parallel") == 1 , options.get("batchSize"));
+				Map<String, Double> results = this.levenshtein((String[]) parameters[0], options.get("parallel") == 1,
+						options.get("batchSize"));
 				Duration duration = Duration.between(start, Instant.now());
 
 				ExecResultData[] graphData = resultToGraphData(results);
 				ExecResultDataTreeNode treeData = resultToTreeData(results, graphData);
 
-				Body body = new Body(new Object[] { duration, graphData, treeData});
+				Body body = new Body(new Object[] { duration, graphData, treeData });
 				this.sendRequest(new Request(RequestCode.ADD_RESULT, this, body));
 			}
 			default -> {
