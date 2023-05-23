@@ -178,7 +178,7 @@ public class Controller implements Service {
 		PriorityQueue<ExecResultData.Connection> pq = new PriorityQueue<>(
 			(a, b) -> Double.compare(a.value(), b.value())
 		);
-		ExecResultDataTreeNode root = new ExecResultDataTreeNode("", null);
+
 
 		//Añadimos los nodos hoja a un mapa para poder acceder a ellos por su id
 		Map<String, ExecResultDataTreeNode> languageNodes = new HashMap<>();
@@ -187,38 +187,42 @@ public class Controller implements Service {
 			languageNodes.put(lang, leafNode);
 		}
 
-		//Recorremos las conexiones del grafo
-		for (ExecResultData connection : graph) {
-            String sourceLang = connection.getSourceLanguage();
-            String targetLang = connection.getTargetLanguage();
-            double connectionValue = connection.getConnectionValue();
-            ExecResultDataTreeNode sourceNode = languageNodes.get(sourceLang);
-            ExecResultDataTreeNode targetNode = languageNodes.get(targetLang);
-            ExecResultData.Connection connectionObj = new ExecResultData.Connection(sourceNode, connectionValue);
-            pq.offer(connectionObj);
-        }
+		    // Construir las conexiones en la cola de prioridad
+			for (ExecResultData data : graph) {
+				for (ExecResultData.Connection connection : data.connections()) {
+					pq.offer(connection);
+				}
+			}
+			ExecResultDataTreeNode root = null;
+			ExecResultDataTreeNode[] children = new ExecResultDataTreeNode[pq.size()];
+			int i = 0;
+			// Construir el árbol a partir de los elementos de la cola de prioridad
+			while (!pq.isEmpty()) {
+				ExecResultData.Connection connection = pq.poll();
+				ExecResultDataTreeNode node = languageNodes.get(connection.id());
+				System.out.println("Nodo" + node.toString() + connection.toString());
 
-		while (!pq.isEmpty()) {
-            ExecResultData.Connection smallestConnection = pq.poll();
-            ExecResultDataTreeNode sourceNode = smallestConnection.getSourceNode();
-            ExecResultDataTreeNode targetNode = smallestConnection.getTargetNode();
-            double connectionValue = smallestConnection.value();
+				children[i] = node;
+				//if (i == 1) {
+				//	root = new ExecResultDataTreeNode(null, children);
+				//}
 
-            ExecResultDataTreeNode mergedNode = new ExecResultDataTreeNode("", root);
-            mergedNode.addChild(sourceNode);
-            mergedNode.addChild(targetNode);
-            root.addChild(mergedNode);
+				if (i > 0) {
+					ExecResultDataTreeNode[] subtreeNodes = new ExecResultDataTreeNode[i + 1];
+					System.arraycopy(children, 0, subtreeNodes, 0, i + 1);
+					ExecResultDataTreeNode subtreeRoot = new ExecResultDataTreeNode(null, subtreeNodes);
+					children[i] = subtreeRoot;
+				}
+
+				i++;
+			}
+
+			if (i > 0) {
+				root = children[i - 1];
+			}
+
+			return root;
 		}
-
-
-		System.out.println(languageNodes.toString());
-
-		 return root;
-	}
-
-
-
-
 	private Set<String> getIdLangs(Map<String, Double> result) {
 		Set<String> langs = new HashSet<>();
 
