@@ -9,15 +9,14 @@ import Services.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
-import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.swing.RowFilter.Entry;
 
 import Model.ExecResultData;
 import Model.ExecResultDataTreeNode;
@@ -174,54 +173,65 @@ public class Controller implements Service {
 	}
 
 	private ExecResultDataTreeNode resultToTreeData(Map<String, Double> result, ExecResultData[] graph) {
-		Set<String> langs = this.getIdLangs(result);
-		PriorityQueue<ExecResultData.Connection> pq = new PriorityQueue<>(
-				(a, b) -> Double.compare(a.value(), b.value()));
-
-		// Añadimos los nodos hoja a un mapa para poder acceder a ellos por su id
-		Map<String, ExecResultDataTreeNode> languageNodes = new HashMap<>();
-		for (String lang : langs) {
-			ExecResultDataTreeNode leafNode = new ExecResultDataTreeNode(lang, null);
-			languageNodes.put(lang, leafNode);
-		}
-
-		// Construir las conexiones en la cola de prioridad
+		List<ExecResultData.Edge> mst = new ArrayList<>();
+		List<ExecResultData.Edge> edges = new ArrayList<>();
 		for (ExecResultData data : graph) {
 			for (ExecResultData.Connection connection : data.connections()) {
-				pq.offer(connection);
+				edges.add(new ExecResultData.Edge(data.id(), connection.id(), connection.value()));
 			}
 		}
 
+		// Sort edges by value in ascending order
+		Collections.sort(edges);
 
-		ExecResultDataTreeNode root = null;
-		ExecResultDataTreeNode[] children = new ExecResultDataTreeNode[pq.size()];
-		int i = 0;
-		ExecResultDataTreeNode previousTree = null;
-		// Construir el árbol a partir de los elementos de la cola de prioridad
-		while (!pq.isEmpty() && i < langs.size()) {
-			ExecResultData.Connection connection = pq.poll();
-			ExecResultDataTreeNode node = languageNodes.get(connection.id());
-			System.out.println("Nodo" + node.toString() + connection.toString());
-			children[i] = node;
-			if (i > 0 && i < 2) {
-				ExecResultDataTreeNode[] subtreeNodes = new ExecResultDataTreeNode[i + 1];
-				System.arraycopy(children, 0, subtreeNodes, 0, i + 1);
-				previousTree = new ExecResultDataTreeNode(null, subtreeNodes);
-				children[i] = previousTree;
-			} else if (i > 1) {
-				ExecResultDataTreeNode[] subtreeNodes = new ExecResultDataTreeNode[i + 1];
-				System.arraycopy(children, 0, subtreeNodes, 0, i);
-				subtreeNodes[i] = node;
-				previousTree = new ExecResultDataTreeNode(null, subtreeNodes);
-				children[i] = previousTree;
+		// Create a parent array to track the subset of each node
+		String[] parent = new String[graph.length];
+		for (int i = 0; i < graph.length; i++) {
+			parent[i] = graph[i].id();
+		}
 
+		int edgeCount = 0;
+		int index = 0;
+
+		while (edgeCount < graph.length - 1) {
+			ExecResultData.Edge actualEdge = edges.get(index);
+
+			// Find the subset of the source and destination
+			String srcParent = find(parent, actualEdge.src());
+			String dstParent = find(parent, actualEdge.dst());
+
+			// Check if including this edge forms a cycle or not
+			if (!srcParent.equals(dstParent)) {
+				mst.add(actualEdge);
+				edgeCount++;
+				parent[graphIndex(parent, srcParent)] = dstParent;
 			}
-			i++;
+
+			index++;
 		}
-		if (i > 0) {
-			root = children[i - 1];
+
+		System.out.println("MST: " + mst);
+
+		return null;
+	}
+
+	private String find(String[] parent, String node) {
+		if (!parent[graphIndex(parent, node)].equals(node)) {
+			parent[graphIndex(parent, node)] = find(parent, parent[graphIndex(parent, node)]);
 		}
-		return root;
+		return parent[graphIndex(parent, node)];
+	}
+
+	private int graphIndex(String[] parent, String node) {
+		for (int i = 0; i < parent.length; i++) {
+			System.out.println(parent[i] + " " + node);
+			if (parent[i].equals(node)) {
+				return i;
+			}
+		}
+		System.out.println(Arrays.toString(parent));
+		System.out.println("Node not found: " + node);
+		return -1;
 	}
 
 	private Set<String> getIdLangs(Map<String, Double> result) {

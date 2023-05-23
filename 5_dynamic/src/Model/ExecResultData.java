@@ -20,12 +20,18 @@ public record ExecResultData(String id, Connection[] connections) implements Ser
 		return Objects.hash(connections, id);
 	}
 
-
 	@Override
 	public String toString() {
 		return "ExecResultData [connnections=" + connections + ", id=" + id + "]";
 	}
 
-    public record Connection(String id, double value) implements Serializable{}
+	public record Connection(String id, double value) implements Serializable {
+	}
 
+	public record Edge(String src, String dst, double weight) implements Serializable, Comparable<Edge> {
+		@Override
+		public int compareTo(Edge o) {
+			return Double.compare(weight, o.weight);
+		}
+	}
 }
