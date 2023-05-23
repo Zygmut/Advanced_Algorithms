@@ -51,7 +51,10 @@ import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
+
+import com.mxgraph.layout.mxCircleLayout;
 import com.mxgraph.layout.mxCompactTreeLayout;
+import com.mxgraph.layout.mxIGraphLayout;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.util.mxConstants;
 import com.mxgraph.view.mxGraph;
@@ -519,6 +522,10 @@ public class View implements Service {
 			edgeStyle.put(mxConstants.STYLE_STROKEWIDTH, 0.5); // Line width
 			edgeStyle.put(mxConstants.STYLE_DASHED, true); // Dashed line
 			edgeStyle.put(mxConstants.STYLE_ENDARROW, mxConstants.NONE); // No arrow
+
+			// Create a graph layout
+			mxIGraphLayout layout = new mxCircleLayout(graph);
+			layout.execute(parent);
 
 			// Create a Swing component for the graph
 			mxGraphComponent graphComponent = new mxGraphComponent(graph);
