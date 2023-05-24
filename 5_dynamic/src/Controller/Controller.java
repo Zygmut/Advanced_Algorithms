@@ -3,6 +3,8 @@ package Controller;
 import Services.Comunication.Content.Body;
 import Services.Comunication.Request.Request;
 import Services.Comunication.Request.RequestCode;
+import Services.Comunication.Response.Response;
+import Services.Comunication.Response.ResponseCode;
 import utils.Helpers;
 import Services.Service;
 
@@ -27,6 +29,7 @@ import java.util.List;
 public class Controller implements Service {
 
 	private Map<String, Double> lang;
+	private String[] words;
 
 	public Controller() {
 		this.lang = new HashMap<>();
@@ -125,21 +128,7 @@ public class Controller implements Service {
 
 		// All langs were calculated. Get pairs and calculate the euclidean distance
 		// from their scores
-		Map<String, Double> langScore = new HashMap<>();
-		while (!this.lang.entrySet().isEmpty()) {
-			final Map.Entry<String, Double> entry1 = this.lang.entrySet().iterator().next();
-			final Double score1 = entry1.getValue();
-			this.lang.remove(entry1.getKey());
-
-			final String[] pair1 = entry1.getKey().split("-");
-			final String key2 = String.format("%s-%s", pair1[1], pair1[0]);
-			final Double score2 = this.lang.get(key2);
-			this.lang.remove(key2);
-
-			langScore.put(key2, euclideanDistance(score1, score2));
-		}
-
-		return langScore;
+		return mergeLangScores(this.lang);
 	}
 
 	private double euclideanDistance(double x, double y) {
@@ -279,33 +268,85 @@ public class Controller implements Service {
 		return langs;
 	}
 
+	private Map<String, Double> mergeLangScores(Map<String, Double> langScores) {
+
+		Map<String, Double> scores = new HashMap<>(langScores);
+		Map<String, Double> langScore = new HashMap<>();
+		while (!scores.entrySet().isEmpty()) {
+			final Map.Entry<String, Double> entry1 = scores.entrySet().iterator().next();
+			final Double score1 = entry1.getValue();
+			scores.remove(entry1.getKey());
+
+			final String[] pair1 = entry1.getKey().split("-");
+			final String key2 = String.format("%s-%s", pair1[1], pair1[0]);
+			final Double score2 = scores.get(key2);
+			scores.remove(key2);
+
+			langScore.put(key2, euclideanDistance(score1, score2));
+		}
+
+		return langScore;
+	}
+
 	@Override
 	@SuppressWarnings("unchecked")
 	public void notifyRequest(Request request) {
 		switch (request.code) {
 			case FETCH_LANGS -> {
-				String[][] words = (String[][]) request.body.content;
-				lang.put(words[0][0], levenshtein(words[1], words[2]));
+				final Object[] paramenters = (Object[]) request.body.content;
+				final String langName = (String) paramenters[0];
+				final String[] sourceWords = (String[]) paramenters[1];
+				final String[] targetWords = (String[]) paramenters[2];
+				lang.put(langName, levenshtein(sourceWords, targetWords));
 				Helpers.syncCount.dec();
 			}
 			case LEVENSHTEIN -> {
-				Object[] parameters = (Object[]) request.body.content;
-				if (!(parameters[1] instanceof Map<?, ?>)) {
-					Logger.getLogger(this.getClass().getSimpleName())
-							.log(Level.SEVERE, "Parameters are not a Map<String, Integer>.");
-					return;
-				}
-				Map<String, Integer> options = (HashMap<String, Integer>) parameters[1];
-				Instant start = Instant.now();
-				Map<String, Double> results = this.levenshtein((String[]) parameters[0], options.get("parallel") == 1,
+				final Object[] parameters = (Object[]) request.body.content;
+				final String[] langNames = (String[]) parameters[0];
+				final Map<String, Integer> options = (HashMap<String, Integer>) parameters[1];
+
+				this.lang.clear();
+
+				final Instant start = Instant.now();
+				final Map<String, Double> results = this.levenshtein(langNames, options.get("parallel") == 1,
 						options.get("batchSize"));
-				Duration duration = Duration.between(start, Instant.now());
+				final Duration duration = Duration.between(start, Instant.now());
 
-				ExecResultData[] graphData = resultToGraphData(results);
-				ExecResultDataTreeNode treeData = resultToTreeData(results, graphData);
+				final ExecResultData[] graphData = resultToGraphData(results);
+				final ExecResultDataTreeNode treeData = resultToTreeData(results, graphData);
 
-				Body body = new Body(new Object[] { duration, graphData, treeData });
+				final Body body = new Body(new Object[] { duration, graphData, treeData });
 				this.sendRequest(new Request(RequestCode.ADD_RESULT, this, body));
+			}
+			case GET_ALL_LANGS -> {
+				final Object[] parameters = (Object[]) request.body.content;
+				final String[][] langWords = (String[][]) parameters[0];
+				final String[] langNames = (String[]) parameters[1];
+
+				final Instant start = Instant.now();
+				Map<String, Double> result = new HashMap<>();
+
+				// We create a division of the data, as we need different words for each
+				// iteration.
+				// As to not add more complexity to the software, we get double the words and
+				// slice it by half.
+				for (int i = 0; i < langWords.length; i++) {
+					result.put("CUSTOM-" + langNames[i],
+							levenshtein(this.words, Arrays.copyOfRange(langWords[i], 0, langWords[i].length / 2)));
+					result.put(langNames[i] + "-CUSTOM",
+							levenshtein(Arrays.copyOfRange(langWords[i], langWords[i].length / 2, langWords[i].length),
+									this.words));
+				}
+
+				final Map<String, Double> mergedResult = mergeLangScores(result);
+				final Duration duration = Duration.between(start, Instant.now());
+
+				Body body = new Body(new Object[] { duration, mergedResult });
+				this.sendResponse(new Response(ResponseCode.GUESS_LANG, this, body));
+			}
+			case GUESS_LANG -> {
+				this.words = ((String) request.body.content).split(" ");
+				this.sendRequest(new Request(RequestCode.GET_ALL_LANGS, this));
 			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
@@ -313,5 +354,4 @@ public class Controller implements Service {
 			}
 		}
 	}
-
 }

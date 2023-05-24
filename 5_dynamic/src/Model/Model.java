@@ -8,6 +8,7 @@ import Services.Service;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -91,6 +92,9 @@ public class Model implements Service {
 			ResultSet resultSet = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table'");
 
 			while (resultSet.next()) {
+				if(resultSet.getString("name").contains("_")){
+					continue;
+				}
 				languageNames.add(resultSet.getString("name"));
 			}
 
@@ -165,8 +169,8 @@ public class Model implements Service {
 				}
 			}
 
-			statement.executeUpdate("DROP TABLE IF EXISTS TimedExecution");
-			statement.executeUpdate("CREATE TABLE TimedExecution (id INTEGER AUTOINCREMENT, nanos INTEGER)");
+			statement.executeUpdate("DROP TABLE IF EXISTS timed_execution");
+			statement.executeUpdate("CREATE TABLE timed_execution (id INTEGER PRIMARY KEY AUTOINCREMENT, milis INTEGER)");
 		} catch (Exception e) {
 			Logger.getLogger(this.getClass().getSimpleName())
 					.log(Level.SEVERE, e.getLocalizedMessage());
@@ -175,18 +179,20 @@ public class Model implements Service {
 				.log(Level.INFO, "Finished the population of the DB");
 	}
 
-	private void addTimedExecution(Duration nanos) {
+	private void addTimedExecution(Duration millis) {
 		try (Connection connection = DriverManager.getConnection("jdbc:sqlite:src/Model/" + Config.DB_NAME + ".sqlite");
-				Statement statement = connection.createStatement()) {
+				PreparedStatement statement = connection.prepareStatement("INSERT INTO timed_execution (milis) VALUES (?)")) {
 			statement.setQueryTimeout(30);
 
-		statement.executeUpdate("INSERT INTO TimedExecution (nanos) VALUES " + nanos.toNanos());
+			// Insert the new timed execution with the prepared statement
+			statement.setLong(1, millis.toMillis());
+			statement.executeUpdate();
 		} catch (Exception e) {
 			Logger.getLogger(this.getClass().getSimpleName())
 					.log(Level.SEVERE, e.getLocalizedMessage());
 		}
 		Logger.getLogger(this.getClass().getSimpleName())
-				.log(Level.INFO, "Added timedExecution of {0} nanos", nanos.toNanos());
+				.log(Level.INFO, "Added timedExecution of {0} millis", millis.toMillis());
 	}
 
 	private Long[] getTimedExecution() {
@@ -195,11 +201,10 @@ public class Model implements Service {
 				Statement statement = connection.createStatement()) {
 			statement.setQueryTimeout(30);
 
-		ResultSet query = statement.executeQuery("SELECT seconds FROM TimedExecution ORDER BY id");
-
-		while(query.next()){
-			result.add(query.getLong("nanos"));
-		}
+			ResultSet query = statement.executeQuery("SELECT milis FROM timed_execution ORDER BY id");
+			while(query.next()){
+				result.add(query.getLong("milis"));
+			}
 
 		} catch (Exception e) {
 			Logger.getLogger(this.getClass().getSimpleName())
@@ -231,7 +236,7 @@ public class Model implements Service {
 				populateDataBase(pathToDicts);
 			}
 			case FETCH_LANGS -> {
-				final Object[] parameters = (Object []) request.body.content;
+				final Object[] parameters = (Object[]) request.body.content;
 				final int nWords = (int) parameters[2];
 				final String sourceLang = (String) parameters[0];
 				final String targetLang = (String) parameters[1];
@@ -239,14 +244,26 @@ public class Model implements Service {
 				final String[] targetWords = getRandomWords(nWords, targetLang);
 
 				Body body = new Body(
-						new String[][] { new String[] { sourceLang + "-" + targetLang }, sourceWords, targetWords });
+						new Object[] { sourceLang + "-" + targetLang , sourceWords, targetWords });
 				Response response = new Response(ResponseCode.FETCH_LANGS, this, body);
 				this.sendResponse(response);
 			}
-			case ADD_RESULT ->
+			case GET_ALL_LANGS -> {
+				final String[] langNames = this.getLanguagesNames();
+				ArrayList<String[]> words = new ArrayList<>();
+				for (String langName : langNames) {
+					words.add(this.getRandomWords(1000, langName));
+				}
+				Body body = new Body(new Object[] { words.toArray(String[][]::new), langNames });
+				Response response = new Response(ResponseCode.GET_ALL_LANGS, this, body);
+				this.sendResponse(response);
+			}
+			case ADD_RESULT, GUESS_LANG ->
 				this.addTimedExecution(((Duration) ((Object[]) request.body.content)[0]));
 			case GET_LANG_NAMES ->
 				this.sendResponse(new Response(ResponseCode.GET_LANG_NAMES, this, new Body(getLanguagesNames())));
+			case GET_STATS ->
+				this.sendResponse(new Response(ResponseCode.GET_STATS, this, new Body(getTimedExecution())));
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);

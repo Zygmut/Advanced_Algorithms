@@ -19,6 +19,18 @@
 		{
 			"code": "FETCH_LANGS",
 			"services": ["MODEL"]
+		},
+		{
+			"code": "GET_ALL_LANGS",
+			"services": ["MODEL"]
+		},
+		{
+			"code": "GUESS_LANG",
+			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "GET_STATS",
+			"services": ["MODEL"]
 		}
 	],
 	"responseMap": [
@@ -27,12 +39,24 @@
 			"services": ["VIEW"]
 		},
 		{
+			"code": "GET_ALL_LANGS",
+			"services": ["CONTROLLER"]
+		},
+		{
 			"code": "LEVENSHTEIN",
 			"services": ["VIEW"]
 		},
 		{
 			"code": "FETCH_LANGS",
 			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "GUESS_LANG",
+			"services": ["VIEW", "MODEL"]
+		},
+		{
+			"code": "GET_STATS",
+			"services": ["VIEW"]
 		}
 	],
 	"resToReqMap": [
@@ -45,8 +69,20 @@
 			"requestCode": "LEVENSHTEIN"
 		},
 		{
+			"responseCode": "GET_ALL_LANGS",
+			"requestCode": "GET_ALL_LANGS"
+		},
+		{
 			"responseCode": "FETCH_LANGS",
 			"requestCode": "FETCH_LANGS"
+		},
+		{
+			"responseCode": "GUESS_LANG",
+			"requestCode": "GUESS_LANG"
+		},
+		{
+			"responseCode": "GET_STATS",
+			"requestCode": "GET_STATS"
 		}
 	]
 }

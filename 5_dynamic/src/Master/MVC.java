@@ -10,6 +10,7 @@ import Services.Comunication.Response.Response;
 import Services.Comunication.Response.ResponseCode;
 import Services.Comunication.Response.ResponseStatus;
 import View.View;
+import View.WindowWordGuesser;
 import utils.Config;
 
 import java.io.BufferedReader;
