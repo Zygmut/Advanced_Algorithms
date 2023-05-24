@@ -96,6 +96,8 @@ public class View implements Service {
 	 */
 	private int currentBodyScreenIndex;
 
+	private WindowWordGuesser wordGuesserWindow;
+
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
 	 *
@@ -181,6 +183,29 @@ public class View implements Service {
 				Long[] stats = (Long[]) request.body.content;
 				WindowStats windowStats = new WindowStats(stats);
 				windowStats.show();
+			}
+			case GUESS_LANG -> {
+				final Object[] parameters = (Object[]) request.body.content;
+				final Map<String, Double> result = (Map<String, Double>) parameters[1];
+				for (Map.Entry<String, Double> entry : result.entrySet()) {
+					System.out.println(entry.getKey() + " " + entry.getValue());
+				}
+				// Send data to windowWordGuesser
+				result.forEach((k, v) -> {
+					this.wordGuesserWindow.addResult(k, v);
+				});
+				// Crear los arrays de String y probabilidades
+				String[] languages = new String[result.size()];
+				double[] dist = new double[result.size()];
+
+				// Iterar sobre las entradas del Map y llenar los arrays
+				int index = 0;
+				for (Map.Entry<String, Double> entry : result.entrySet()) {
+					languages[index] = entry.getKey();
+					dist[index] = entry.getValue();
+					index++;
+				}
+				this.wordGuesserWindow.findMinValue(languages, dist);
 			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
@@ -400,7 +425,7 @@ public class View implements Service {
 		});
 		JMenuItem wordGuesser = new JMenuItem("Adivinador de palabras");
 		wordGuesser.addActionListener(e -> {
-			WindowWordGuesser wordGuesserWindow = new WindowWordGuesser(this);
+			this.wordGuesserWindow = new WindowWordGuesser(this);
 			wordGuesserWindow.show();
 		});
 

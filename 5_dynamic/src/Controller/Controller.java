@@ -3,6 +3,8 @@ package Controller;
 import Services.Comunication.Content.Body;
 import Services.Comunication.Request.Request;
 import Services.Comunication.Request.RequestCode;
+import Services.Comunication.Response.Response;
+import Services.Comunication.Response.ResponseCode;
 import utils.Helpers;
 import Services.Service;
 
@@ -249,8 +251,8 @@ public class Controller implements Service {
 				final Map<String, Double> mergedResult = mergeLangScores(result);
 				final Duration duration = Duration.between(start, Instant.now());
 
-				Body body = new Body(new Object[] { mergedResult, duration });
-				// TODO CREATE RESPONSE WITH THE MAP AND DURATION
+				Body body = new Body(new Object[] { duration, mergedResult });
+				this.sendResponse(new Response(ResponseCode.GUESS_LANG, this, body));
 			}
 			case GUESS_LANG -> {
 				this.words = ((String) request.body.content).split(" ");

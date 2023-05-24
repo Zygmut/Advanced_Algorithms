@@ -51,6 +51,10 @@
 			"services": ["CONTROLLER"]
 		},
 		{
+			"code": "GUESS_LANG",
+			"services": ["VIEW", "MODEL"]
+		},
+		{
 			"code": "GET_STATS",
 			"services": ["VIEW"]
 		}
@@ -71,6 +75,10 @@
 		{
 			"responseCode": "FETCH_LANGS",
 			"requestCode": "FETCH_LANGS"
+		},
+		{
+			"responseCode": "GUESS_LANG",
+			"requestCode": "GUESS_LANG"
 		},
 		{
 			"responseCode": "GET_STATS",
