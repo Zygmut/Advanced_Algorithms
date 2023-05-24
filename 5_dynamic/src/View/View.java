@@ -367,7 +367,6 @@ public class View implements Service {
 		content.add(dictPanel, BorderLayout.CENTER);
 
 		this.bodyScreens[0] = content;
-
 		splitPane.setLeftComponent(content);
 		Section body = new Section();
 		body.createJSplitPaneSection(splitPane);
@@ -670,9 +669,10 @@ public class View implements Service {
 			if (previousNode != null) {
 				graph.insertEdge(parent, null, "", previousNode, vertex);
 			}
-
-			for (ExecResultDataTreeNode child : currentNode.children()) {
-				buildTreeFromRoot(graph, parent, vertex, child);
+			if (currentNode.children() != null) {
+				for (ExecResultDataTreeNode child : currentNode.children()) {
+					buildTreeFromRoot(graph, parent, vertex, child);
+				}
 			}
 		}
 

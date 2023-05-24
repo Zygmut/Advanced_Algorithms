@@ -12,12 +12,16 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.xml.transform.Source;
 
 import Model.ExecResultData;
 import Model.ExecResultDataTreeNode;
@@ -161,9 +165,96 @@ public class Controller implements Service {
 	}
 
 	private ExecResultDataTreeNode resultToTreeData(Map<String, Double> result, ExecResultData[] graph) {
-		Logger.getLogger(this.getClass().getSimpleName())
-				.log(Level.SEVERE, "resultToTreeData is not implemented");
-		return new ExecResultDataTreeNode("", null);
+		List<ExecResultData.Edge> mst = new ArrayList<>();
+		List<ExecResultData.Edge> edges = new ArrayList<>();
+		for (ExecResultData data : graph) {
+			for (ExecResultData.Connection connection : data.connections()) {
+				edges.add(new ExecResultData.Edge(data.id(), connection.id(), connection.value()));
+			}
+		}
+
+		// Sort edges by value in ascending order
+		Collections.sort(edges);
+
+		// Create a parent array to track the subset of each node
+		Map<String, Integer> parent = new HashMap<>();
+		int[] auxParent = new int[graph.length];
+		for (int i = 0; i < graph.length; i++) {
+			parent.put(graph[i].id(), i);
+			auxParent[i] = i;
+		}
+
+		int edgeCount = 0;
+		int index = 0;
+
+		while (edgeCount < graph.length - 1) {
+			ExecResultData.Edge actualEdge = edges.get(index);
+
+			// Find the subset of the source and destination
+			int srcParent = findParent(auxParent, parent.get(actualEdge.src()));
+			int dstParent = findParent(auxParent, parent.get(actualEdge.dst()));
+
+			// Check if including this edge forms a cycle or not
+			if (srcParent != dstParent) {
+				mst.add(actualEdge);
+				edgeCount++;
+				auxParent[srcParent] = dstParent;
+			}
+			index++;
+		}
+
+		// Convert to ExecResultDataTreeNode
+		Set<String> idSets = this.getIdLangs(result);
+		ArrayList<ExecResultDataTreeNode> treeNodes = new ArrayList<>();
+
+		for (String id : idSets) {
+			treeNodes.add(new ExecResultDataTreeNode(id, new ExecResultDataTreeNode[0]));
+		}
+
+		for (ExecResultData.Edge edge : mst) {
+			String src = getContainedId(idSets, edge.src());
+			idSets.remove(src);
+
+			String dst = getContainedId(idSets, edge.dst());
+			idSets.remove(dst);
+
+			String mergedId = src + "-" + dst;
+			ExecResultDataTreeNode mergedNode = new ExecResultDataTreeNode(mergedId,
+					new ExecResultDataTreeNode[] {
+							getTreeNodeById(src, treeNodes),
+							getTreeNodeById(dst, treeNodes) });
+			treeNodes.add(mergedNode);
+			idSets.add(mergedId);
+		}
+
+		return treeNodes.get(treeNodes.size() - 1);
+	}
+
+	private String getContainedId(Set<String> set, String id) {
+		for (String possibleId : set) {
+			if (possibleId.contains(id)) {
+				return possibleId;
+			}
+		}
+
+		return "";
+	}
+
+	private ExecResultDataTreeNode getTreeNodeById(String id, List<ExecResultDataTreeNode> nodes) {
+		for (ExecResultDataTreeNode execResultDataTreeNode : nodes) {
+			if (execResultDataTreeNode.id().equals(id)) {
+				return execResultDataTreeNode;
+			}
+		}
+
+		return null;
+	}
+
+	private int findParent(int[] parent, int vertex) {
+		if (parent[vertex] != vertex) {
+			parent[vertex] = findParent(parent, parent[vertex]);
+		}
+		return parent[vertex];
 	}
 
 	private Set<String> getIdLangs(Map<String, Double> result) {
