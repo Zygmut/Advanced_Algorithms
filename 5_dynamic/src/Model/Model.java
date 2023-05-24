@@ -176,20 +176,20 @@ public class Model implements Service {
 				.log(Level.INFO, "Finished the population of the DB");
 	}
 
-	private void addTimedExecution(Duration nanos) {
+	private void addTimedExecution(Duration millis) {
 		try (Connection connection = DriverManager.getConnection("jdbc:sqlite:src/Model/" + Config.DB_NAME + ".sqlite");
 				PreparedStatement statement = connection.prepareStatement("INSERT INTO TimedExecution (milis) VALUES (?)")) {
 			statement.setQueryTimeout(30);
 
 			// Insert the new timed execution with the prepared statement
-			statement.setLong(1, nanos.toNanos());
+			statement.setLong(1, millis.toMillis());
 			statement.executeUpdate();
 		} catch (Exception e) {
 			Logger.getLogger(this.getClass().getSimpleName())
 					.log(Level.SEVERE, e.getLocalizedMessage());
 		}
 		Logger.getLogger(this.getClass().getSimpleName())
-				.log(Level.INFO, "Added timedExecution of {0} nanos", nanos.toMillis());
+				.log(Level.INFO, "Added timedExecution of {0} millis", millis.toMillis());
 	}
 
 	private Long[] getTimedExecution() {
