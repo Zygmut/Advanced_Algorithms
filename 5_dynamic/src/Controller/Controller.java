@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.logging.Level;
@@ -185,9 +186,11 @@ public class Controller implements Service {
 		Collections.sort(edges);
 
 		// Create a parent array to track the subset of each node
-		String[] parent = new String[graph.length];
+		Map<String, Integer> parent = new HashMap<>();
+		int[] auxParent = new int[graph.length];
 		for (int i = 0; i < graph.length; i++) {
-			parent[i] = graph[i].id();
+			parent.put(graph[i].id(), i);
+			auxParent[i] = i;
 		}
 
 		int edgeCount = 0;
@@ -197,41 +200,71 @@ public class Controller implements Service {
 			ExecResultData.Edge actualEdge = edges.get(index);
 
 			// Find the subset of the source and destination
-			String srcParent = find(parent, actualEdge.src());
-			String dstParent = find(parent, actualEdge.dst());
+			int srcParent = findParent(auxParent, parent.get(actualEdge.src()));
+			int dstParent = findParent(auxParent, parent.get(actualEdge.dst()));
 
 			// Check if including this edge forms a cycle or not
-			if (!srcParent.equals(dstParent)) {
+			if (srcParent != dstParent) {
 				mst.add(actualEdge);
 				edgeCount++;
-				parent[graphIndex(parent, srcParent)] = dstParent;
+				auxParent[srcParent] = dstParent;
 			}
-
 			index++;
 		}
 
+		// A PARTIR DE AQUI SE TENDRIA QUE HACER EL ARBOL, PER NO SE COMO HACERLO
 		System.out.println("MST: " + mst);
-
-		return null;
-	}
-
-	private String find(String[] parent, String node) {
-		if (!parent[graphIndex(parent, node)].equals(node)) {
-			parent[graphIndex(parent, node)] = find(parent, parent[graphIndex(parent, node)]);
+		Tree tree = new Tree("root");
+		tree.buildTree(mst);
+		tree.adjacencyList.put("root", mst);
+		// Print the adjacency list representation of the tree
+		List<ExecResultDataTreeNode> nodes = new ArrayList<>();
+		List<ExecResultData.Edge> edge = tree.adjacencyList.get("root");
+		for (ExecResultData.Edge e : edge) {
+			List<ExecResultData.Edge> edges1 = tree.adjacencyList.get(e.dst());
+			List<ExecResultDataTreeNode> nodes2 = new ArrayList<>();
+			for (ExecResultData.Edge e1 : edges1) {
+				nodes2.add(new ExecResultDataTreeNode(e1.src(), null));
+			}
+			nodes.add(new ExecResultDataTreeNode(e.dst(), nodes2.toArray(ExecResultDataTreeNode[]::new)));
 		}
-		return parent[graphIndex(parent, node)];
+
+		ExecResultDataTreeNode root = new ExecResultDataTreeNode("root", nodes.toArray(ExecResultDataTreeNode[]::new));
+		System.out.println(tree.adjacencyList.get("root"));
+		// FIN DE LA PARTE QUE NO SE COMO HACER
+
+		return root;
 	}
 
-	private int graphIndex(String[] parent, String node) {
-		for (int i = 0; i < parent.length; i++) {
-			System.out.println(parent[i] + " " + node);
-			if (parent[i].equals(node)) {
-				return i;
+	// PARTE DEL TEST QUE NO SE COMO HACER
+	class Tree {
+		String root;
+		Map<String, List<ExecResultData.Edge>> adjacencyList;
+
+		Tree(String root) {
+			this.root = root;
+			adjacencyList = new TreeMap<>();
+		}
+
+		void addEdge(String source, String destination, double weight) {
+			ExecResultData.Edge edge = new ExecResultData.Edge(source, destination, weight);
+			adjacencyList.computeIfAbsent(source, k -> new ArrayList<>()).add(edge);
+			adjacencyList.computeIfAbsent(destination, k -> new ArrayList<>()).add(edge);
+		}
+
+		void buildTree(List<ExecResultData.Edge> edges) {
+			for (ExecResultData.Edge edge : edges) {
+				addEdge(edge.src(), edge.dst(), edge.weight());
 			}
 		}
-		System.out.println(Arrays.toString(parent));
-		System.out.println("Node not found: " + node);
-		return -1;
+	}
+	// FIN DE LA PARTE QUE NO SE COMO HACER
+
+	private int findParent(int[] parent, int vertex) {
+		if (parent[vertex] != vertex) {
+			parent[vertex] = findParent(parent, parent[vertex]);
+		}
+		return parent[vertex];
 	}
 
 	private Set<String> getIdLangs(Map<String, Double> result) {
