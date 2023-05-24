@@ -21,6 +21,8 @@ import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.xml.transform.Source;
+
 import Model.ExecResultData;
 import Model.ExecResultDataTreeNode;
 
@@ -201,53 +203,52 @@ public class Controller implements Service {
 			index++;
 		}
 
-		// A PARTIR DE AQUI SE TENDRIA QUE HACER EL ARBOL, PER NO SE COMO HACERLO
-		System.out.println("MST: " + mst);
-		Tree tree = new Tree("root");
-		tree.buildTree(mst);
-		tree.adjacencyList.put("root", mst);
-		// Print the adjacency list representation of the tree
-		List<ExecResultDataTreeNode> nodes = new ArrayList<>();
-		List<ExecResultData.Edge> edge = tree.adjacencyList.get("root");
-		for (ExecResultData.Edge e : edge) {
-			List<ExecResultData.Edge> edges1 = tree.adjacencyList.get(e.dst());
-			List<ExecResultDataTreeNode> nodes2 = new ArrayList<>();
-			for (ExecResultData.Edge e1 : edges1) {
-				nodes2.add(new ExecResultDataTreeNode(e1.src(), null));
-			}
-			nodes.add(new ExecResultDataTreeNode(e.dst(), nodes2.toArray(ExecResultDataTreeNode[]::new)));
+		// Convert to ExecResultDataTreeNode
+		Set<String> idSets = this.getIdLangs(result);
+		ArrayList<ExecResultDataTreeNode> treeNodes = new ArrayList<>();
+
+		for (String id : idSets) {
+			treeNodes.add(new ExecResultDataTreeNode(id, new ExecResultDataTreeNode[0]));
 		}
 
-		ExecResultDataTreeNode root = new ExecResultDataTreeNode("root", nodes.toArray(ExecResultDataTreeNode[]::new));
-		System.out.println(tree.adjacencyList.get("root"));
-		// FIN DE LA PARTE QUE NO SE COMO HACER
+		for (ExecResultData.Edge edge : mst) {
+			String src = getContainedId(idSets, edge.src());
+			idSets.remove(src);
 
-		return root;
+			String dst = getContainedId(idSets, edge.dst());
+			idSets.remove(dst);
+
+			String mergedId = src + "-" + dst;
+			ExecResultDataTreeNode mergedNode = new ExecResultDataTreeNode(mergedId,
+					new ExecResultDataTreeNode[] {
+							getTreeNodeById(src, treeNodes),
+							getTreeNodeById(dst, treeNodes) });
+			treeNodes.add(mergedNode);
+			idSets.add(mergedId);
+		}
+
+		return treeNodes.get(treeNodes.size() - 1);
 	}
 
-	// PARTE DEL TEST QUE NO SE COMO HACER
-	class Tree {
-		String root;
-		Map<String, List<ExecResultData.Edge>> adjacencyList;
-
-		Tree(String root) {
-			this.root = root;
-			adjacencyList = new TreeMap<>();
-		}
-
-		void addEdge(String source, String destination, double weight) {
-			ExecResultData.Edge edge = new ExecResultData.Edge(source, destination, weight);
-			adjacencyList.computeIfAbsent(source, k -> new ArrayList<>()).add(edge);
-			adjacencyList.computeIfAbsent(destination, k -> new ArrayList<>()).add(edge);
-		}
-
-		void buildTree(List<ExecResultData.Edge> edges) {
-			for (ExecResultData.Edge edge : edges) {
-				addEdge(edge.src(), edge.dst(), edge.weight());
+	private String getContainedId(Set<String> set, String id) {
+		for (String possibleId : set) {
+			if (possibleId.contains(id)) {
+				return possibleId;
 			}
 		}
+
+		return "";
 	}
-	// FIN DE LA PARTE QUE NO SE COMO HACER
+
+	private ExecResultDataTreeNode getTreeNodeById(String id, List<ExecResultDataTreeNode> nodes) {
+		for (ExecResultDataTreeNode execResultDataTreeNode : nodes) {
+			if (execResultDataTreeNode.id().equals(id)) {
+				return execResultDataTreeNode;
+			}
+		}
+
+		return null;
+	}
 
 	private int findParent(int[] parent, int vertex) {
 		if (parent[vertex] != vertex) {

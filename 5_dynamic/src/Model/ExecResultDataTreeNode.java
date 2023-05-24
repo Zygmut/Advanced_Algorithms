@@ -1,9 +1,10 @@
 package Model;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.io.Serializable;
 
-public record ExecResultDataTreeNode(String id, ExecResultDataTreeNode[] children) implements Serializable{
+public record ExecResultDataTreeNode(String id, ExecResultDataTreeNode[] children) implements Serializable {
 
 	@Override
 	public boolean equals(Object o) {
@@ -24,7 +25,7 @@ public record ExecResultDataTreeNode(String id, ExecResultDataTreeNode[] childre
 
 	@Override
 	public String toString() {
-		return "{" + " id='" + this.id + "'" + ", children='" + this.children + "'" + "}";
+		return "{" + " id='" + this.id + "'" + ", children=" + Arrays.deepToString(this.children) + "'" + "}";
 	}
 
 }
