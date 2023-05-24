@@ -12,6 +12,8 @@ import utils.Config;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Image;
@@ -190,9 +192,6 @@ public class View implements Service {
 			case GUESS_LANG -> {
 				final Object[] parameters = (Object[]) request.body.content;
 				final Map<String, Double> result = (Map<String, Double>) parameters[1];
-				for (Map.Entry<String, Double> entry : result.entrySet()) {
-					System.out.println(entry.getKey() + " " + entry.getValue());
-				}
 				// Send data to windowWordGuesser
 				result.forEach((k, v) -> {
 					this.wordGuesserWindow.addResult(k, v);
@@ -262,11 +261,16 @@ public class View implements Service {
 		this.optionsAnalysisMode = new HashMap<>();
 
 		analysisMode.setFont(new Font("Arial", Font.ITALIC, 14));
+		analysisMode.setAlignmentX(Component.LEFT_ALIGNMENT);
 		JSpinner statsMode = new JSpinner(new SpinnerNumberModel(1000, 1, Integer.MAX_VALUE, 1));
 		this.optionsAnalysisMode.put("batchSize", (int) statsMode.getValue());
 		statsMode.addChangeListener(e -> {
 			this.optionsAnalysisMode.put("batchSize", (int) statsMode.getValue());
 		});
+		statsMode.setAlignmentX(Component.LEFT_ALIGNMENT);
+		statsMode.setMaximumSize(new Dimension(
+				(int) analysisMode.getPreferredSize().getWidth(),
+				(int) (analysisMode.getPreferredSize().getHeight() * 1.75)));
 
 		JCheckBox parallel = new JCheckBox("Paralelizar");
 		parallel.setSelected(true);
