@@ -143,6 +143,7 @@ public class View implements Service {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public void notifyRequest(Request request) {
 		switch (request.code) {
 			case GET_LANG_NAMES -> {
@@ -207,7 +208,8 @@ public class View implements Service {
 					dist[index] = entry.getValue();
 					index++;
 				}
-				this.wordGuesserWindow.findMinValue(languages, dist);
+				this.wordGuesserWindow.findMinValue(dist);
+				this.wordGuesserWindow.addNaiveBayesResult((Object[]) parameters[2]);
 			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
@@ -435,6 +437,11 @@ public class View implements Service {
 			wordGuesserWindow.show();
 		});
 
+		JMenuItem trainNaiveModel = new JMenuItem("Entrenar modelo Naive Bayes");
+		trainNaiveModel.addActionListener(e -> {
+			this.sendRequest(new Request(RequestCode.TRAIN_NAIVE_MODEL, this));
+		});
+
 		JMenuItem reiniciar = new JMenuItem("Reiniciar");
 		reiniciar.addActionListener(e -> {
 			this.window.updateSection(body(), "Body", DirectionAndPosition.POSITION_CENTER);
@@ -447,6 +454,7 @@ public class View implements Service {
 		options.add(stats);
 		options.add(reiniciar);
 		options.add(wordGuesser);
+		options.add(trainNaiveModel);
 
 		options.addSeparator();
 		options.add(exit);

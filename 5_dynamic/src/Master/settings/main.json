@@ -31,6 +31,14 @@
 		{
 			"code": "GET_STATS",
 			"services": ["MODEL"]
+		},
+		{
+			"code": "TRAIN_NAIVE_MODEL",
+			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "LOAD_MODEL_FROM_DB",
+			"services": ["CONTROLLER"]
 		}
 	],
 	"responseMap": [

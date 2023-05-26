@@ -74,4 +74,12 @@ public class Config {
 	 * Indicates the path to the icon of the flags.
 	 */
 	public static final String ICON_FLAGS_PATH = "./assets/flags/";
+	/**
+	 * Indicates the path to the Naive Bayes model.
+	 */
+	public static final String NAIVE_BAYES_MODEL_PATH = "./src/Model/naive-bayes-model.ser";
+	/**
+	 * Indicates the path to raw data for the Naive Bayes model.
+	 */
+	public static final String PATH_TO_RAW_DATA = "./assets/dictionaries/complete";
 }
