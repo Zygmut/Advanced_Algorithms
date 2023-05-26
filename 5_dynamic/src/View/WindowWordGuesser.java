@@ -88,33 +88,15 @@ public class WindowWordGuesser {
 			this.view.sendRequest(request);
 
 			// Crear el gráfico
-			chartL = ChartFactory.createBarChart("Language Probability (Levenshtein)",
-					"Language", "Probability", datasetL,
-					PlotOrientation.VERTICAL, false, true, false);
-			for (int i = 0; i < 10; i++) {
-				chartL.getCategoryPlot().getRenderer().setSeriesPaint(i, Color.BLUE);
-			}
+			final String xAxisLabel = "Language";
+			final String yAxisLabel = "Probability";
+			chartL = this.createBarPlotPanel("Language Probability (Levenshtein)", xAxisLabel, yAxisLabel, datasetL);
+			chartB = this.createBarPlotPanel("Language Probability (Bayes)", xAxisLabel, yAxisLabel, datasetB);
 
 			JPanel aux = new JPanel();
 			aux.setLayout(new GridLayout(1, 2));
-
-			// Crear el panel del gráfico
-			ChartPanel chartPanel = new ChartPanel(chartL);
-			chartPanel.setPreferredSize(new Dimension(400, 300));
-			aux.add(chartPanel);
-
-			chartB = ChartFactory.createBarChart("Language Probability (Bayes)",
-					"Language", "Probability", datasetB,
-					PlotOrientation.VERTICAL, false, true, false);
-
-			for (int i = 0; i < 10; i++) {
-				chartB.getCategoryPlot().getRenderer().setSeriesPaint(i, Color.BLUE);
-			}
-
-			// Crear el panel del gráfico
-			ChartPanel chartPanel2 = new ChartPanel(chartB);
-			chartPanel2.setPreferredSize(new Dimension(400, 300));
-			aux.add(chartPanel2);
+			aux.add(new ChartPanel(chartL));
+			aux.add(new ChartPanel(chartB));
 
 			// Limpiar el panel y agregar el chartPanel al centro
 			resultPanel.removeAll();
@@ -125,6 +107,22 @@ public class WindowWordGuesser {
 		panel.add(resultPanel, BorderLayout.CENTER);
 
 		return section;
+	}
+
+	private JFreeChart createBarPlotPanel(String title, String xAxisLabel, String yAxisLabel,
+			DefaultCategoryDataset dataset) {
+		JFreeChart chart = ChartFactory.createBarChart(title,
+				xAxisLabel,
+				yAxisLabel,
+				dataset,
+				PlotOrientation.VERTICAL,
+				false, true, false);
+
+		for (int i = 0; i < 10; i++) {
+			chart.getCategoryPlot().getRenderer().setSeriesPaint(i, Color.BLUE);
+		}
+
+		return chart;
 	}
 
 	public void addResult(String language, double distance) {
