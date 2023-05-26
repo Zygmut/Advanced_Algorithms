@@ -1,0 +1,96 @@
+{
+	"requestMap": [
+		{
+			"code": "LOAD_DB",
+			"services": ["MODEL"]
+		},
+		{
+			"code": "GET_LANG_NAMES",
+			"services": ["MODEL"]
+		},
+		{
+			"code": "LEVENSHTEIN",
+			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "ADD_RESULT",
+			"services": ["MODEL", "VIEW"]
+		},
+		{
+			"code": "FETCH_LANGS",
+			"services": ["MODEL"]
+		},
+		{
+			"code": "GET_ALL_LANGS",
+			"services": ["MODEL"]
+		},
+		{
+			"code": "GUESS_LANG",
+			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "GET_STATS",
+			"services": ["MODEL"]
+		},
+		{
+			"code": "TRAIN_NAIVE_MODEL",
+			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "LOAD_MODEL_FROM_DB",
+			"services": ["CONTROLLER"]
+		}
+	],
+	"responseMap": [
+		{
+			"code": "GET_LANG_NAMES",
+			"services": ["VIEW"]
+		},
+		{
+			"code": "GET_ALL_LANGS",
+			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "LEVENSHTEIN",
+			"services": ["VIEW"]
+		},
+		{
+			"code": "FETCH_LANGS",
+			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "GUESS_LANG",
+			"services": ["VIEW", "MODEL"]
+		},
+		{
+			"code": "GET_STATS",
+			"services": ["VIEW"]
+		}
+	],
+	"resToReqMap": [
+		{
+			"responseCode": "GET_LANG_NAMES",
+			"requestCode": "GET_LANG_NAMES"
+		},
+		{
+			"responseCode": "LEVENSHTEIN",
+			"requestCode": "LEVENSHTEIN"
+		},
+		{
+			"responseCode": "GET_ALL_LANGS",
+			"requestCode": "GET_ALL_LANGS"
+		},
+		{
+			"responseCode": "FETCH_LANGS",
+			"requestCode": "FETCH_LANGS"
+		},
+		{
+			"responseCode": "GUESS_LANG",
+			"requestCode": "GUESS_LANG"
+		},
+		{
+			"responseCode": "GET_STATS",
+			"requestCode": "GET_STATS"
+		}
+	]
+}
