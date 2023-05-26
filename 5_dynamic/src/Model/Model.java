@@ -14,7 +14,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -92,7 +91,7 @@ public class Model implements Service {
 			ResultSet resultSet = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table'");
 
 			while (resultSet.next()) {
-				if(resultSet.getString("name").contains("_")){
+				if (resultSet.getString("name").contains("_")) {
 					continue;
 				}
 				languageNames.add(resultSet.getString("name"));
@@ -170,7 +169,8 @@ public class Model implements Service {
 			}
 
 			statement.executeUpdate("DROP TABLE IF EXISTS timed_execution");
-			statement.executeUpdate("CREATE TABLE timed_execution (id INTEGER PRIMARY KEY AUTOINCREMENT, milis INTEGER)");
+			statement.executeUpdate(
+					"CREATE TABLE timed_execution (id INTEGER PRIMARY KEY AUTOINCREMENT, milis INTEGER)");
 		} catch (Exception e) {
 			Logger.getLogger(this.getClass().getSimpleName())
 					.log(Level.SEVERE, e.getLocalizedMessage());
@@ -181,7 +181,8 @@ public class Model implements Service {
 
 	private void addTimedExecution(Duration millis) {
 		try (Connection connection = DriverManager.getConnection("jdbc:sqlite:src/Model/" + Config.DB_NAME + ".sqlite");
-				PreparedStatement statement = connection.prepareStatement("INSERT INTO timed_execution (milis) VALUES (?)")) {
+				PreparedStatement statement = connection
+						.prepareStatement("INSERT INTO timed_execution (milis) VALUES (?)")) {
 			statement.setQueryTimeout(30);
 
 			// Insert the new timed execution with the prepared statement
@@ -202,7 +203,7 @@ public class Model implements Service {
 			statement.setQueryTimeout(30);
 
 			ResultSet query = statement.executeQuery("SELECT milis FROM timed_execution ORDER BY id");
-			while(query.next()){
+			while (query.next()) {
 				result.add(query.getLong("milis"));
 			}
 
@@ -244,7 +245,7 @@ public class Model implements Service {
 				final String[] targetWords = getRandomWords(nWords, targetLang);
 
 				Body body = new Body(
-						new Object[] { sourceLang + "-" + targetLang , sourceWords, targetWords });
+						new Object[] { sourceLang + "-" + targetLang, sourceWords, targetWords });
 				Response response = new Response(ResponseCode.FETCH_LANGS, this, body);
 				this.sendResponse(response);
 			}
@@ -270,4 +271,5 @@ public class Model implements Service {
 			}
 		}
 	}
+
 }

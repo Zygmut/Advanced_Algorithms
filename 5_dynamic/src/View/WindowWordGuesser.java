@@ -4,8 +4,9 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.Rectangle;
-
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -32,16 +33,19 @@ public class WindowWordGuesser {
 
 	private Window window;
 	private View view;
-	private DefaultCategoryDataset dataset;
+	private DefaultCategoryDataset datasetL;
+	private DefaultCategoryDataset datasetB;
 	private int index;
-	private JFreeChart chart;
+	private JFreeChart chartL;
+	private JFreeChart chartB;
 
 	public WindowWordGuesser(View view) {
 		this.view = view;
 		this.window = new Window(Config.VIEW_USER_MANUAL_WIN_CONFIG_PATH);
 		this.window.initConfig();
 		this.loadContent();
-		this.dataset = new DefaultCategoryDataset();
+		this.datasetL = new DefaultCategoryDataset();
+		this.datasetB = new DefaultCategoryDataset();
 		this.index = 0;
 	}
 
@@ -52,6 +56,7 @@ public class WindowWordGuesser {
 	private Section sectionUsage() {
 		Section section = new Section();
 		JPanel panel = new JPanel();
+		panel.setBackground(Color.WHITE);
 		section.createFreeSection(panel);
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		panel.setLayout(new BorderLayout());
@@ -83,64 +88,64 @@ public class WindowWordGuesser {
 			this.view.sendRequest(request);
 
 			// Crear el gráfico
-			chart = ChartFactory.createBarChart("Language Probability", "Language", "Probability", dataset,
-					PlotOrientation.VERTICAL, false, true, false);
-			for (int i = 0; i < 10; i++) {
-				chart.getCategoryPlot().getRenderer().setSeriesPaint(i, Color.BLUE);
-			}
+			final String xAxisLabel = "Language";
+			final String yAxisLabel = "Probability";
+			chartL = this.createBarPlotPanel("Language Probability (Levenshtein)", xAxisLabel, yAxisLabel, datasetL);
+			chartB = this.createBarPlotPanel("Language Probability (Bayes)", xAxisLabel, yAxisLabel, datasetB);
 
-			// Crear el panel del gráfico
-			ChartPanel chartPanel = new ChartPanel(chart);
-			chartPanel.setPreferredSize(new Dimension(400, 300));
+			JPanel aux = new JPanel();
+			aux.setLayout(new GridLayout(1, 2));
+			aux.add(new ChartPanel(chartL));
+			aux.add(new ChartPanel(chartB));
+
 			// Limpiar el panel y agregar el chartPanel al centro
 			resultPanel.removeAll();
-			resultPanel.add(chartPanel, BorderLayout.CENTER);
+			resultPanel.add(aux, BorderLayout.CENTER);
 			resultPanel.revalidate();
 			resultPanel.repaint();
 		});
 		panel.add(resultPanel, BorderLayout.CENTER);
+
 		return section;
+	}
+
+	private JFreeChart createBarPlotPanel(String title, String xAxisLabel, String yAxisLabel,
+			DefaultCategoryDataset dataset) {
+		JFreeChart chart = ChartFactory.createBarChart(title,
+				xAxisLabel,
+				yAxisLabel,
+				dataset,
+				PlotOrientation.VERTICAL,
+				false, true, false);
+
+		for (int i = 0; i < 10; i++) {
+			chart.getCategoryPlot().getRenderer().setSeriesPaint(i, Color.BLUE);
+		}
+
+		return chart;
 	}
 
 	public void addResult(String language, double distance) {
 		// Devolvemos los lenguajes y sus probabilidades del View
-		switch (language) {
-			case "HU-CUSTOM":
-				language = "Hungarian";
-				break;
-			case "HR-CUSTOM":
-				language = "Croatian";
-				break;
-			case "EN-CUSTOM":
-				language = "English";
-				break;
-			case "CUSTOM-ES":
-				language = "Spanish";
-				break;
-			case "CUSTOM-CA":
-				language = "Catalan";
-				break;
-			case "CUSTOM-FR":
-				language = "French";
-				break;
-			case "IT-CUSTOM":
-				language = "Italian";
-				break;
-			case "DE-CUSTOM":
-				language = "German";
-				break;
-			case "PT-CUSTOM":
-				language = "Portuguese";
-				break;
-			case "CUSTOM-DA":
-				language = "Danish";
-				break;
-		}
+		language = switch (language.toLowerCase()) {
+			case "hr-custom" -> "Croatian";
+			case "custom-pt" -> "Portuguese";
+			case "en-custom" -> "English";
+			case "it-custom" -> "Italian";
+			case "es-custom" -> "Spanish";
+			case "custom-de" -> "German";
+			case "custom-ca" -> "Catalan";
+			case "fr-custom" -> "French";
+			case "custom-hu" -> "Hungarian";
+			case "custom-da" -> "Danish";
+			default -> "Unknown";
+		};
+
 		double probability = 1 / (distance + 1);
-		dataset.addValue(probability, language, language);
+		datasetL.addValue(probability, language, language);
 	}
 
-	public int findMinValue(String[] language, double[] probability) {
+	public int findMinValue(double[] probability) {
 		double min = probability[0];
 		for (int i = 0; i < probability.length; i++) {
 			if (probability[i] < min) {
@@ -148,12 +153,59 @@ public class WindowWordGuesser {
 				index = i;
 			}
 		}
-		System.out.println("Index min " + index);
-		chart.getCategoryPlot().getRenderer().setSeriesPaint(index, Color.RED);
+		chartL.getCategoryPlot().getRenderer().setSeriesPaint(index, Color.RED);
 		return index;
 	}
 
 	public void show() {
 		this.window.start();
+	}
+
+	@SuppressWarnings("unchecked")
+	public void addNaiveBayesResult(Object[] result) {
+		// Object[0] -> labels
+		// Object[1] -> probabilities
+		String[] labels = getLabels((List<String>) result[0]);
+		double[] probabilities = (double[]) result[1];
+
+		for (int i = 0; i < labels.length; i++) {
+			this.datasetB.addValue(probabilities[i], labels[i], labels[i]);
+		}
+
+		// Find the max value
+		double max = probabilities[0];
+		int aux = 0;
+		for (int i = 0; i < probabilities.length; i++) {
+			if (probabilities[i] > max) {
+				max = probabilities[i];
+				aux = i;
+			}
+		}
+
+		chartB.getCategoryPlot().getRenderer().setSeriesPaint(aux, Color.RED);
+	}
+
+	private String[] getLabels(List<String> strings) {
+		String[] labels = new String[strings.size()];
+		for (int i = 0; i < strings.size(); i++) {
+			labels[i] = toCommonLabel(strings.get(i));
+		}
+		return labels;
+	}
+
+	private String toCommonLabel(String label) {
+		return switch (label) {
+			case "ca" -> "Catalan";
+			case "da" -> "Danish";
+			case "de" -> "German";
+			case "en" -> "English";
+			case "es" -> "Spanish";
+			case "fr" -> "French";
+			case "hr" -> "Croatian";
+			case "hu" -> "Hungarian";
+			case "it" -> "Italian";
+			case "pt" -> "Portuguese";
+			default -> "Unknown";
+		};
 	}
 }

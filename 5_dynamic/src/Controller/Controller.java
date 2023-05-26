@@ -5,23 +5,24 @@ import Services.Comunication.Request.Request;
 import Services.Comunication.Request.RequestCode;
 import Services.Comunication.Response.Response;
 import Services.Comunication.Response.ResponseCode;
+import utils.Config;
 import utils.Helpers;
 import Services.Service;
 
+import java.io.BufferedReader;
+import java.io.File;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.xml.transform.Source;
 
 import Model.ExecResultData;
 import Model.ExecResultDataTreeNode;
@@ -32,6 +33,8 @@ public class Controller implements Service {
 
 	private Map<String, Double> lang;
 	private String[] words;
+	private NaiveBayesClassifier model;
+	private String sentence;
 
 	public Controller() {
 		this.lang = new HashMap<>();
@@ -135,6 +138,41 @@ public class Controller implements Service {
 
 	private double euclideanDistance(double x, double y) {
 		return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+	}
+
+	@SuppressWarnings("unchecked")
+	private NaiveBayesClassifier createAndSaveModel(String pathToData) {
+		Object[] data = this.createDataset(pathToData);
+		List<String> trainingData = (List<String>) data[0];
+		List<String> trainingLabels = (List<String>) data[1];
+
+		NaiveBayesClassifier m = new NaiveBayesClassifier();
+		m.train(trainingData, trainingLabels);
+		// Save the model to disk
+		m.saveModel(Config.NAIVE_BAYES_MODEL_PATH);
+		return m;
+	}
+
+	private Object[] createDataset(String path) {
+		List<String> trainingData = new ArrayList<>();
+		List<String> trainingLabels = new ArrayList<>();
+
+		File folder = new File(path);
+		File[] listOfFiles = folder.listFiles();
+
+		for (File file : listOfFiles) {
+			try (BufferedReader br = new BufferedReader(new java.io.FileReader(file))) {
+				String line;
+				while ((line = br.readLine()) != null) {
+					trainingData.add(line);
+					trainingLabels.add(file.getName().replace(".dic", ""));
+				}
+			} catch (Exception e) {
+				Logger.getLogger(this.getClass().getSimpleName()).log(Level.SEVERE, e.getMessage(), e);
+			}
+		}
+
+		return new Object[] { trainingData, trainingLabels };
 	}
 
 	private ExecResultData[] resultToGraphData(Map<String, Double> result) {
@@ -340,14 +378,26 @@ public class Controller implements Service {
 				}
 
 				final Map<String, Double> mergedResult = mergeLangScores(result);
+				final Object[] bayesRes = this.model.classify(this.sentence);
 				final Duration duration = Duration.between(start, Instant.now());
 
-				Body body = new Body(new Object[] { duration, mergedResult });
+				Body body = new Body(new Object[] { duration, mergedResult, bayesRes });
 				this.sendResponse(new Response(ResponseCode.GUESS_LANG, this, body));
 			}
 			case GUESS_LANG -> {
+				if (Objects.isNull(this.model)) {
+					this.model = NaiveBayesClassifier.loadModel(Config.NAIVE_BAYES_MODEL_PATH);
+				}
+				this.sentence = (String) request.body.content;
 				this.words = ((String) request.body.content).split(" ");
 				this.sendRequest(new Request(RequestCode.GET_ALL_LANGS, this));
+			}
+			case TRAIN_NAIVE_MODEL -> {
+				this.model = this.createAndSaveModel(Config.PATH_TO_RAW_DATA);
+			}
+			case LOAD_MODEL_FROM_DB -> {
+				this.model = NaiveBayesClassifier.loadModel(Config.NAIVE_BAYES_MODEL_PATH);
+				Logger.getLogger(this.getClass().getSimpleName()).log(Level.INFO, "Model loaded from DB.");
 			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())

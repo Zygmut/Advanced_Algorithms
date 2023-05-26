@@ -38,12 +38,11 @@ public class WindowStats {
 	private JPanel panelStats() {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
-		final String[] names = { "Tiempo de ejecución" };
-		panel.add(this.createBarPlot(this.times, "Estadísticas tiempo ejecución", names, names), BorderLayout.CENTER);
+		panel.add(this.createBarPlot(this.times, "Estadísticas tiempo ejecución"), BorderLayout.CENTER);
 		return panel;
 	}
 
-	private ChartPanel createBarPlot(Long[] values, String title, String[] columnNames, String[] rowNames) {
+	private ChartPanel createBarPlot(Long[] values, String title) {
 		// Create a dataset
 		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 		for (int i = 0; i < values.length; i++) {
