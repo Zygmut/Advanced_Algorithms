@@ -1,0 +1,24 @@
+{
+	"requestMap": [
+		{
+			"code": "GREET",
+			"services": ["CONTROLLER", "MODEL"]
+		},
+		{
+			"code": "CREATE_DB",
+			"services": ["MODEL"]
+		}
+	],
+	"responseMap": [
+		{
+			"code": "GREET_BACK",
+			"services": ["VIEW"]
+		}
+	],
+	"resToReqMap": [
+		{
+			"responseCode": "GREET_BACK",
+			"requestCode": "GREET"
+		}
+	]
+}
