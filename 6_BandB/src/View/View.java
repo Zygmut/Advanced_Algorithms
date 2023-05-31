@@ -16,6 +16,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
@@ -37,9 +38,13 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 public class View implements Service {
 
@@ -226,6 +231,35 @@ public class View implements Service {
 
 		sideBar.add(actionsPanel);
 
+		// Add size to the puzzle
+		JPanel puzzleSizePanel = new JPanel();
+		puzzleSizePanel.setBackground(Color.WHITE);
+		puzzleSizePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		JLabel puzzleSizeLabel = new JLabel("Tamaño del puzzle");
+		// Crear un modelo para el JSpinner con un rango de valores válidos
+		SpinnerNumberModel spinnerModel = new SpinnerNumberModel(3, 2, 10, 1); // Valor inicial: 3, Mínimo: 2, Máximo:
+																				// 10, Incremento: 1
+
+		// Crear el JSpinner utilizando el modelo
+		JSpinner puzzleSize = new JSpinner(spinnerModel);
+
+		// Personalizar la apariencia del JSpinner
+		puzzleSize.setPreferredSize(new Dimension(100, 30));
+		puzzleSize.setFont(new Font("Arial", Font.PLAIN, 14));
+
+		// Agregar un listener para detectar cambios en el valor del JSpinner
+		puzzleSize.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				int newSize = (int) puzzleSize.getValue();
+				//TODO: Change the size of the puzzle
+			}
+		});
+
+		// Agregar el JSpinner al panel puzzleSizePanel
+		puzzleSizePanel.add(puzzleSizeLabel, BorderLayout.NORTH);
+		puzzleSizePanel.add(puzzleSize, BorderLayout.CENTER);
+		sideBar.add(puzzleSizePanel);
 		// Log panel
 		JPanel infoPanel = new JPanel();
 		infoPanel.setBackground(Color.WHITE);
@@ -262,9 +296,12 @@ public class View implements Service {
 		JPanel content = new JPanel();
 		content.setLayout(new BorderLayout());
 		content.setBackground(Color.WHITE);
-		Color[] colors = { Color.BLACK, Color.BLUE, Color.GREEN, Color.ORANGE, Color.RED, Color.WHITE };
-		DrawRubikCube drawRubikCube = new DrawRubikCube(600, 600, colors);
-		content.add(drawRubikCube, BorderLayout.CENTER);
+		// Color[] colors = { Color.BLACK, Color.BLUE, Color.GREEN, Color.ORANGE,
+		// Color.RED, Color.WHITE };
+		// DrawRubikCube drawRubikCube = new DrawRubikCube(600, 600, colors);
+		// content.add(drawRubikCube, BorderLayout.CENTER);
+		Game15Puzzle game15Puzzle = new Game15Puzzle(600, 600, 4);
+		content.add(game15Puzzle, BorderLayout.CENTER);
 		splitPane.setLeftComponent(content);
 		Section body = new Section();
 		body.createJSplitPaneSection(splitPane);
@@ -278,6 +315,7 @@ public class View implements Service {
 		this.buttons[0] = new JButton("Generar cubo aleatorio");
 		this.buttons[0].addActionListener(e -> {
 			// TODO
+
 		});
 		this.buttons[1] = new JButton("Resolver");
 		this.buttons[1].addActionListener(e -> {
@@ -339,6 +377,68 @@ public class View implements Service {
 		menuBar.add(help);
 
 		return menuBar;
+	}
+
+	private class Game15Puzzle extends JPanel {
+		private int width;
+		private int height;
+		private int size;
+		private int[][] puzzle;
+
+		public Game15Puzzle(int width, int height, int size) {
+			this.width = width;
+			this.height = height;
+			this.size = size;
+			this.puzzle = new int[size][size];
+			this.initializePuzzle();
+		}
+
+		@Override
+		public void paintComponent(Graphics g) {
+			Graphics2D g2 = (Graphics2D) g;
+
+			int cellWidth = width / size;
+			int cellHeight = height / size;
+			Color backgroundColor = new Color(240, 240, 240); // Color de fondo de las celdas
+			Color borderColor = new Color(160, 160, 160); // Color del borde de las celdas
+			Color textColor = new Color(50, 50, 50); // Color del texto en las celdas
+
+			for (int row = 0; row < size; row++) {
+				for (int col = 0; col < size; col++) {
+
+					int value = puzzle[row][col];
+					int x = col * cellWidth;
+					int y = row * cellHeight;
+					g2.setColor(backgroundColor);
+					g2.fillRect(x, y, cellWidth, cellHeight);
+					g2.setColor(borderColor);
+					g2.drawRect(x, y, cellWidth, cellHeight);
+					g2.setFont(getFont());
+					g2.setFont(new Font("Arial", Font.BOLD, 24));
+					g2.setColor(textColor);
+					FontMetrics fm = g2.getFontMetrics();
+					int textWidth = fm.stringWidth(String.valueOf(value));
+					int textHeight = fm.getHeight();
+					int textX = x + (cellWidth - textWidth) / 2;
+					int textY = y + (cellHeight + textHeight) / 2;
+					if (value != 0) {
+						g2.drawString(String.valueOf(value), textX, textY);
+					}
+
+				}
+			}
+		}
+
+		private void initializePuzzle() {
+			int count = 1;
+			for (int row = 0; row < size; row++) {
+				for (int col = 0; col < size; col++) {
+					puzzle[row][col] = count;
+					count++;
+				}
+			}
+			puzzle[size - 1][size - 1] = 0; // Empty cell
+		}
 	}
 
 	private class DrawRubikCube extends JPanel {
