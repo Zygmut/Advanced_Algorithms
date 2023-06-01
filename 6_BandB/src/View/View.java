@@ -140,7 +140,7 @@ public class View implements Service {
 	private JPanel sideBar() {
 		JPanel sideBar = new JPanel();
 		sideBar.setBackground(Color.WHITE);
-		sideBar.setLayout(new GridLayout(3, 1));
+		sideBar.setLayout(new GridLayout(4, 1));
 
 		// Logo panel
 		JPanel logoPanel = new JPanel();
@@ -237,8 +237,7 @@ public class View implements Service {
 		puzzleSizePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
 		JLabel puzzleSizeLabel = new JLabel("Tamaño del puzzle");
 		// Crear un modelo para el JSpinner con un rango de valores válidos
-		SpinnerNumberModel spinnerModel = new SpinnerNumberModel(3, 2, 10, 1); // Valor inicial: 3, Mínimo: 2, Máximo:
-																				// 10, Incremento: 1
+		SpinnerNumberModel spinnerModel = new SpinnerNumberModel(3, 2, 10, 1);
 
 		// Crear el JSpinner utilizando el modelo
 		JSpinner puzzleSize = new JSpinner(spinnerModel);
@@ -248,12 +247,8 @@ public class View implements Service {
 		puzzleSize.setFont(new Font("Arial", Font.PLAIN, 14));
 
 		// Agregar un listener para detectar cambios en el valor del JSpinner
-		puzzleSize.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				int newSize = (int) puzzleSize.getValue();
-				//TODO: Change the size of the puzzle
-			}
+		puzzleSize.addChangeListener(e -> {
+			// TODO
 		});
 
 		// Agregar el JSpinner al panel puzzleSizePanel
@@ -296,12 +291,22 @@ public class View implements Service {
 		JPanel content = new JPanel();
 		content.setLayout(new BorderLayout());
 		content.setBackground(Color.WHITE);
-		// Color[] colors = { Color.BLACK, Color.BLUE, Color.GREEN, Color.ORANGE,
-		// Color.RED, Color.WHITE };
-		// DrawRubikCube drawRubikCube = new DrawRubikCube(600, 600, colors);
-		// content.add(drawRubikCube, BorderLayout.CENTER);
-		Game15Puzzle game15Puzzle = new Game15Puzzle(600, 600, 4);
-		content.add(game15Puzzle, BorderLayout.CENTER);
+
+		// TODO: BORRAR ESTO - SOLO PARA PRUEBAS
+		int size = 4;
+		int[][] puzzle = new int[size][size];
+		int count = 1;
+		for (int row = 0; row < size; row++) {
+			for (int col = 0; col < size; col++) {
+				puzzle[row][col] = count;
+				count++;
+			}
+		}
+		puzzle[size - 1][size - 1] = 0; // Empty cell
+		// TODO: BORRAR ESTO - SOLO PARA PRUEBAS
+
+		PuzzleUI pUI = new PuzzleUI(600, 600, puzzle);
+		content.add(pUI, BorderLayout.CENTER);
 		splitPane.setLeftComponent(content);
 		Section body = new Section();
 		body.createJSplitPaneSection(splitPane);
@@ -315,7 +320,6 @@ public class View implements Service {
 		this.buttons[0] = new JButton("Generar cubo aleatorio");
 		this.buttons[0].addActionListener(e -> {
 			// TODO
-
 		});
 		this.buttons[1] = new JButton("Resolver");
 		this.buttons[1].addActionListener(e -> {
@@ -379,18 +383,17 @@ public class View implements Service {
 		return menuBar;
 	}
 
-	private class Game15Puzzle extends JPanel {
+	private class PuzzleUI extends JPanel {
 		private int width;
 		private int height;
 		private int size;
 		private int[][] puzzle;
 
-		public Game15Puzzle(int width, int height, int size) {
+		public PuzzleUI(int width, int height, int[][] puzzle) {
 			this.width = width;
 			this.height = height;
-			this.size = size;
-			this.puzzle = new int[size][size];
-			this.initializePuzzle();
+			this.puzzle = puzzle;
+			this.size = puzzle.length;
 		}
 
 		@Override
@@ -428,73 +431,6 @@ public class View implements Service {
 				}
 			}
 		}
-
-		private void initializePuzzle() {
-			int count = 1;
-			for (int row = 0; row < size; row++) {
-				for (int col = 0; col < size; col++) {
-					puzzle[row][col] = count;
-					count++;
-				}
-			}
-			puzzle[size - 1][size - 1] = 0; // Empty cell
-		}
-	}
-
-	private class DrawRubikCube extends JPanel {
-
-		private int width;
-		private int height;
-		private int size;
-		private Color[] cube;
-
-		public DrawRubikCube(int width, int height, Color[] cube) {
-			this.width = width;
-			this.height = height;
-			this.cube = cube;
-			this.size = width * height * 6;
-		}
-
-		@Override
-		public void paintComponent(Graphics g) {
-			Graphics2D g2 = (Graphics2D) g;
-			int x = 0;
-			int y = 0;
-			int faceWidth = width / 3;
-			int faceHeight = height / 3;
-			for (int i = 0; i < 6; i++) {
-				drawCube(g2, x, y, faceWidth, faceHeight, cube);
-				x += faceWidth;
-			}
-		}
-
-		private void drawFace(Graphics2D g2, int x, int y, int width, int height, Color color) {
-			g2.setColor(color);
-			g2.fillRect(x, y, width, height);
-			g2.setColor(Color.BLACK);
-			g2.drawRect(x, y, width, height);
-		}
-
-		private void drawCube(Graphics2D g2, int x, int y, int width, int height, Color[] cube) {
-			int faceWidth = width / 3;
-			int faceHeight = height / 3;
-			int faceX = x + faceWidth;
-			int faceY = y + faceHeight;
-
-			// Front face
-			drawFace(g2, faceX, faceY, faceWidth, faceHeight, cube[0]);
-			// Top face
-			drawFace(g2, faceX, faceY - faceHeight, faceWidth, faceHeight, cube[1]);
-			// Right face
-			drawFace(g2, faceX + faceWidth, faceY, faceWidth, faceHeight, cube[2]);
-			// Bottom face
-			drawFace(g2, faceX, faceY + faceHeight, faceWidth, faceHeight, cube[3]);
-			// Left face
-			drawFace(g2, faceX - faceWidth, faceY, faceWidth, faceHeight, cube[4]);
-			// Back face
-			drawFace(g2, faceX + faceWidth, faceY + faceHeight, faceWidth, faceHeight, cube[5]);
-		}
-
 	}
 
 }
