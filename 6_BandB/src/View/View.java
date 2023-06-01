@@ -37,14 +37,9 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
-import javax.swing.JTextArea;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 public class View implements Service {
 
@@ -60,10 +55,6 @@ public class View implements Service {
 	 * The list of buttons of the view.
 	 */
 	private JButton[] buttons;
-	/**
-	 * The text area of the view to display logs.
-	 */
-	private JTextArea textArea;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -110,7 +101,6 @@ public class View implements Service {
 			case GREET -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.INFO, "Hi {0}!.", request.origin);
-				this.textArea.append("Hi " + request.origin + "!\n");
 			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
@@ -140,7 +130,7 @@ public class View implements Service {
 	private JPanel sideBar() {
 		JPanel sideBar = new JPanel();
 		sideBar.setBackground(Color.WHITE);
-		sideBar.setLayout(new GridLayout(4, 1));
+		sideBar.setLayout(new GridLayout(3, 1));
 
 		// Logo panel
 		JPanel logoPanel = new JPanel();
@@ -256,20 +246,6 @@ public class View implements Service {
 		puzzleSizePanel.add(puzzleSize, BorderLayout.CENTER);
 		sideBar.add(puzzleSizePanel);
 		// Log panel
-		JPanel infoPanel = new JPanel();
-		infoPanel.setBackground(Color.WHITE);
-		infoPanel.setLayout(new BorderLayout());
-		this.textArea = new JTextArea();
-		textArea.setEditable(false);
-		textArea.setLineWrap(true);
-		textArea.setWrapStyleWord(true);
-		textArea.setText("Logs: \n");
-
-		// Wrap a scrollpane around it.
-		JScrollPane scrollPane = new JScrollPane(textArea);
-		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-		infoPanel.add(scrollPane, BorderLayout.CENTER);
-		sideBar.add(infoPanel);
 
 		return sideBar;
 	}
