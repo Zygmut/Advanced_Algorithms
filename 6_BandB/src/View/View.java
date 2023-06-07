@@ -194,7 +194,7 @@ public class View implements Service {
 		heuristicLabel.setBackground(Color.WHITE);
 		heuristicLabel.setOpaque(true);
 		heuristicLabel.setFont(new Font("Arial", Font.ITALIC, 14));
-		heuristicLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		heuristicLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		JComboBox<String> heuristic = new JComboBox<>();
 		heuristic.addItem("Manhattan");
 		heuristic.addItem("Euclídea");
@@ -210,8 +210,8 @@ public class View implements Service {
 				(int) heuristicPanel.getPreferredSize().getHeight()));
 
 		// Set the same start location for both panels
-		solveStrategyPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-		heuristicPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		solveStrategyPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		heuristicPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
 		actionsPanel.add(Box.createVerticalStrut(5));
 		actionsPanel.add(solveStrategyPanel);
@@ -224,7 +224,7 @@ public class View implements Service {
 		// Add size to the puzzle
 		JPanel puzzleSizePanel = new JPanel();
 		puzzleSizePanel.setBackground(Color.WHITE);
-		puzzleSizePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		puzzleSizePanel.setLayout(new BoxLayout(puzzleSizePanel, BoxLayout.Y_AXIS));
 		JLabel puzzleSizeLabel = new JLabel("Tamaño del puzzle");
 		// Crear un modelo para el JSpinner con un rango de valores válidos
 		SpinnerNumberModel spinnerModel = new SpinnerNumberModel(3, 2, 10, 1);
@@ -233,19 +233,28 @@ public class View implements Service {
 		JSpinner puzzleSize = new JSpinner(spinnerModel);
 
 		// Personalizar la apariencia del JSpinner
-		puzzleSize.setPreferredSize(new Dimension(100, 30));
 		puzzleSize.setFont(new Font("Arial", Font.PLAIN, 14));
+
+		// Change the size of the puzzle to be the same as the label size
+		puzzleSize.setMaximumSize(new Dimension(
+				(int) puzzleSizeLabel.getPreferredSize().getWidth(),
+				(int) puzzleSizeLabel.getPreferredSize().getHeight() + 15));
 
 		// Agregar un listener para detectar cambios en el valor del JSpinner
 		puzzleSize.addChangeListener(e -> {
 			// TODO
 		});
 
+		// Put the same start location for both components
+		puzzleSizeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		puzzleSize.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		puzzleSizePanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
 		// Agregar el JSpinner al panel puzzleSizePanel
-		puzzleSizePanel.add(puzzleSizeLabel, BorderLayout.NORTH);
-		puzzleSizePanel.add(puzzleSize, BorderLayout.CENTER);
+		puzzleSizePanel.add(puzzleSizeLabel);
+		puzzleSizePanel.add(puzzleSize);
 		sideBar.add(puzzleSizePanel);
-		// Log panel
 
 		return sideBar;
 	}
@@ -278,10 +287,10 @@ public class View implements Service {
 				count++;
 			}
 		}
-		puzzle[size - 1][size - 1] = 0; // Empty cell
+		puzzle[size - 1][size - 1] = -1; // Empty cell
 		// TODO: BORRAR ESTO - SOLO PARA PRUEBAS
 
-		PuzzleUI pUI = new PuzzleUI(600, 600, puzzle);
+		PuzzleUI pUI = new PuzzleUI(puzzle);
 		content.add(pUI, BorderLayout.CENTER);
 		splitPane.setLeftComponent(content);
 		Section body = new Section();
@@ -360,53 +369,40 @@ public class View implements Service {
 	}
 
 	private class PuzzleUI extends JPanel {
-		private int width;
-		private int height;
-		private int size;
+		private int pWidth;
+		private int pHeight;
 		private int[][] puzzle;
 
-		public PuzzleUI(int width, int height, int[][] puzzle) {
-			this.width = width;
-			this.height = height;
+		public PuzzleUI(int[][] puzzle) {
+			this.pWidth = puzzle.length;
+			this.pHeight = puzzle[0].length;
 			this.puzzle = puzzle;
-			this.size = puzzle.length;
+			this.setLayout(new BorderLayout());
 		}
 
 		@Override
 		public void paintComponent(Graphics g) {
-			Graphics2D g2 = (Graphics2D) g;
-
-			int cellWidth = width / size;
-			int cellHeight = height / size;
-			Color backgroundColor = new Color(240, 240, 240); // Color de fondo de las celdas
-			Color borderColor = new Color(160, 160, 160); // Color del borde de las celdas
-			Color textColor = new Color(50, 50, 50); // Color del texto en las celdas
-
-			for (int row = 0; row < size; row++) {
-				for (int col = 0; col < size; col++) {
-
-					int value = puzzle[row][col];
-					int x = col * cellWidth;
-					int y = row * cellHeight;
-					g2.setColor(backgroundColor);
-					g2.fillRect(x, y, cellWidth, cellHeight);
-					g2.setColor(borderColor);
-					g2.drawRect(x, y, cellWidth, cellHeight);
-					g2.setFont(getFont());
-					g2.setFont(new Font("Arial", Font.BOLD, 24));
-					g2.setColor(textColor);
-					FontMetrics fm = g2.getFontMetrics();
-					int textWidth = fm.stringWidth(String.valueOf(value));
-					int textHeight = fm.getHeight();
-					int textX = x + (cellWidth - textWidth) / 2;
-					int textY = y + (cellHeight + textHeight) / 2;
-					if (value != 0) {
-						g2.drawString(String.valueOf(value), textX, textY);
+			JPanel panelAux = new JPanel();
+			panelAux.setLayout(new GridLayout(this.pWidth, this.pHeight));
+			panelAux.setBackground(Color.WHITE);
+			for (int row = 0; row < this.pWidth; row++) {
+				for (int col = 0; col < this.pHeight; col++) {
+					if (this.puzzle[row][col] != -1) {
+						JButton button = new JButton(String.valueOf(this.puzzle[row][col]));
+						button.setBackground(Color.WHITE);
+						button.setBorder(BorderFactory.createLineBorder(Color.WHITE));
+						button.addActionListener(e -> {
+							// TODO
+						});
+						panelAux.add(button);
+					} else {
+						panelAux.add(new JLabel(""));
 					}
-
 				}
 			}
+			this.add(panelAux, BorderLayout.CENTER);
 		}
+
 	}
 
 }
