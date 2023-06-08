@@ -14,11 +14,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.util.logging.Level;
@@ -39,6 +36,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
+import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
 public class View implements Service {
@@ -55,6 +53,8 @@ public class View implements Service {
 	 * The list of buttons of the view.
 	 */
 	private JButton[] buttons;
+
+	private JSpinner[] spinners;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -154,37 +154,6 @@ public class View implements Service {
 		solveStrategyPanel.setBackground(Color.WHITE);
 		solveStrategyPanel.setLayout(new BoxLayout(solveStrategyPanel, BoxLayout.Y_AXIS));
 		solveStrategyPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
-		JLabel solveStrategyLabel = new JLabel("Estrategia de resolución");
-		solveStrategyLabel.setFont(new Font("Arial", Font.ITALIC, 14));
-		solveStrategyLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-		JCheckBox random = new JCheckBox("Aleatoria");
-		random.setSelected(true);
-		random.addActionListener(e -> {
-			// TODO
-		});
-		JCheckBox bfs = new JCheckBox("BFS");
-		bfs.addActionListener(e -> {
-			// TODO
-		});
-		JCheckBox dfs = new JCheckBox("DFS");
-		dfs.addActionListener(e -> {
-			// TODO
-		});
-		JCheckBox aStar = new JCheckBox("A*");
-		aStar.addActionListener(e -> {
-			// TODO
-		});
-		ButtonGroup group = new ButtonGroup();
-		group.add(random);
-		group.add(bfs);
-		group.add(dfs);
-		group.add(aStar);
-
-		solveStrategyPanel.add(solveStrategyLabel);
-		solveStrategyPanel.add(random);
-		solveStrategyPanel.add(bfs);
-		solveStrategyPanel.add(dfs);
-		solveStrategyPanel.add(aStar);
 
 		JPanel heuristicPanel = new JPanel();
 		heuristicPanel.setLayout(new BoxLayout(heuristicPanel, BoxLayout.Y_AXIS));
@@ -196,9 +165,9 @@ public class View implements Service {
 		heuristicLabel.setFont(new Font("Arial", Font.ITALIC, 14));
 		heuristicLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		JComboBox<String> heuristic = new JComboBox<>();
+		heuristic.addItem("Malposición");
 		heuristic.addItem("Manhattan");
-		heuristic.addItem("Euclídea");
-		heuristic.addItem("Hamming");
+		heuristic.addItem("Conflicto lineal");
 		heuristic.addActionListener(e -> {
 			// TODO
 		});
@@ -206,7 +175,7 @@ public class View implements Service {
 		heuristicPanel.add(heuristic);
 		// The max size to the solveStrategyLabel size
 		heuristicPanel.setMaximumSize(new Dimension(
-				(int) solveStrategyLabel.getPreferredSize().getWidth(),
+				(int) heuristicPanel.getPreferredSize().getWidth() + 40,
 				(int) heuristicPanel.getPreferredSize().getHeight()));
 
 		// Set the same start location for both panels
@@ -237,7 +206,7 @@ public class View implements Service {
 
 		// Change the size of the puzzle to be the same as the label size
 		puzzleSize.setMaximumSize(new Dimension(
-				(int) puzzleSizeLabel.getPreferredSize().getWidth(),
+				(int) puzzleSizeLabel.getPreferredSize().getWidth() + 20,
 				(int) puzzleSizeLabel.getPreferredSize().getHeight() + 15));
 
 		// Agregar un listener para detectar cambios en el valor del JSpinner
@@ -299,10 +268,23 @@ public class View implements Service {
 	}
 
 	private Section footer() {
-		Section buttonSection = new Section();
+		Section footer = new Section();
 		this.buttons = new JButton[2];
+		this.spinners = new JSpinner[2];
 
-		this.buttons[0] = new JButton("Generar cubo aleatorio");
+		JLabel shuffleAmount = new JLabel("Pasos");
+		this.spinners[0] = new JSpinner(new SpinnerNumberModel(100, 1, 200, 1));
+		this.spinners[0].addChangeListener(e -> {
+			//TODO send to model
+		});
+
+		JLabel seed = new JLabel("Semilla");
+		this.spinners[1] = new JSpinner(new SpinnerNumberModel(0, Integer.MIN_VALUE, Integer.MAX_VALUE, 1));
+		this.spinners[1].addChangeListener(e -> {
+			//TODO send to model
+		});
+
+		this.buttons[0] = new JButton("Barajar");
 		this.buttons[0].addActionListener(e -> {
 			// TODO
 		});
@@ -311,9 +293,19 @@ public class View implements Service {
 			Request request = new Request(RequestCode.GREET, this, new Body("Anybody there?!"));
 			this.sendRequest(request);
 		});
+		Section butons= new Section();
+		butons.createButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
 
-		buttonSection.createButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
-		return buttonSection;
+		JPanel footerPanel = new JPanel();
+
+		footerPanel.add(shuffleAmount);
+		footerPanel.add(this.spinners[0]);
+		footerPanel.add(seed);
+		footerPanel.add(this.spinners[1]);
+		footerPanel.add(butons.getPanel());
+
+		footer.createFreeSection(footerPanel);
+		return footer;
 	}
 
 	/**
