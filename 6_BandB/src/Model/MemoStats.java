@@ -41,6 +41,22 @@ public class MemoStats implements Serializable {
 		this.statesVisited++;
 	}
 
+	public int referencedNodes() {
+		return this.memoRef;
+	}
+
+	public int visitedNodes() {
+		return this.statesVisited;
+	}
+
+	public int hitNodes() {
+		return this.memoHit;
+	}
+
+	public BigInteger totalStates() {
+		return this.totalStates;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
