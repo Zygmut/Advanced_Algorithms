@@ -45,6 +45,11 @@ public class Model implements Service {
 				final Board board = (Board) params[0];
 				this.savePuzzle(board);
 			}
+			case SAVE_STAT -> {
+				final Object[] params = (Object[]) request.body.content;
+				final Solution sol = (Solution) params[0];
+				this.saveSolution(sol);
+			}
 			case GET_LAST_PUZZLE -> {
 				this.sendResponse(new Response(ResponseCode.GET_LAST_PUZZLE, this, new Body(getLastPuzzle())));
 			}
@@ -60,6 +65,20 @@ public class Model implements Service {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.SEVERE, "{0} is not implemented.", request);
 			}
+		}
+	}
+
+	private void saveSolution(Solution sol) {
+		final Gson gson = new GsonBuilder()
+				.registerTypeAdapter(Duration.class, new DurationTypeAdapter())
+				.create();
+		try {
+			this.dbApi.connect();
+			this.dbApi.executeQuery("INSERT INTO Solution (solution) VALUES (" + gson.toJson(sol) + ")");
+			this.dbApi.disconnect();
+		} catch (Exception e) {
+			Logger.getLogger(this.getClass().getSimpleName())
+					.log(Level.SEVERE, "Error while saving to DB.", e);
 		}
 	}
 
@@ -82,14 +101,13 @@ public class Model implements Service {
 		return null;
 	}
 
-	// Any time the puzzle is modified (new size, shuffled), the puzzle will need to be solved
+	// Any time the puzzle is modified (new size, shuffled), the puzzle will need to
+	// be solved
 	private void savePuzzle(Board board) {
 		Gson gson = new Gson();
 		try {
 			this.dbApi.connect();
-
 			this.dbApi.executeQuery("INSERT INTO Puzzle (puzzle) VALUES (" + gson.toJson(board) + ")");
-
 			this.dbApi.disconnect();
 		} catch (Exception e) {
 			Logger.getLogger(this.getClass().getSimpleName())
@@ -123,8 +141,10 @@ public class Model implements Service {
 		try {
 			this.dbApi.connect();
 			this.dbApi.setAutoCommit(false);
-			// This is somewhat redundant, as we will probably save a lot of boards that won't be used.
-			// Anyhow, we can say that this is a feature, as you can generate a lot of boards and use them
+			// This is somewhat redundant, as we will probably save a lot of boards that
+			// won't be used.
+			// Anyhow, we can say that this is a feature, as you can generate a lot of
+			// boards and use them
 			// in some other program :D
 			this.dbApi.executeUpdate(
 					"CREATE TABLE IF NOT EXISTS Puzzle(id INTEGER PRIMARY KEY AUTOINCREMENT, puzzle JSON);");
