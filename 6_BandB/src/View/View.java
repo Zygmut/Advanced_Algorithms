@@ -18,16 +18,15 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.rmi.server.SocketSecurityException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -36,8 +35,10 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
-import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
+
+import Model.Board;
+import Model.Heuristic;
 
 public class View implements Service {
 
@@ -55,6 +56,12 @@ public class View implements Service {
 	private JButton[] buttons;
 
 	private JSpinner[] spinners;
+
+	private Board lastBoard;
+
+	private PuzzleUI pUI;
+
+	private Heuristic selectedHeuristic;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -165,11 +172,14 @@ public class View implements Service {
 		heuristicLabel.setFont(new Font("Arial", Font.ITALIC, 14));
 		heuristicLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		JComboBox<String> heuristic = new JComboBox<>();
-		heuristic.addItem("Malposición");
-		heuristic.addItem("Manhattan");
-		heuristic.addItem("Conflicto lineal");
+
+		this.selectedHeuristic = Heuristic.BAD_POSITION;
+		for (Heuristic heuristic2: Heuristic.values()) {
+			heuristic.addItem(heuristic2.name());
+		}
+		heuristic.setSelectedItem(this.selectedHeuristic.name());
 		heuristic.addActionListener(e -> {
-			// TODO
+			this.selectedHeuristic = Heuristic.valueOf((String) heuristic.getSelectedItem());
 		});
 		heuristicPanel.add(heuristicLabel);
 		heuristicPanel.add(heuristic);
@@ -196,7 +206,9 @@ public class View implements Service {
 		puzzleSizePanel.setLayout(new BoxLayout(puzzleSizePanel, BoxLayout.Y_AXIS));
 		JLabel puzzleSizeLabel = new JLabel("Tamaño del puzzle");
 		// Crear un modelo para el JSpinner con un rango de valores válidos
-		SpinnerNumberModel spinnerModel = new SpinnerNumberModel(3, 2, 10, 1);
+		int boardSize = 4;
+		SpinnerNumberModel spinnerModel = new SpinnerNumberModel(boardSize, 2, 50, 1);
+		this.lastBoard = new Board(boardSize);
 
 		// Crear el JSpinner utilizando el modelo
 		JSpinner puzzleSize = new JSpinner(spinnerModel);
@@ -211,14 +223,16 @@ public class View implements Service {
 
 		// Agregar un listener para detectar cambios en el valor del JSpinner
 		puzzleSize.addChangeListener(e -> {
-			// TODO
+			this.lastBoard = new Board((int) puzzleSize.getValue());
+			this.pUI.removeAll();
+			this.pUI.changeBoardState(this.lastBoard.getState());
+			this.pUI.paintComponent(this.pUI.getGraphics());
+			this.pUI.validate();
 		});
 
 		// Put the same start location for both components
 		puzzleSizeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		puzzleSize.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-		puzzleSizePanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
 		// Agregar el JSpinner al panel puzzleSizePanel
 		puzzleSizePanel.add(puzzleSizeLabel);
@@ -246,20 +260,7 @@ public class View implements Service {
 		content.setLayout(new BorderLayout());
 		content.setBackground(Color.WHITE);
 
-		// TODO: BORRAR ESTO - SOLO PARA PRUEBAS
-		int size = 4;
-		int[][] puzzle = new int[size][size];
-		int count = 1;
-		for (int row = 0; row < size; row++) {
-			for (int col = 0; col < size; col++) {
-				puzzle[row][col] = count;
-				count++;
-			}
-		}
-		puzzle[size - 1][size - 1] = -1; // Empty cell
-		// TODO: BORRAR ESTO - SOLO PARA PRUEBAS
-
-		PuzzleUI pUI = new PuzzleUI(puzzle);
+		this.pUI = new PuzzleUI(this.lastBoard.getState());
 		content.add(pUI, BorderLayout.CENTER);
 		splitPane.setLeftComponent(content);
 		Section body = new Section();
@@ -274,26 +275,24 @@ public class View implements Service {
 
 		JLabel shuffleAmount = new JLabel("Pasos");
 		this.spinners[0] = new JSpinner(new SpinnerNumberModel(100, 1, 200, 1));
-		this.spinners[0].addChangeListener(e -> {
-			//TODO send to model
-		});
 
 		JLabel seed = new JLabel("Semilla");
 		this.spinners[1] = new JSpinner(new SpinnerNumberModel(0, Integer.MIN_VALUE, Integer.MAX_VALUE, 1));
-		this.spinners[1].addChangeListener(e -> {
-			//TODO send to model
-		});
 
 		this.buttons[0] = new JButton("Barajar");
 		this.buttons[0].addActionListener(e -> {
-			// TODO
+			this.lastBoard.shuffle((int) this.spinners[0].getValue(), (int) this.spinners[1].getValue());
+			this.pUI.removeAll();
+			this.pUI.changeBoardState(this.lastBoard.getState());
+			this.pUI.paintComponent(this.pUI.getGraphics());
+			this.pUI.validate();
 		});
 		this.buttons[1] = new JButton("Resolver");
 		this.buttons[1].addActionListener(e -> {
 			Request request = new Request(RequestCode.GREET, this, new Body("Anybody there?!"));
 			this.sendRequest(request);
 		});
-		Section butons= new Section();
+		Section butons = new Section();
 		butons.createButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
 
 		JPanel footerPanel = new JPanel();
@@ -361,6 +360,7 @@ public class View implements Service {
 	}
 
 	private class PuzzleUI extends JPanel {
+
 		private int pWidth;
 		private int pHeight;
 		private int[][] puzzle;
@@ -372,11 +372,17 @@ public class View implements Service {
 			this.setLayout(new BorderLayout());
 		}
 
+		public void changeBoardState(int[][] puzzle) {
+			this.puzzle = puzzle;
+			this.pWidth = puzzle.length;
+			this.pHeight = puzzle[0].length;
+		}
+
 		@Override
 		public void paintComponent(Graphics g) {
-			JPanel panelAux = new JPanel();
-			panelAux.setLayout(new GridLayout(this.pWidth, this.pHeight));
-			panelAux.setBackground(Color.WHITE);
+			JPanel panel = new JPanel();
+			panel.setLayout(new GridLayout(this.pWidth, this.pHeight));
+			panel.setBackground(Color.WHITE);
 			for (int row = 0; row < this.pWidth; row++) {
 				for (int col = 0; col < this.pHeight; col++) {
 					if (this.puzzle[row][col] != -1) {
@@ -386,13 +392,14 @@ public class View implements Service {
 						button.addActionListener(e -> {
 							// TODO
 						});
-						panelAux.add(button);
+						panel.add(button);
+
 					} else {
-						panelAux.add(new JLabel(""));
+						panel.add(new JLabel(""));
 					}
 				}
 			}
-			this.add(panelAux, BorderLayout.CENTER);
+			this.add(panel, BorderLayout.CENTER);
 		}
 
 	}
