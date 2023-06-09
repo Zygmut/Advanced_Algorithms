@@ -1,8 +1,14 @@
 package Model;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import Services.Service;
 import Services.Comunication.Content.Body;
@@ -17,7 +23,6 @@ public class Model implements Service {
 
 	public Model() {
 		this.dbApi = new DBApi(Config.PATH_TO_DB);
-		// Initialize model things here
 	}
 
 	@Override
@@ -35,13 +40,13 @@ public class Model implements Service {
 	@Override
 	public void notifyRequest(Request request) {
 		switch (request.code) {
-			case GREET -> {
-				Logger.getLogger(this.getClass().getSimpleName())
-						.log(Level.INFO, "Model heard {0} say {1}",
-								new Object[] { request.origin, request.body.content });
-				String message = "Hello " + request.origin + "! I'm the model.";
-				this.saveToDB(message);
-				this.sendResponse(new Response(ResponseCode.GREET_BACK, this, new Body(message)));
+			case SAVE_STAT -> {
+				final Object[] params = (Object[]) request.body.content;
+				final Solution sol = (Solution) params[0];
+				this.saveSolution(sol);
+			}
+			case FETCH_STATS -> {
+				this.sendResponse(new Response(ResponseCode.FETCH_STATS, this, new Body(getAllSolutions())));
 			}
 			case CREATE_DB -> {
 				Logger.getLogger(this.getClass().getSimpleName())
@@ -55,14 +60,13 @@ public class Model implements Service {
 		}
 	}
 
-	private void saveToDB(String message) {
+	private void saveSolution(Solution sol) {
+		final Gson gson = new GsonBuilder()
+				.registerTypeAdapter(Duration.class, new DurationTypeAdapter())
+				.create();
 		try {
 			this.dbApi.connect();
-			this.dbApi.executeUpdate(
-					"CREATE TABLE IF NOT EXISTS Greeting(id INTEGER PRIMARY KEY AUTOINCREMENT, message TEXT);");
-			message = message.replace("'", "''");
-			String query = "INSERT INTO Greeting(message) VALUES('" + message + "');";
-			this.dbApi.executeUpdate(query);
+			this.dbApi.executeQuery("INSERT INTO Solution (solution) VALUES (" + gson.toJson(sol) + ")");
 			this.dbApi.disconnect();
 		} catch (Exception e) {
 			Logger.getLogger(this.getClass().getSimpleName())
@@ -70,20 +74,34 @@ public class Model implements Service {
 		}
 	}
 
+	private Solution[] getAllSolutions() {
+		ArrayList<Solution> solutions = new ArrayList<>();
+		final Gson gson = new GsonBuilder()
+				.registerTypeAdapter(Duration.class, new DurationTypeAdapter())
+				.create();
+		try {
+			this.dbApi.connect();
+			ResultSet result = this.dbApi.executeQuery("SELECT * FROM Solution");
+			while (result.next()) {
+				solutions.add(gson.fromJson(result.getString("solution"), Solution.class));
+			}
+
+			this.dbApi.disconnect();
+		} catch (Exception e) {
+			Logger.getLogger(this.getClass().getSimpleName())
+					.log(Level.SEVERE, "Error while saving to DB.", e);
+		}
+
+		return solutions.toArray(Solution[]::new);
+	}
+
 	private void createDB() {
 		try {
 			this.dbApi.connect();
 			this.dbApi.setAutoCommit(false);
+			this.dbApi.executeUpdate("DROP TABLE IF EXISTS Solution;");
 			this.dbApi.executeUpdate(
-					"CREATE TABLE IF NOT EXISTS Strategy(id INTEGER PRIMARY KEY AUTOINCREMENT, message TEXT);");
-			this.dbApi.executeUpdate(
-					"CREATE TABLE IF NOT EXISTS RubikCube(id INTEGER PRIMARY KEY AUTOINCREMENT, size INTEGER, configuration TEXT);");
-			this.dbApi.executeUpdate(
-					"CREATE TABLE IF NOT EXISTS RubikCubeStrategy(id INTEGER PRIMARY KEY AUTOINCREMENT, idRubikCube INTEGER, idStrategy INTEGER);");
-			this.dbApi.executeUpdate(
-					"CREATE TABLE IF NOT EXISTS RubikCubeSolution(id INTEGER PRIMARY KEY AUTOINCREMENT, idRubikCube INTEGER, idStrategy INTEGER, solution TEXT, time INTEGER);");
-			this.dbApi.executeUpdate(
-					"CREATE TABLE IF NOT EXISTS RubikCubeSolutionStep(id INTEGER PRIMARY KEY AUTOINCREMENT, idRubikCubeSolution INTEGER, step INTEGER, move TEXT);");
+					"CREATE TABLE Solution(id INTEGER PRIMARY KEY AUTOINCREMENT, solution JSON);");
 			this.dbApi.commit();
 			this.dbApi.disconnect();
 		} catch (SQLException e) {
