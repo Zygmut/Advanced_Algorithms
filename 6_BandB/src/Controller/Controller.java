@@ -97,6 +97,7 @@ public class Controller implements Service {
 		final Board board = (Board) params[0];
 		final Heuristic heuristic = (Heuristic) params[1];
 		final Solution sol = this.solve(board, heuristic);
+		System.out.println(sol);
 		this.sendResponse(new Response(ResponseCode.CALCULATE, this, new Body(sol)));
 	}
 

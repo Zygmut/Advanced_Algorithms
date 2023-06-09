@@ -18,6 +18,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -124,7 +125,9 @@ public class View implements Service {
 				}
 			}
 			case FETCH_STATS -> {
-				System.out.println("hola");
+				final Solution[] sol = (Solution[]) request.body.content;
+				WindowStats stats = new WindowStats(sol);
+				stats.show();
 			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
@@ -195,9 +198,8 @@ public class View implements Service {
 			heuristic.addItem(heuristic2.name());
 		}
 		heuristic.setSelectedItem(this.selectedHeuristic.name());
-		heuristic.addActionListener(e -> {
-			this.selectedHeuristic = Heuristic.valueOf((String) heuristic.getSelectedItem());
-		});
+		heuristic.addActionListener(
+				e -> this.selectedHeuristic = Heuristic.valueOf((String) heuristic.getSelectedItem()));
 		heuristicPanel.add(heuristicLabel);
 		heuristicPanel.add(heuristic);
 		// The max size to the solveStrategyLabel size
@@ -335,9 +337,7 @@ public class View implements Service {
 		JMenu options = new JMenu("Opciones");
 		JMenu stats = new JMenu("Estadisticas");
 		JMenuItem alg = new JMenuItem("Algoritmos");
-		alg.addActionListener(e -> {
-			// TODO
-		});
+		alg.addActionListener(e -> this.sendRequest(new Request(RequestCode.FETCH_STATS, this)));
 		JMenuItem jvm = new JMenuItem("JVM");
 		jvm.addActionListener(e -> {
 			WindowJVMStats jvmStats = new WindowJVMStats();

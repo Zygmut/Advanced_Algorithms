@@ -1,5 +1,6 @@
 package View;
 
+import java.util.Arrays;
 import java.util.function.LongUnaryOperator;
 
 import javax.swing.JPanel;
@@ -10,6 +11,7 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.xy.XYSeriesCollection;
 
+import Model.Solution;
 import betterSwing.Section;
 import betterSwing.Window;
 import betterSwing.utils.DirectionAndPosition;
@@ -19,7 +21,8 @@ public class WindowStats {
 
 	private Window window;
 
-	public WindowStats() {
+	public WindowStats(Solution[] solutions) {
+		System.out.println(Arrays.deepToString(solutions));
 		this.window = new Window(Config.VIEW_STATS_WIN_CONFIG_PATH);
 		this.window.initConfig();
 		this.loadContent();

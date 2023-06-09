@@ -3,8 +3,7 @@ package Model;
 import java.io.Serializable;
 import java.math.BigInteger;
 
-public class MemoStats implements Serializable{
-
+public class MemoStats implements Serializable {
 	private int statesVisited;
 	private BigInteger totalStates;
 	private int memoRef;

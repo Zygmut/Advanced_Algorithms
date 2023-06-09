@@ -1,6 +1,8 @@
 package Model;
 
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.awt.List;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -24,12 +26,20 @@ public class DBApi {
 		this.connection.close();
 	}
 
-	public ResultSet executeQuery(String query) throws SQLException {
-		Statement stmt = this.connection.createStatement();
-		stmt.setQueryTimeout(30);
-		ResultSet result = stmt.executeQuery(query);
-		stmt.close();
-		return result;
+	public String[] executeQuery(String query, String[] columns) throws SQLException {
+		try (Statement stmt = this.connection.createStatement()) {
+			stmt.setQueryTimeout(30);
+
+			ArrayList<String> results = new ArrayList<>();
+			ResultSet result = stmt.executeQuery(query);
+			while (result.next()) {
+				for (String column : columns) {
+					results.add(result.getString(column));
+				}
+			}
+
+			return results.toArray(String[]::new);
+		}
 	}
 
 	public int executeUpdate(String query) throws SQLException {

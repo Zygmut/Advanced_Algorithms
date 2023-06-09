@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -95,10 +96,10 @@ public class Model implements Service {
 				.create();
 		try {
 			this.dbApi.connect();
-			ResultSet result = this.dbApi.executeQuery("SELECT * FROM Solution");
-			while (result.next()) {
+
+			for (String solution : this.dbApi.executeQuery("SELECT * FROM Solution", new String[] { "solution" })) {
 				solutions.add(
-						gson.fromJson(result.getString("solution"), Solution.class));
+						gson.fromJson(solution, Solution.class));
 			}
 
 			this.dbApi.disconnect();
