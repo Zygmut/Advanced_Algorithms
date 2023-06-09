@@ -5,5 +5,6 @@ package Services.Comunication.Response;
  */
 public enum ResponseCode {
 	PROMISE,
-	GREET_BACK
+	GREET_BACK,
+	CALCULATE
 }
