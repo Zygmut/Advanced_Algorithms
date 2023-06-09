@@ -6,5 +6,7 @@ package Services.Comunication.Response;
 public enum ResponseCode {
 	PROMISE,
 	GREET_BACK,
+	FETCH_STATS,
+	GET_LAST_PUZZLE,
 	CALCULATE
 }

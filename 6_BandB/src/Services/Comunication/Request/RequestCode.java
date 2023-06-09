@@ -5,6 +5,6 @@ package Services.Comunication.Request;
  */
 public enum RequestCode {
 	GREET,
-	CREATE_DB,
+	CREATE_DB, FETCH_STATS, SAVE_PUZZLE, GET_LAST_PUZZLE, SAVE_STAT,
 	CALCULATE, SHUFFLE
 }
