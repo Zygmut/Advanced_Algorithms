@@ -82,4 +82,8 @@ public enum Heuristic {
 	public int apply(Board board) {
 		throw new UnsupportedOperationException();
 	}
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 3814a8333f179a6652f7096dd7168932d9928ef7
