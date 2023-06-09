@@ -3,6 +3,7 @@ package Model;
 import java.awt.Point;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -114,6 +115,29 @@ public class Board implements Serializable {
         }
 
         return sb.toString();
+    }
+
+	 @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (!(obj instanceof Board)) {
+            return false;
+        }
+
+        Board other = (Board) obj;
+
+        return Arrays.deepEquals(this.state, other.state) &&
+                this.dudPosition.equals(other.dudPosition);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Arrays.deepHashCode(state);
+        result = 31 * result + Objects.hashCode(dudPosition);
+        return result;
     }
 
     public int[][] getState() {
