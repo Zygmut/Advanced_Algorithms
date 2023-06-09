@@ -21,6 +21,7 @@ import Model.Solution;
 import Services.Service;
 import Services.Comunication.Content.Body;
 import Services.Comunication.Request.Request;
+import Services.Comunication.Request.RequestCode;
 import Services.Comunication.Response.Response;
 import Services.Comunication.Response.ResponseCode;
 
@@ -86,27 +87,17 @@ public class Controller implements Service {
 
 	@Override
 	public void notifyRequest(Request request) {
-		switch (request.code) {
-			case SHUFFLE -> {
-				final Object[] params = (Object[]) request.body.content;
-				final Board board = (Board) params[0];
-				final Integer seed = (Integer) params[1];
-				final Integer moves = (Integer) params[2];
-				board.shuffle(moves, seed);
-				this.sendResponse(new Response(ResponseCode.CALCULATE, this, new Body(board)));
-			}
-			case CALCULATE -> {
-				final Object[] params = (Object[]) request.body.content;
-				final Board board = (Board) params[0];
-				final Heuristic heuristic = (Heuristic) params[1];
-				final Solution sol = this.solve(board, heuristic);
-				this.sendResponse(new Response(ResponseCode.CALCULATE, this, new Body(sol)));
-			}
-			default -> {
-				Logger.getLogger(this.getClass().getSimpleName())
-						.log(Level.SEVERE, "{0} is not implemented.", request);
-			}
+		if (request.code != RequestCode.CALCULATE) {
+			Logger.getLogger(this.getClass().getSimpleName())
+					.log(Level.SEVERE, "{0} is not implemented.", request);
+			return;
 		}
+
+		final Object[] params = (Object[]) request.body.content;
+		final Board board = (Board) params[0];
+		final Heuristic heuristic = (Heuristic) params[1];
+		final Solution sol = this.solve(board, heuristic);
+		this.sendResponse(new Response(ResponseCode.CALCULATE, this, new Body(sol)));
 	}
 
 }

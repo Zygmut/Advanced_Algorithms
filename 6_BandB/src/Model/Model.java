@@ -40,18 +40,19 @@ public class Model implements Service {
 	@Override
 	public void notifyRequest(Request request) {
 		switch (request.code) {
-			case SAVE_STAT -> {
-				final Object[] params = (Object[]) request.body.content;
-				final Solution sol = (Solution) params[0];
+			case CALCULATE -> {
+				final Solution sol = (Solution) request.body.content;
+				Logger.getLogger(this.getClass().getSimpleName())
+						.log(Level.INFO, "Saved Solution to model");
 				this.saveSolution(sol);
 			}
 			case FETCH_STATS -> {
 				this.sendResponse(new Response(ResponseCode.FETCH_STATS, this, new Body(getAllSolutions())));
 			}
 			case CREATE_DB -> {
-				Logger.getLogger(this.getClass().getSimpleName())
-						.log(Level.INFO, "Creating DB.");
 				this.createDB();
+				Logger.getLogger(this.getClass().getSimpleName())
+						.log(Level.INFO, "Created DB.");
 			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
@@ -66,7 +67,7 @@ public class Model implements Service {
 				.create();
 		try {
 			this.dbApi.connect();
-			this.dbApi.executeQuery("INSERT INTO Solution (solution) VALUES (" + gson.toJson(sol) + ")");
+			this.dbApi.executeUpdate("INSERT INTO Solution (solution) VALUES ('" + gson.toJson(sol) + "')");
 			this.dbApi.disconnect();
 		} catch (Exception e) {
 			Logger.getLogger(this.getClass().getSimpleName())

@@ -18,7 +18,6 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.Image;
-import java.rmi.server.SocketSecurityException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -39,6 +38,8 @@ import javax.swing.SpinnerNumberModel;
 
 import Model.Board;
 import Model.Heuristic;
+import Model.Movement;
+import Model.Solution;
 
 public class View implements Service {
 
@@ -105,9 +106,25 @@ public class View implements Service {
 	@Override
 	public void notifyRequest(Request request) {
 		switch (request.code) {
-			case GREET -> {
-				Logger.getLogger(this.getClass().getSimpleName())
-						.log(Level.INFO, "Hi {0}!.", request.origin);
+			case CALCULATE -> {
+				final Solution sol = (Solution) request.body.content;
+				for (Movement move : sol.movements()) {
+					this.pUI.removeAll();
+					this.lastBoard.move(move);
+					this.pUI.changeBoardState(this.lastBoard.getState());
+					this.pUI.paintComponent(this.pUI.getGraphics());
+					this.pUI.validate();
+
+					try {
+						Thread.sleep(15);
+					} catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+					}
+
+				}
+			}
+			case FETCH_STATS -> {
+				System.out.println("hola");
 			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
@@ -174,7 +191,7 @@ public class View implements Service {
 		JComboBox<String> heuristic = new JComboBox<>();
 
 		this.selectedHeuristic = Heuristic.BAD_POSITION;
-		for (Heuristic heuristic2: Heuristic.values()) {
+		for (Heuristic heuristic2 : Heuristic.values()) {
 			heuristic.addItem(heuristic2.name());
 		}
 		heuristic.setSelectedItem(this.selectedHeuristic.name());
@@ -289,8 +306,8 @@ public class View implements Service {
 		});
 		this.buttons[1] = new JButton("Resolver");
 		this.buttons[1].addActionListener(e -> {
-			Request request = new Request(RequestCode.GREET, this, new Body("Anybody there?!"));
-			this.sendRequest(request);
+			final Body body = new Body(new Object[] { this.lastBoard, this.selectedHeuristic });
+			this.sendRequest(new Request(RequestCode.CALCULATE, this, body));
 		});
 		Section butons = new Section();
 		butons.createButtons(buttons, DirectionAndPosition.DIRECTION_ROW);

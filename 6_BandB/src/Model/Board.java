@@ -1,12 +1,13 @@
 package Model;
 
 import java.awt.Point;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Board {
+public class Board implements Serializable {
 
     int[][] state;
     Point dudPosition;
