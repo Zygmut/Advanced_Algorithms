@@ -55,7 +55,7 @@ public class Controller implements Service {
 			Node node = pQueue.poll();
 
 			if (node.board().isSolved()) {
-				return new Solution(node.movements(), stats, Duration.between(start, Instant.now()));
+				return new Solution(board, heuristic, node.movements(), stats, Duration.between(start, Instant.now()));
 			}
 
 			for (Movement move : Movement.values()) {
@@ -77,7 +77,7 @@ public class Controller implements Service {
 			}
 		}
 
-		return new Solution(Collections.emptyList(), stats, Duration.between(start, Instant.now()));
+		return new Solution(board, heuristic, Collections.emptyList(), stats, Duration.between(start, Instant.now()));
 	}
 
 	public int cost(Node node, Heuristic heuristic) {
