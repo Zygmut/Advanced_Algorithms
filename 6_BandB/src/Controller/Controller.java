@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -14,13 +15,14 @@ import java.util.logging.Logger;
 
 import Model.Board;
 import Model.Heuristic;
-import Model.MemoStats;
+import Model.ExecStats;
 import Model.Movement;
 import Model.Node;
 import Model.Solution;
 import Services.Service;
 import Services.Comunication.Content.Body;
 import Services.Comunication.Request.Request;
+import Services.Comunication.Request.RequestCode;
 import Services.Comunication.Response.Response;
 import Services.Comunication.Response.ResponseCode;
 
@@ -44,69 +46,83 @@ public class Controller implements Service {
 
 	public Solution solve(Board board, Heuristic heuristic) {
 		Instant start = Instant.now();
-		MemoStats stats = new MemoStats(board.getState().length);
+		ExecStats stats = new ExecStats(board.getState().length);
 		PriorityQueue<Node> pQueue = new PriorityQueue<>(Comparator.comparingInt(e -> this.cost(e, heuristic)));
-		pQueue.add(new Node(board, 0, Collections.emptyList()));
+		Integer lowerBound = Integer.MAX_VALUE;
+		Integer weight = 0;
+		Solution currentSol = null;
+		pQueue.add(new Node(board, Collections.emptyList()));
 
-		Set<Board> memo = new HashSet<>();
-		memo.add(board);
+		HashMap<Board, Integer> memo = new HashMap<>();
+		memo.put(board, Integer.MAX_VALUE);
 
 		while (!pQueue.isEmpty()) {
-			Node node = pQueue.poll();
+			stats.addState();
+			final Node node = pQueue.poll();
+			final int size = this.cost(node, heuristic);
+
+			if (size > lowerBound) {
+				stats.addPrune();
+				continue;
+			}
 
 			if (node.board().isSolved()) {
-				return new Solution(board, heuristic, node.movements(), stats, Duration.between(start, Instant.now()));
+				lowerBound = size;
+				stats.setime(Duration.between(start, Instant.now()));
+				currentSol = new Solution(board, heuristic, node.movements(), stats);
 			}
 
 			for (Movement move : Movement.values()) {
 				Board cpBoard = new Board(node.board());
-				stats.addState();
 				if (!cpBoard.move(move)) {
-					continue;
-				}
-				stats.addRef();
-				if (memo.contains(cpBoard)) {
-					stats.addHit();
 					continue;
 				}
 
 				List<Movement> cpMovements = new ArrayList<>(node.movements());
 				cpMovements.add(move);
-				pQueue.add(new Node(cpBoard, node.depth() + 1, cpMovements));
-				memo.add(cpBoard);
+				final Node cpNode = new Node(cpBoard, cpMovements);
+				final int cost = this.cost(cpNode, heuristic);
+
+				stats.addRef();
+				weight = memo.getOrDefault(cpBoard, null);
+				if (weight != null) {
+					stats.addHit();
+					if (weight >= cost) {
+						continue;
+					}
+					memo.put(cpBoard, weight);
+				}
+
+				pQueue.add(cpNode);
+				memo.put(cpBoard, cost);
 			}
 		}
 
-		return new Solution(board, heuristic, Collections.emptyList(), stats, Duration.between(start, Instant.now()));
+		if (currentSol == null) {
+			stats.setime(Duration.between(start, Instant.now()));
+			return new Solution(board, heuristic, Collections.emptyList(), stats);
+		}
+
+		return currentSol;
 	}
 
 	public int cost(Node node, Heuristic heuristic) {
-		return heuristic.apply(node.board()) + node.depth();
+		return heuristic.apply(node.board()) + node.movements().size();
 	}
 
 	@Override
 	public void notifyRequest(Request request) {
-		switch (request.code) {
-			case SHUFFLE -> {
-				final Object[] params = (Object[]) request.body.content;
-				final Board board = (Board) params[0];
-				final Integer seed = (Integer) params[1];
-				final Integer moves = (Integer) params[2];
-				board.shuffle(moves, seed);
-				this.sendResponse(new Response(ResponseCode.CALCULATE, this, new Body(board)));
-			}
-			case CALCULATE -> {
-				final Object[] params = (Object[]) request.body.content;
-				final Board board = (Board) params[0];
-				final Heuristic heuristic = (Heuristic) params[1];
-				final Solution sol = this.solve(board, heuristic);
-				this.sendResponse(new Response(ResponseCode.CALCULATE, this, new Body(sol)));
-			}
-			default -> {
-				Logger.getLogger(this.getClass().getSimpleName())
-						.log(Level.SEVERE, "{0} is not implemented.", request);
-			}
+		if (request.code != RequestCode.CALCULATE) {
+			Logger.getLogger(this.getClass().getSimpleName())
+					.log(Level.SEVERE, "{0} is not implemented.", request);
+			return;
 		}
+
+		final Object[] params = (Object[]) request.body.content;
+		final Board board = (Board) params[0];
+		final Heuristic heuristic = (Heuristic) params[1];
+		final Solution sol = this.solve(board, heuristic);
+		this.sendResponse(new Response(ResponseCode.CALCULATE, this, new Body(sol)));
 	}
 
 }

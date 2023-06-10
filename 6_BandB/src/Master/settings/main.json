@@ -1,8 +1,12 @@
 {
 	"requestMap": [
 		{
-			"code": "GREET",
-			"services": ["CONTROLLER", "MODEL"]
+			"code": "CALCULATE",
+			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "FETCH_STATS",
+			"services": ["MODEL"]
 		},
 		{
 			"code": "CREATE_DB",
@@ -11,14 +15,22 @@
 	],
 	"responseMap": [
 		{
-			"code": "GREET_BACK",
+			"code": "CALCULATE",
+			"services": ["MODEL", "VIEW"]
+		},
+		{
+			"code": "FETCH_STATS",
 			"services": ["VIEW"]
 		}
 	],
 	"resToReqMap": [
 		{
-			"responseCode": "GREET_BACK",
-			"requestCode": "GREET"
+			"responseCode": "CALCULATE",
+			"requestCode": "CALCULATE"
+		},
+		{
+			"responseCode": "FETCH_STATS",
+			"requestCode": "FETCH_STATS"
 		}
 	]
 }

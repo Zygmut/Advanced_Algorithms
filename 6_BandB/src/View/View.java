@@ -14,32 +14,39 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
-import javax.swing.JTextArea;
-import javax.swing.ScrollPaneConstants;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
+import Model.Board;
+import Model.Heuristic;
+import Model.Movement;
+import Model.Solution;
 
 public class View implements Service {
 
@@ -55,10 +62,18 @@ public class View implements Service {
 	 * The list of buttons of the view.
 	 */
 	private JButton[] buttons;
-	/**
-	 * The text area of the view to display logs.
-	 */
-	private JTextArea textArea;
+
+	private JSpinner[] spinners;
+
+	private Board lastBoard;
+
+	private PuzzleUI pUI;
+
+	private Heuristic selectedHeuristic;
+
+	private File selectedImg;
+	private JLabel loadingFeedback;
+	private JLabel loadingLabel;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -102,10 +117,28 @@ public class View implements Service {
 	@Override
 	public void notifyRequest(Request request) {
 		switch (request.code) {
-			case GREET -> {
-				Logger.getLogger(this.getClass().getSimpleName())
-						.log(Level.INFO, "Hi {0}!.", request.origin);
-				this.textArea.append("Hi " + request.origin + "!\n");
+			case CALCULATE -> {
+				final Solution sol = (Solution) request.body.content;
+				for (Movement move : sol.movements()) {
+					this.pUI.removeAll();
+					this.lastBoard.move(move);
+					this.pUI.changeBoardState(this.lastBoard.getState());
+					this.pUI.setImage(this.selectedImg, this.lastBoard.getState().length);
+					this.pUI.paintComponent(this.pUI.getGraphics());
+					this.pUI.validate();
+					try {
+						Thread.sleep(10);
+					} catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+					}
+				}
+				this.loadingLabel.setText("");
+				this.loadingFeedback.setIcon(null);
+			}
+			case FETCH_STATS -> {
+				final Solution[] sol = (Solution[]) request.body.content;
+				WindowStats stats = new WindowStats(sol);
+				stats.show();
 			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
@@ -159,37 +192,6 @@ public class View implements Service {
 		solveStrategyPanel.setBackground(Color.WHITE);
 		solveStrategyPanel.setLayout(new BoxLayout(solveStrategyPanel, BoxLayout.Y_AXIS));
 		solveStrategyPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
-		JLabel solveStrategyLabel = new JLabel("Estrategia de resolución");
-		solveStrategyLabel.setFont(new Font("Arial", Font.ITALIC, 14));
-		solveStrategyLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-		JCheckBox random = new JCheckBox("Aleatoria");
-		random.setSelected(true);
-		random.addActionListener(e -> {
-			// TODO
-		});
-		JCheckBox bfs = new JCheckBox("BFS");
-		bfs.addActionListener(e -> {
-			// TODO
-		});
-		JCheckBox dfs = new JCheckBox("DFS");
-		dfs.addActionListener(e -> {
-			// TODO
-		});
-		JCheckBox aStar = new JCheckBox("A*");
-		aStar.addActionListener(e -> {
-			// TODO
-		});
-		ButtonGroup group = new ButtonGroup();
-		group.add(random);
-		group.add(bfs);
-		group.add(dfs);
-		group.add(aStar);
-
-		solveStrategyPanel.add(solveStrategyLabel);
-		solveStrategyPanel.add(random);
-		solveStrategyPanel.add(bfs);
-		solveStrategyPanel.add(dfs);
-		solveStrategyPanel.add(aStar);
 
 		JPanel heuristicPanel = new JPanel();
 		heuristicPanel.setLayout(new BoxLayout(heuristicPanel, BoxLayout.Y_AXIS));
@@ -198,49 +200,116 @@ public class View implements Service {
 		JLabel heuristicLabel = new JLabel("Heurística");
 		heuristicLabel.setBackground(Color.WHITE);
 		heuristicLabel.setOpaque(true);
-		heuristicLabel.setFont(new Font("Arial", Font.ITALIC, 14));
-		heuristicLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		final String fontName = "Arial";
+		heuristicLabel.setFont(new Font(fontName, Font.ITALIC, 14));
+		heuristicLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		JComboBox<String> heuristic = new JComboBox<>();
-		heuristic.addItem("Manhattan");
-		heuristic.addItem("Euclídea");
-		heuristic.addItem("Hamming");
-		heuristic.addActionListener(e -> {
-			// TODO
-		});
+
+		this.selectedHeuristic = Heuristic.BAD_POSITION;
+		for (Heuristic heuristic2 : Heuristic.values()) {
+			heuristic.addItem(heuristic2.name());
+		}
+		heuristic.setSelectedItem(this.selectedHeuristic.name());
+		heuristic.addActionListener(
+				e -> this.selectedHeuristic = Heuristic.valueOf((String) heuristic.getSelectedItem()));
 		heuristicPanel.add(heuristicLabel);
 		heuristicPanel.add(heuristic);
 		// The max size to the solveStrategyLabel size
 		heuristicPanel.setMaximumSize(new Dimension(
-				(int) solveStrategyLabel.getPreferredSize().getWidth(),
+				(int) heuristicPanel.getPreferredSize().getWidth() + 40,
 				(int) heuristicPanel.getPreferredSize().getHeight()));
 
-		// Set the same start location for both panels
-		solveStrategyPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-		heuristicPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		JPanel resetImgPanel = new JPanel();
+		resetImgPanel.setBackground(Color.WHITE);
+		resetImgPanel.setLayout(new BoxLayout(resetImgPanel, BoxLayout.Y_AXIS));
+		// Crear el JSpinner utilizando el modelo
+		JButton resetImgBtn = new JButton("Eliminar Imagen");
+
+		// Personalizar la apariencia del JSpinner
+		resetImgBtn.setFont(new Font(fontName, Font.PLAIN, 14));
+
+
+		// Agregar un listener para detectar cambios en el valor del JSpinner
+		resetImgBtn.addActionListener(e -> {
+			this.selectedImg = null;
+			this.pUI.removeAll();
+			this.pUI.changeBoardState(this.lastBoard.getState());
+			this.pUI.setImage(this.selectedImg, this.lastBoard.getState().length);
+			this.pUI.paintComponent(this.pUI.getGraphics());
+			this.pUI.validate();
+		});
+
+		// Put the same start location for both components
+		resetImgBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		// Change the size of the puzzle to be the same as the label size
+		resetImgBtn.setMaximumSize(new Dimension(
+				(int) resetImgBtn.getPreferredSize().getWidth() + 20,
+				(int) resetImgBtn.getPreferredSize().getHeight() + 15));
+
+		resetImgPanel.add(resetImgBtn);
 
 		actionsPanel.add(Box.createVerticalStrut(5));
 		actionsPanel.add(solveStrategyPanel);
-		actionsPanel.add(Box.createVerticalStrut(5));
+		actionsPanel.add(Box.createVerticalStrut(15));
 		actionsPanel.add(heuristicPanel);
+		actionsPanel.add(Box.createVerticalStrut(5));
+		actionsPanel.add(resetImgPanel);
 		actionsPanel.add(Box.createVerticalStrut(5));
 
 		sideBar.add(actionsPanel);
 
-		// Log panel
-		JPanel infoPanel = new JPanel();
-		infoPanel.setBackground(Color.WHITE);
-		infoPanel.setLayout(new BorderLayout());
-		this.textArea = new JTextArea();
-		textArea.setEditable(false);
-		textArea.setLineWrap(true);
-		textArea.setWrapStyleWord(true);
-		textArea.setText("Logs: \n");
+		// Add size to the puzzle
+		JPanel puzzleSizePanel = new JPanel();
+		puzzleSizePanel.setBackground(Color.WHITE);
+		puzzleSizePanel.setLayout(new BoxLayout(puzzleSizePanel, BoxLayout.Y_AXIS));
+		JLabel puzzleSizeLabel = new JLabel("Tamaño del puzzle");
 
-		// Wrap a scrollpane around it.
-		JScrollPane scrollPane = new JScrollPane(textArea);
-		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-		infoPanel.add(scrollPane, BorderLayout.CENTER);
-		sideBar.add(infoPanel);
+		// Crear un modelo para el JSpinner con un rango de valores válidos
+		int boardSize = 4;
+		SpinnerNumberModel spinnerModel = new SpinnerNumberModel(boardSize, 2, 50, 1);
+		this.lastBoard = new Board(boardSize);
+
+		// Crear el JSpinner utilizando el modelo
+		JSpinner puzzleSize = new JSpinner(spinnerModel);
+
+		// Personalizar la apariencia del JSpinner
+		puzzleSize.setFont(new Font(fontName, Font.PLAIN, 14));
+
+		// Change the size of the puzzle to be the same as the label size
+		puzzleSize.setMaximumSize(new Dimension(
+				(int) puzzleSizeLabel.getPreferredSize().getWidth() + 20,
+				(int) puzzleSizeLabel.getPreferredSize().getHeight() + 15));
+
+		// Agregar un listener para detectar cambios en el valor del JSpinner
+		puzzleSize.addChangeListener(e -> {
+			this.lastBoard = new Board((int) puzzleSize.getValue());
+			this.pUI.removeAll();
+			this.pUI.changeBoardState(this.lastBoard.getState());
+			this.pUI.setImage(this.selectedImg, this.lastBoard.getState().length);
+			this.pUI.paintComponent(this.pUI.getGraphics());
+			this.pUI.validate();
+		});
+
+		// Put the same start location for both components
+		puzzleSizeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		puzzleSize.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+
+		JPanel loadingPanel = new JPanel();
+		loadingPanel.setBackground(Color.WHITE);
+		this.loadingLabel = new JLabel("");
+		this.loadingFeedback = new JLabel();
+		loadingPanel.add(this.loadingLabel);
+		loadingPanel.add(this.loadingFeedback);
+
+		// Agregar el JSpinner al panel puzzleSizePanel
+		puzzleSizePanel.add(puzzleSizeLabel);
+		puzzleSizePanel.add(puzzleSize);
+		puzzleSizePanel.add(Box.createVerticalStrut(20));
+		puzzleSizePanel.add(loadingPanel);
+
+		sideBar.add(puzzleSizePanel);
 
 		return sideBar;
 	}
@@ -262,9 +331,9 @@ public class View implements Service {
 		JPanel content = new JPanel();
 		content.setLayout(new BorderLayout());
 		content.setBackground(Color.WHITE);
-		Color[] colors = { Color.BLACK, Color.BLUE, Color.GREEN, Color.ORANGE, Color.RED, Color.WHITE };
-		DrawRubikCube drawRubikCube = new DrawRubikCube(600, 600, colors);
-		content.add(drawRubikCube, BorderLayout.CENTER);
+
+		this.pUI = new PuzzleUI(this.lastBoard.getState());
+		content.add(pUI, BorderLayout.CENTER);
 		splitPane.setLeftComponent(content);
 		Section body = new Section();
 		body.createJSplitPaneSection(splitPane);
@@ -272,21 +341,47 @@ public class View implements Service {
 	}
 
 	private Section footer() {
-		Section buttonSection = new Section();
+		Section footer = new Section();
 		this.buttons = new JButton[2];
+		this.spinners = new JSpinner[2];
 
-		this.buttons[0] = new JButton("Generar cubo aleatorio");
+		JLabel shuffleAmount = new JLabel("Pasos");
+		this.spinners[0] = new JSpinner(new SpinnerNumberModel(100, 1, 200, 1));
+
+		JLabel seed = new JLabel("Semilla");
+		this.spinners[1] = new JSpinner(new SpinnerNumberModel(0, Integer.MIN_VALUE, Integer.MAX_VALUE, 1));
+
+		this.buttons[0] = new JButton("Barajar");
 		this.buttons[0].addActionListener(e -> {
-			// TODO
+			this.lastBoard.shuffle((int) this.spinners[0].getValue(), (int) this.spinners[1].getValue());
+			this.pUI.removeAll();
+			this.pUI.changeBoardState(this.lastBoard.getState());
+			this.pUI.setImage(this.selectedImg, this.lastBoard.getState().length);
+			this.pUI.paintComponent(this.pUI.getGraphics());
+			this.pUI.validate();
 		});
 		this.buttons[1] = new JButton("Resolver");
 		this.buttons[1].addActionListener(e -> {
-			Request request = new Request(RequestCode.GREET, this, new Body("Anybody there?!"));
-			this.sendRequest(request);
+			final Body body = new Body(new Object[] { this.lastBoard, this.selectedHeuristic });
+			this.sendRequest(new Request(RequestCode.CALCULATE, this, body));
+			this.loadingLabel.setText("Calculando...");
+			ImageIcon loading = new ImageIcon(Config.PATH_TO_LOADING_ASSET);
+			loading.setImage(loading.getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT));
+			this.loadingFeedback.setIcon(loading);
 		});
+		Section butons = new Section();
+		butons.createButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
 
-		buttonSection.createButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
-		return buttonSection;
+		JPanel footerPanel = new JPanel();
+
+		footerPanel.add(shuffleAmount);
+		footerPanel.add(this.spinners[0]);
+		footerPanel.add(seed);
+		footerPanel.add(this.spinners[1]);
+		footerPanel.add(butons.getPanel());
+
+		footer.createFreeSection(footerPanel);
+		return footer;
 	}
 
 	/**
@@ -300,9 +395,7 @@ public class View implements Service {
 		JMenu options = new JMenu("Opciones");
 		JMenu stats = new JMenu("Estadisticas");
 		JMenuItem alg = new JMenuItem("Algoritmos");
-		alg.addActionListener(e -> {
-			// TODO
-		});
+		alg.addActionListener(e -> this.sendRequest(new Request(RequestCode.FETCH_STATS, this)));
 		JMenuItem jvm = new JMenuItem("JVM");
 		jvm.addActionListener(e -> {
 			WindowJVMStats jvmStats = new WindowJVMStats();
@@ -321,12 +414,30 @@ public class View implements Service {
 		menuBar.add(options);
 
 		JMenu db = new JMenu("Datos");
-		JMenuItem load = new JMenuItem("Cargar");
+		JMenuItem load = new JMenuItem("Cargar BD");
 		load.addActionListener(e -> {
 			Request request = new Request(RequestCode.CREATE_DB, this);
 			this.sendRequest(request);
 		});
+		JMenuItem img = new JMenuItem("Cargar Imagen");
+		img.addActionListener(e -> {
+			JFileChooser fileChooser = new JFileChooser();
+			fileChooser.setFileFilter(new FileNameExtensionFilter("JPEG Images (*.jpg, *.jpeg)", "jpg", "jpeg"));
+			int returnValue = fileChooser.showOpenDialog(null);
+			if (returnValue == JFileChooser.APPROVE_OPTION) {
+				this.selectedImg = fileChooser.getSelectedFile();
+
+				this.pUI.removeAll();
+				if (Objects.nonNull(this.selectedImg)) {
+					this.pUI.setImage(this.selectedImg, this.lastBoard.getState().length);
+				}
+				this.pUI.paintComponent(this.pUI.getGraphics());
+				this.pUI.validate();
+			}
+
+		});
 		db.add(load);
+		db.add(img);
 		menuBar.add(db);
 
 		JMenu help = new JMenu("Ayuda");
@@ -341,60 +452,104 @@ public class View implements Service {
 		return menuBar;
 	}
 
-	private class DrawRubikCube extends JPanel {
+	private class PuzzleUI extends JPanel {
 
-		private int width;
-		private int height;
-		private int size;
-		private Color[] cube;
+		private int pWidth;
+		private int pHeight;
+		private int[][] puzzle;
+		private BufferedImage[][] images;
 
-		public DrawRubikCube(int width, int height, Color[] cube) {
-			this.width = width;
-			this.height = height;
-			this.cube = cube;
-			this.size = width * height * 6;
+		public PuzzleUI(int[][] puzzle) {
+			this.puzzle = puzzle;
+			this.pWidth = puzzle.length;
+			this.pHeight = puzzle[0].length;
+			this.images = new BufferedImage[this.pWidth][this.pHeight];
+			this.setLayout(new BorderLayout());
+		}
+
+		public void changeBoardState(int[][] puzzle) {
+			this.puzzle = puzzle;
+			this.pWidth = puzzle.length;
+			this.pHeight = puzzle[0].length;
+			this.images = new BufferedImage[this.pWidth][this.pHeight];
+		}
+
+		public void setImage(File imgFile, int n) {
+			if (Objects.isNull(imgFile)) {
+				return;
+			}
+			try {
+				// Load the original image
+				BufferedImage originalImage = ImageIO.read(imgFile);
+
+				// Calculate the width and height of each small image
+				int width = originalImage.getWidth() / n;
+				int height = originalImage.getHeight() / n;
+
+				// Split the image into smaller images
+				for (int i = 0; i < n; i++) {
+					for (int j = 0; j < n; j++) {
+						// Create a sub-image of the original image
+						this.images[i][j] = originalImage.getSubimage(j * width, i * height, width, height);
+					}
+				}
+				Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Image loaded: {0}, with size: {1}x{2}",
+						new Object[] { imgFile.getName(), width, height });
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		private BufferedImage getImage(int value) {
+			int row = (value - 1) / this.pWidth;
+			int col = (value - 1) % this.pHeight;
+			return this.images[row][col];
 		}
 
 		@Override
 		public void paintComponent(Graphics g) {
-			Graphics2D g2 = (Graphics2D) g;
-			int x = 0;
-			int y = 0;
-			int faceWidth = width / 3;
-			int faceHeight = height / 3;
-			for (int i = 0; i < 6; i++) {
-				drawCube(g2, x, y, faceWidth, faceHeight, cube);
-				x += faceWidth;
+			JPanel panel = new JPanel();
+			panel.setLayout(new GridLayout(this.pWidth, this.pHeight));
+			panel.setBackground(Color.WHITE);
+			for (int row = 0; row < this.pWidth; row++) {
+				for (int col = 0; col < this.pHeight; col++) {
+					if (puzzle[row][col] != -1) {
+						if (Objects.nonNull(View.this.selectedImg)) {
+							ImageFillButton button = new ImageFillButton(
+									new ImageIcon(this.getImage(this.puzzle[row][col])));
+							button.setBackground(Color.WHITE);
+							button.setBorder(BorderFactory.createLineBorder(Color.WHITE));
+							panel.add(button);
+						} else {
+							JButton button = new JButton(String.valueOf(this.puzzle[row][col]));
+							button.setBackground(Color.WHITE);
+							button.setBorder(BorderFactory.createLineBorder(Color.WHITE));
+							panel.add(button);
+						}
+					} else {
+						panel.add(new JLabel(""));
+					}
+				}
+			}
+			this.add(panel, BorderLayout.CENTER);
+		}
+	}
+
+	private class ImageFillButton extends JButton {
+		private Image image;
+
+		public ImageFillButton(ImageIcon icon) {
+			image = icon.getImage();
+			setPreferredSize(new Dimension(icon.getIconWidth(), icon.getIconHeight()));
+		}
+
+		@Override
+		protected void paintComponent(Graphics g) {
+			super.paintComponent(g);
+			if (image != null) {
+				g.drawImage(image, 0, 0, getWidth(), getHeight(), this);
 			}
 		}
-
-		private void drawFace(Graphics2D g2, int x, int y, int width, int height, Color color) {
-			g2.setColor(color);
-			g2.fillRect(x, y, width, height);
-			g2.setColor(Color.BLACK);
-			g2.drawRect(x, y, width, height);
-		}
-
-		private void drawCube(Graphics2D g2, int x, int y, int width, int height, Color[] cube) {
-			int faceWidth = width / 3;
-			int faceHeight = height / 3;
-			int faceX = x + faceWidth;
-			int faceY = y + faceHeight;
-
-			// Front face
-			drawFace(g2, faceX, faceY, faceWidth, faceHeight, cube[0]);
-			// Top face
-			drawFace(g2, faceX, faceY - faceHeight, faceWidth, faceHeight, cube[1]);
-			// Right face
-			drawFace(g2, faceX + faceWidth, faceY, faceWidth, faceHeight, cube[2]);
-			// Bottom face
-			drawFace(g2, faceX, faceY + faceHeight, faceWidth, faceHeight, cube[3]);
-			// Left face
-			drawFace(g2, faceX - faceWidth, faceY, faceWidth, faceHeight, cube[4]);
-			// Back face
-			drawFace(g2, faceX + faceWidth, faceY + faceHeight, faceWidth, faceHeight, cube[5]);
-		}
-
 	}
 
 }
