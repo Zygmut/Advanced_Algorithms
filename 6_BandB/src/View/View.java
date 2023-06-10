@@ -276,7 +276,7 @@ public class View implements Service {
 		JLabel puzzleSizeLabel = new JLabel("Tamaño del puzzle");
 		// Crear un modelo para el JSpinner con un rango de valores válidos
 		int boardSize = 4;
-		SpinnerNumberModel spinnerModel = new SpinnerNumberModel(boardSize, 2, 50, 1);
+		SpinnerNumberModel spinnerModel = new SpinnerNumberModel(boardSize, 2,10, 1);
 		this.lastBoard = new Board(boardSize);
 
 		// Crear el JSpinner utilizando el modelo
