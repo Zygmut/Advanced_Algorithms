@@ -18,10 +18,14 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.Image;
-import java.util.Arrays;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -64,6 +68,8 @@ public class View implements Service {
 	private PuzzleUI pUI;
 
 	private Heuristic selectedHeuristic;
+
+	private String selectedImg;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -113,11 +119,11 @@ public class View implements Service {
 					this.pUI.removeAll();
 					this.lastBoard.move(move);
 					this.pUI.changeBoardState(this.lastBoard.getState());
+					this.pUI.setImage(this.selectedImg, this.lastBoard.getState().length);
 					this.pUI.paintComponent(this.pUI.getGraphics());
 					this.pUI.validate();
-
 					try {
-						Thread.sleep(15);
+						Thread.sleep(10);
 					} catch (InterruptedException e) {
 						Thread.currentThread().interrupt();
 					}
@@ -189,7 +195,8 @@ public class View implements Service {
 		JLabel heuristicLabel = new JLabel("Heurística");
 		heuristicLabel.setBackground(Color.WHITE);
 		heuristicLabel.setOpaque(true);
-		heuristicLabel.setFont(new Font("Arial", Font.ITALIC, 14));
+		final String fontName = "Arial";
+		heuristicLabel.setFont(new Font(fontName, Font.ITALIC, 14));
 		heuristicLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		JComboBox<String> heuristic = new JComboBox<>();
 
@@ -207,14 +214,54 @@ public class View implements Service {
 				(int) heuristicPanel.getPreferredSize().getWidth() + 40,
 				(int) heuristicPanel.getPreferredSize().getHeight()));
 
+		JPanel imgPanel = new JPanel();
+		imgPanel.setLayout(new BoxLayout(imgPanel, BoxLayout.Y_AXIS));
+		imgPanel.setBackground(Color.WHITE);
+		JLabel imgLabel = new JLabel("Selecciona una imagen");
+		imgLabel.setBackground(Color.WHITE);
+		imgLabel.setFont(new Font(fontName, Font.ITALIC, 14));
+		imgLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		JComboBox<String> imgBox = new JComboBox<>();
+		imgBox.addItem("Nada");
+		imgBox.addItem("Pájaro");
+		imgBox.addItem("Gato");
+		imgBox.addItem("Perro");
+		this.selectedImg = null;
+		imgBox.setSelectedItem("Nada");
+		imgBox.addActionListener(e -> {
+			this.selectedImg = switch ((String) imgBox.getSelectedItem()) {
+				case "Nada" -> null;
+				case "Pájaro" -> "bird.jpg";
+				case "Gato" -> "cat.jpg";
+				case "Perro" -> "dog.jpg";
+				default -> null;
+			};
+			this.pUI.removeAll();
+			if (Objects.nonNull(this.selectedImg)) {
+				this.pUI.setImage(this.selectedImg, this.lastBoard.getState().length);
+			}
+			this.pUI.paintComponent(this.pUI.getGraphics());
+			this.pUI.validate();
+		});
+		imgPanel.add(imgLabel);
+		imgPanel.add(imgBox);
+
+		// The max size to the solveStrategyLabel size
+		imgPanel.setMaximumSize(new Dimension(
+				(int) imgPanel.getPreferredSize().getWidth() + 40,
+				(int) imgPanel.getPreferredSize().getHeight()));
+
 		// Set the same start location for both panels
 		solveStrategyPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		heuristicPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		imgPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
 		actionsPanel.add(Box.createVerticalStrut(5));
 		actionsPanel.add(solveStrategyPanel);
 		actionsPanel.add(Box.createVerticalStrut(5));
 		actionsPanel.add(heuristicPanel);
+		actionsPanel.add(Box.createVerticalStrut(5));
+		actionsPanel.add(imgPanel);
 		actionsPanel.add(Box.createVerticalStrut(5));
 
 		sideBar.add(actionsPanel);
@@ -233,7 +280,7 @@ public class View implements Service {
 		JSpinner puzzleSize = new JSpinner(spinnerModel);
 
 		// Personalizar la apariencia del JSpinner
-		puzzleSize.setFont(new Font("Arial", Font.PLAIN, 14));
+		puzzleSize.setFont(new Font(fontName, Font.PLAIN, 14));
 
 		// Change the size of the puzzle to be the same as the label size
 		puzzleSize.setMaximumSize(new Dimension(
@@ -245,6 +292,7 @@ public class View implements Service {
 			this.lastBoard = new Board((int) puzzleSize.getValue());
 			this.pUI.removeAll();
 			this.pUI.changeBoardState(this.lastBoard.getState());
+			this.pUI.setImage(this.selectedImg, this.lastBoard.getState().length);
 			this.pUI.paintComponent(this.pUI.getGraphics());
 			this.pUI.validate();
 		});
@@ -303,6 +351,7 @@ public class View implements Service {
 			this.lastBoard.shuffle((int) this.spinners[0].getValue(), (int) this.spinners[1].getValue());
 			this.pUI.removeAll();
 			this.pUI.changeBoardState(this.lastBoard.getState());
+			this.pUI.setImage(this.selectedImg, this.lastBoard.getState().length);
 			this.pUI.paintComponent(this.pUI.getGraphics());
 			this.pUI.validate();
 		});
@@ -381,11 +430,13 @@ public class View implements Service {
 		private int pWidth;
 		private int pHeight;
 		private int[][] puzzle;
+		private BufferedImage[][] images;
 
 		public PuzzleUI(int[][] puzzle) {
+			this.puzzle = puzzle;
 			this.pWidth = puzzle.length;
 			this.pHeight = puzzle[0].length;
-			this.puzzle = puzzle;
+			this.images = new BufferedImage[this.pWidth][this.pHeight];
 			this.setLayout(new BorderLayout());
 		}
 
@@ -393,6 +444,37 @@ public class View implements Service {
 			this.puzzle = puzzle;
 			this.pWidth = puzzle.length;
 			this.pHeight = puzzle[0].length;
+			this.images = new BufferedImage[this.pWidth][this.pHeight];
+		}
+
+		public void setImage(String imgName, int n) {
+			final String path = Config.IMAGE_PATH + imgName;
+			try {
+				// Load the original image
+				BufferedImage originalImage = ImageIO.read(new File(path));
+
+				// Calculate the width and height of each small image
+				int width = originalImage.getWidth() / n;
+				int height = originalImage.getHeight() / n;
+
+				// Split the image into smaller images
+				for (int i = 0; i < n; i++) {
+					for (int j = 0; j < n; j++) {
+						// Create a sub-image of the original image
+						this.images[i][j] = originalImage.getSubimage(j * width, i * height, width, height);
+					}
+				}
+				Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Image loaded: {0}, with size: {1}x{2}",
+						new Object[] { imgName, width, height });
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		private BufferedImage getImage(int value) {
+			int row = (value - 1) / this.pWidth;
+			int col = (value - 1) % this.pHeight;
+			return this.images[row][col];
 		}
 
 		@Override
@@ -402,15 +484,19 @@ public class View implements Service {
 			panel.setBackground(Color.WHITE);
 			for (int row = 0; row < this.pWidth; row++) {
 				for (int col = 0; col < this.pHeight; col++) {
-					if (this.puzzle[row][col] != -1) {
-						JButton button = new JButton(String.valueOf(this.puzzle[row][col]));
-						button.setBackground(Color.WHITE);
-						button.setBorder(BorderFactory.createLineBorder(Color.WHITE));
-						button.addActionListener(e -> {
-							// TODO
-						});
-						panel.add(button);
-
+					if (puzzle[row][col] != -1) {
+						if (Objects.nonNull(View.this.selectedImg)) {
+							ImageFillButton button = new ImageFillButton(
+									new ImageIcon(this.getImage(this.puzzle[row][col])));
+							button.setBackground(Color.WHITE);
+							button.setBorder(BorderFactory.createLineBorder(Color.WHITE));
+							panel.add(button);
+						} else {
+							JButton button = new JButton(String.valueOf(this.puzzle[row][col]));
+							button.setBackground(Color.WHITE);
+							button.setBorder(BorderFactory.createLineBorder(Color.WHITE));
+							panel.add(button);
+						}
 					} else {
 						panel.add(new JLabel(""));
 					}
@@ -418,7 +504,23 @@ public class View implements Service {
 			}
 			this.add(panel, BorderLayout.CENTER);
 		}
+	}
 
+	private class ImageFillButton extends JButton {
+		private Image image;
+
+		public ImageFillButton(ImageIcon icon) {
+			image = icon.getImage();
+			setPreferredSize(new Dimension(icon.getIconWidth(), icon.getIconHeight()));
+		}
+
+		@Override
+		protected void paintComponent(Graphics g) {
+			super.paintComponent(g);
+			if (image != null) {
+				g.drawImage(image, 0, 0, getWidth(), getHeight(), this);
+			}
+		}
 	}
 
 }

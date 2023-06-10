@@ -54,4 +54,8 @@ public class Config {
 	 * Indicates where is the database located at.
 	 */
 	public static final String PATH_TO_DB = "./src/Model/db/db.sqlite";
+	/**
+	 * Indicates where is the {@code View} images located at.
+	 */
+    public static final String IMAGE_PATH = "./assets/images/";
 }
