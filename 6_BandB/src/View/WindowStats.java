@@ -47,11 +47,11 @@ public class WindowStats {
 		double averageTwo = 0;
 		for (Solution solution : this.solutions) {
 			if (isPruned) {
-				// averageOne += solution.memoStats().prunedNodes();
-				averageTwo += solution.memoStats().referencedNodes();
+				averageOne += solution.stats().getPruneCount();
+				averageTwo += solution.stats().getStatesVisited() - solution.stats().getPruneCount();
 			} else {
-				averageOne += solution.memoStats().hitNodes();
-				averageTwo += solution.memoStats().referencedNodes();
+				averageOne += solution.stats().getMemoHit();
+				averageTwo += solution.stats().getMemoRef() - solution.stats().getMemoHit();
 			}
 		}
 		averageOne /= this.solutions.length;
@@ -66,7 +66,7 @@ public class WindowStats {
 		for (int i = 0; i < this.solutions.length; i++) {
 			Solution solution = this.solutions[i];
 			if (isTimes) {
-				dataset.addValue(solution.timeStats().toMillis(), solution.heuristic().name(), String.valueOf(i));
+				dataset.addValue(solution.stats().getTimeSpent().toMillis(), solution.heuristic().name(), String.valueOf(i));
 			} else {
 				dataset.addValue(solution.movements().size(), String.valueOf(i), solution.heuristic().name());
 			}
@@ -120,15 +120,15 @@ public class WindowStats {
 	private JPanel panelStats() {
 		JPanel panel = new JPanel();
 		panel.setLayout(new GridLayout(2, 2));
-		String categoryOne = "Visitados";
-		String categoryTwo = "Podados";
+		String categoryOne = "Podados";
+		String categoryTwo = "Evaluados";
 		DefaultPieDataset<String> pieCharDataset = this.createPieChartDataset(categoryOne, categoryTwo, true);
-		panel.add(createPieChart(pieCharDataset, "Ratio (Visitados/Podados)", categoryOne, categoryTwo,
+		panel.add(createPieChart(pieCharDataset, "Ratio de poda", categoryOne, categoryTwo,
 				Color.MAGENTA, Color.CYAN));
-		categoryOne = "Referenciados";
-		categoryTwo = "Encontrados";
+		categoryOne = "Encontrados";
+		categoryTwo = "No Encontrados";
 		pieCharDataset = this.createPieChartDataset(categoryOne, categoryTwo, false);
-		panel.add(createPieChart(pieCharDataset, "Ratio (Referenciados/Encontrados)", categoryOne, categoryTwo,
+		panel.add(createPieChart(pieCharDataset, "Ratio de \"Hit\" en la Memoización", categoryOne, categoryTwo,
 				Color.PINK, Color.GREEN));
 		DefaultCategoryDataset barPlotDataset = this.createBarPlotDataset(true);
 		panel.add(createBarPlotChart(barPlotDataset, "Tiempos de ejecución"));

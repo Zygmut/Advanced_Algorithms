@@ -32,6 +32,7 @@ import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -40,6 +41,7 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import Model.Board;
 import Model.Heuristic;
@@ -69,7 +71,7 @@ public class View implements Service {
 
 	private Heuristic selectedHeuristic;
 
-	private String selectedImg;
+	private File selectedImg;
 	private JLabel loadingFeedback;
 	private JLabel loadingLabel;
 
@@ -217,54 +219,42 @@ public class View implements Service {
 				(int) heuristicPanel.getPreferredSize().getWidth() + 40,
 				(int) heuristicPanel.getPreferredSize().getHeight()));
 
-		JPanel imgPanel = new JPanel();
-		imgPanel.setLayout(new BoxLayout(imgPanel, BoxLayout.Y_AXIS));
-		imgPanel.setBackground(Color.WHITE);
-		JLabel imgLabel = new JLabel("Selecciona una imagen");
-		imgLabel.setBackground(Color.WHITE);
-		imgLabel.setFont(new Font(fontName, Font.ITALIC, 14));
-		imgLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-		JComboBox<String> imgBox = new JComboBox<>();
-		imgBox.addItem("Nada");
-		imgBox.addItem("Pájaro");
-		imgBox.addItem("Gato");
-		imgBox.addItem("Perro");
-		this.selectedImg = null;
-		imgBox.setSelectedItem("Nada");
-		imgBox.addActionListener(e -> {
-			this.selectedImg = switch ((String) imgBox.getSelectedItem()) {
-				case "Nada" -> null;
-				case "Pájaro" -> "bird.jpg";
-				case "Gato" -> "cat.jpg";
-				case "Perro" -> "dog.jpg";
-				default -> null;
-			};
+		JPanel resetImgPanel = new JPanel();
+		resetImgPanel.setBackground(Color.WHITE);
+		resetImgPanel.setLayout(new BoxLayout(resetImgPanel, BoxLayout.Y_AXIS));
+		// Crear el JSpinner utilizando el modelo
+		JButton resetImgBtn = new JButton("Eliminar Imagen");
+
+		// Personalizar la apariencia del JSpinner
+		resetImgBtn.setFont(new Font(fontName, Font.PLAIN, 14));
+
+
+		// Agregar un listener para detectar cambios en el valor del JSpinner
+		resetImgBtn.addActionListener(e -> {
+			this.selectedImg = null;
 			this.pUI.removeAll();
-			if (Objects.nonNull(this.selectedImg)) {
-				this.pUI.setImage(this.selectedImg, this.lastBoard.getState().length);
-			}
+			this.pUI.changeBoardState(this.lastBoard.getState());
+			this.pUI.setImage(this.selectedImg, this.lastBoard.getState().length);
 			this.pUI.paintComponent(this.pUI.getGraphics());
 			this.pUI.validate();
 		});
-		imgPanel.add(imgLabel);
-		imgPanel.add(imgBox);
 
-		// The max size to the solveStrategyLabel size
-		imgPanel.setMaximumSize(new Dimension(
-				(int) imgPanel.getPreferredSize().getWidth() + 40,
-				(int) imgPanel.getPreferredSize().getHeight()));
+		// Put the same start location for both components
+		resetImgBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-		// Set the same start location for both panels
-		solveStrategyPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-		heuristicPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-		imgPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		// Change the size of the puzzle to be the same as the label size
+		resetImgBtn.setMaximumSize(new Dimension(
+				(int) resetImgBtn.getPreferredSize().getWidth() + 20,
+				(int) resetImgBtn.getPreferredSize().getHeight() + 15));
+
+		resetImgPanel.add(resetImgBtn);
 
 		actionsPanel.add(Box.createVerticalStrut(5));
 		actionsPanel.add(solveStrategyPanel);
 		actionsPanel.add(Box.createVerticalStrut(15));
 		actionsPanel.add(heuristicPanel);
 		actionsPanel.add(Box.createVerticalStrut(5));
-		actionsPanel.add(imgPanel);
+		actionsPanel.add(resetImgPanel);
 		actionsPanel.add(Box.createVerticalStrut(5));
 
 		sideBar.add(actionsPanel);
@@ -274,6 +264,7 @@ public class View implements Service {
 		puzzleSizePanel.setBackground(Color.WHITE);
 		puzzleSizePanel.setLayout(new BoxLayout(puzzleSizePanel, BoxLayout.Y_AXIS));
 		JLabel puzzleSizeLabel = new JLabel("Tamaño del puzzle");
+
 		// Crear un modelo para el JSpinner con un rango de valores válidos
 		int boardSize = 4;
 		SpinnerNumberModel spinnerModel = new SpinnerNumberModel(boardSize, 2, 50, 1);
@@ -303,6 +294,7 @@ public class View implements Service {
 		// Put the same start location for both components
 		puzzleSizeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		puzzleSize.setAlignmentX(Component.CENTER_ALIGNMENT);
+
 
 		JPanel loadingPanel = new JPanel();
 		loadingPanel.setBackground(Color.WHITE);
@@ -422,12 +414,30 @@ public class View implements Service {
 		menuBar.add(options);
 
 		JMenu db = new JMenu("Datos");
-		JMenuItem load = new JMenuItem("Cargar");
+		JMenuItem load = new JMenuItem("Cargar BD");
 		load.addActionListener(e -> {
 			Request request = new Request(RequestCode.CREATE_DB, this);
 			this.sendRequest(request);
 		});
+		JMenuItem img = new JMenuItem("Cargar Imagen");
+		img.addActionListener(e -> {
+			JFileChooser fileChooser = new JFileChooser();
+			fileChooser.setFileFilter(new FileNameExtensionFilter("JPEG Images (*.jpg, *.jpeg)", "jpg", "jpeg"));
+			int returnValue = fileChooser.showOpenDialog(null);
+			if (returnValue == JFileChooser.APPROVE_OPTION) {
+				this.selectedImg = fileChooser.getSelectedFile();
+
+				this.pUI.removeAll();
+				if (Objects.nonNull(this.selectedImg)) {
+					this.pUI.setImage(this.selectedImg, this.lastBoard.getState().length);
+				}
+				this.pUI.paintComponent(this.pUI.getGraphics());
+				this.pUI.validate();
+			}
+
+		});
 		db.add(load);
+		db.add(img);
 		menuBar.add(db);
 
 		JMenu help = new JMenu("Ayuda");
@@ -464,14 +474,13 @@ public class View implements Service {
 			this.images = new BufferedImage[this.pWidth][this.pHeight];
 		}
 
-		public void setImage(String imgName, int n) {
-			if (Objects.isNull(imgName)) {
+		public void setImage(File imgFile, int n) {
+			if (Objects.isNull(imgFile)) {
 				return;
 			}
-			final String path = Config.IMAGE_PATH + imgName;
 			try {
 				// Load the original image
-				BufferedImage originalImage = ImageIO.read(new File(path));
+				BufferedImage originalImage = ImageIO.read(imgFile);
 
 				// Calculate the width and height of each small image
 				int width = originalImage.getWidth() / n;
@@ -485,7 +494,7 @@ public class View implements Service {
 					}
 				}
 				Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Image loaded: {0}, with size: {1}x{2}",
-						new Object[] { imgName, width, height });
+						new Object[] { imgFile.getName(), width, height });
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
