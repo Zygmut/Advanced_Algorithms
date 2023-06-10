@@ -70,6 +70,8 @@ public class View implements Service {
 	private Heuristic selectedHeuristic;
 
 	private String selectedImg;
+	private JLabel loadingFeedback;
+	private JLabel loadingLabel;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -127,8 +129,9 @@ public class View implements Service {
 					} catch (InterruptedException e) {
 						Thread.currentThread().interrupt();
 					}
-
 				}
+				this.loadingLabel.setText("");
+				this.loadingFeedback.setIcon(null);
 			}
 			case FETCH_STATS -> {
 				final Solution[] sol = (Solution[]) request.body.content;
@@ -258,7 +261,7 @@ public class View implements Service {
 
 		actionsPanel.add(Box.createVerticalStrut(5));
 		actionsPanel.add(solveStrategyPanel);
-		actionsPanel.add(Box.createVerticalStrut(5));
+		actionsPanel.add(Box.createVerticalStrut(15));
 		actionsPanel.add(heuristicPanel);
 		actionsPanel.add(Box.createVerticalStrut(5));
 		actionsPanel.add(imgPanel);
@@ -301,9 +304,19 @@ public class View implements Service {
 		puzzleSizeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		puzzleSize.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+		JPanel loadingPanel = new JPanel();
+		loadingPanel.setBackground(Color.WHITE);
+		this.loadingLabel = new JLabel("");
+		this.loadingFeedback = new JLabel();
+		loadingPanel.add(this.loadingLabel);
+		loadingPanel.add(this.loadingFeedback);
+
 		// Agregar el JSpinner al panel puzzleSizePanel
 		puzzleSizePanel.add(puzzleSizeLabel);
 		puzzleSizePanel.add(puzzleSize);
+		puzzleSizePanel.add(Box.createVerticalStrut(20));
+		puzzleSizePanel.add(loadingPanel);
+
 		sideBar.add(puzzleSizePanel);
 
 		return sideBar;
@@ -359,6 +372,10 @@ public class View implements Service {
 		this.buttons[1].addActionListener(e -> {
 			final Body body = new Body(new Object[] { this.lastBoard, this.selectedHeuristic });
 			this.sendRequest(new Request(RequestCode.CALCULATE, this, body));
+			this.loadingLabel.setText("Calculando...");
+			ImageIcon loading = new ImageIcon(Config.PATH_TO_LOADING_ASSET);
+			loading.setImage(loading.getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT));
+			this.loadingFeedback.setIcon(loading);
 		});
 		Section butons = new Section();
 		butons.createButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
@@ -448,6 +465,9 @@ public class View implements Service {
 		}
 
 		public void setImage(String imgName, int n) {
+			if (Objects.isNull(imgName)) {
+				return;
+			}
 			final String path = Config.IMAGE_PATH + imgName;
 			try {
 				// Load the original image
