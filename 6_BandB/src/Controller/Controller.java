@@ -77,19 +77,18 @@ public class Controller implements Service {
 					continue;
 				}
 
-				List<Movement> cpMovements = new ArrayList<>(node.movements());
-				cpMovements.add(move);
-				final Node cpNode = new Node(cpBoard, cpMovements);
-				final int cost = this.cost(cpNode, heuristic);
-
 				stats.addRef();
 				if (memo.getOrDefault(cpBoard, null) != null) {
 					stats.addHit();
 					continue;
 				}
 
+				List<Movement> cpMovements = new ArrayList<>(node.movements());
+				cpMovements.add(move);
+				final Node cpNode = new Node(cpBoard, cpMovements);
+
 				pQueue.add(cpNode);
-				memo.put(cpBoard, cost);
+				memo.put(cpBoard, this.cost(cpNode, heuristic));
 			}
 		}
 
