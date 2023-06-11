@@ -45,7 +45,7 @@ public enum Heuristic {
 		}
 	},
 
-	LINEAR_CONFILT {
+	LINEAR_CONFLICT {
 		@Override
 		public int apply(Board board) {
 			int linearConflict = 0;

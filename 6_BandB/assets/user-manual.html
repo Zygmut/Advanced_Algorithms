@@ -19,7 +19,60 @@
 
 <body>
 	<h1>Manual de usuario</h1>
-	TODO
+	<p>Para el correcto uso de la aplicación, el conjunto de acciones que se pueden realizar en dicho programa serán definidas a continuación. También, la distribución de las secciones de la interfaz junto a su explicación y funcionalidad.</p>
+	<br>
+	<p>Cuando se ejecute el programa por primera vez en la pantalla se debe mostrar la siguiente interfaz de usuario:</p>
+	<br>
+	<img src="GUI.png" alt="Interfaz de usuario." width="550" height="350">
+	<p><strong>Figura 1:</strong> Interfaz de usuario.</p>
+
+	<h2>Menu</h2>
+	<p>El menú de la aplicación consiste en la barra que se sitúa debajo del marco superior de la ventana. En esta se puede encontrar un conjunto de opciones para que el usuario pueda interactuar con la aplicación, modificar y analizar el comportamiento de esta. En concreto, se encuentran las opciones de "Opciones", "Datos" y "Ayuda", respectivamente.</p>
+	<br>
+	<p>En la primera se sitúan las acciones para salir del programa y para iniciar las ventanas de estadísticas.</p>
+	<br>
+	<p>En la segunda opción llamada "Datos" encontramos en primer lugar, la opción para crear una base de datos y cargar los datos. Por otra parte, tenemos la opción de cargar una imagen directamente.</p>
+	<br>
+	<p>En la tercera opción se encuentra un menú desplegable con un manual de usuario con la explicación del funcionamiento de la aplicación.</p>
+
+	<h2>Main</h2>
+	<p>El "Main" es el bloque principal de la vista, donde se representará el problema del Puzzle 15. El usuario no podrá interactuar directamente con las casillas para moverlas, sino que, tendrá diferentes opciones para poder resolver el problema. Entre las opciones se encuentran: la heurística, el tamaño del puzzle, los pasos para resolverlo, la semilla, un botón para barajar los números y por último, otro botón para resolver el problema.</p>
+
+	<h2>Sidebar</h2>
+	<p>El "Sidebar" contiene un conjunto de opciones para modificar los datos y el modo de ejecución de la aplicación. A continuación, se explicará cada una de estas opciones y su función.</p>
+	<br>
+	<p>En primer lugar, se encuentra la opción para seleccionar la "Heurística". En esta, se puede escoger el método de resolución del algoritmo a aplicar sobre el problema. Se han definido las siguientes heurísticas:</p>
+	<ul>
+	  <li>BAD POSITION</li>
+	  <li>MANHATTAN</li>
+	  <li>LINEAR CONFILT</li>
+	</ul>
+	<br>
+	<p>Debajo de este, se encuentra un botón para eliminar la imagen actual y volver a la primera pantalla</p>
+	<br>
+	<p>En tercer lugar se encuentra la opción para seleccionar el tamaño del puzzle, el tamaño mínimo será de 2x2 y el tamaño máximo de 10x10.</p>
+
+	<h2>Footer</h2>
+	<p>En la sección "Footer", se hallan varias opciones para interactuar con la interfaz y también con el algoritmo a ejecutar.</p>
+	<br>
+	<p>En primer lugar tenemos una opción para seleccionar el número de veces que se va a realizar el proceso de barajado.</p>
+	<br>
+	<p>En segundo lugar la semilla de aleatoriedad para generar el número aleatorio.</p>
+	<br>
+	<p>En tercer lugar, encontramos el botón "Barajar", este botón realiza la mezcla de las casillas, cambiando las posiciones de unas por otras. Se puede clicar las veces que el usuario desee.</p>
+	<br>
+	<p>Por último, el botón "Resolver" que ejecutará el algoritmo con los parámetros que le hayamos indicado en la UI.</p>
+
+	<h2>Ejemplo ejecución</h2>
+	<p>Al iniciar la aplicación se mostrará una interfaz como la expuesta en la imagen de la Figura 1. Para poder iniciar la ejecución del algoritmo, el usuario tendrá que mezclar las casillas, y pulsar el botón de resolver. Además, tiene la opción de cambiar los pasos o la semilla de aleatoriedad. Por otra parte, el usuario podrá seleccionar la heurística para la resolución del problema y añadir imágenes para hacerlo visual. A continuación, la siguiente imagen, muestra un ejemplo de la interfaz tras la ejecución:</p>
+	<br>
+	<img src="ejecucion.png" alt="Interfaz de usuario en ejecución." width="550" height="350">
+	<p><strong>Figura 2:</strong> Interfaz de usuario en ejecución.</p>
+	<br>
+	<p>Tras ejecutar el algoritmo, se mostrará al usuario paso por paso como se resuelve el mismo.</p>
+	<br>
+	<p>A partir de aquí, el usuario puede salir del programa con el botón del menú, cargar información en la base de datos, cargar una imagen, cambiar la heurística, el tamaño del puzzle o las imágenes y ver estadísticas de la ejecución</p>
+
 </body>
 
 </html>

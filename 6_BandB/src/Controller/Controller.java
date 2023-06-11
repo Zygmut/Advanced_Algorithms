@@ -49,7 +49,6 @@ public class Controller implements Service {
 		ExecStats stats = new ExecStats(board.getState().length);
 		PriorityQueue<Node> pQueue = new PriorityQueue<>(Comparator.comparingInt(e -> this.cost(e, heuristic)));
 		Integer lowerBound = Integer.MAX_VALUE;
-		Integer weight = 0;
 		Solution currentSol = null;
 		pQueue.add(new Node(board, Collections.emptyList()));
 
@@ -78,23 +77,18 @@ public class Controller implements Service {
 					continue;
 				}
 
+				stats.addRef();
+				if (memo.getOrDefault(cpBoard, null) != null) {
+					stats.addHit();
+					continue;
+				}
+
 				List<Movement> cpMovements = new ArrayList<>(node.movements());
 				cpMovements.add(move);
 				final Node cpNode = new Node(cpBoard, cpMovements);
-				final int cost = this.cost(cpNode, heuristic);
-
-				stats.addRef();
-				weight = memo.getOrDefault(cpBoard, null);
-				if (weight != null) {
-					stats.addHit();
-					if (weight >= cost) {
-						continue;
-					}
-					memo.put(cpBoard, weight);
-				}
 
 				pQueue.add(cpNode);
-				memo.put(cpBoard, cost);
+				memo.put(cpBoard, this.cost(cpNode, heuristic));
 			}
 		}
 

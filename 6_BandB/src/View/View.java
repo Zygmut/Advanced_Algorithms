@@ -349,7 +349,7 @@ public class View implements Service {
 		this.spinners[0] = new JSpinner(new SpinnerNumberModel(100, 1, 200, 1));
 
 		JLabel seed = new JLabel("Semilla");
-		this.spinners[1] = new JSpinner(new SpinnerNumberModel(0, Integer.MIN_VALUE, Integer.MAX_VALUE, 1));
+		this.spinners[1] = new JSpinner(new SpinnerNumberModel(27, Integer.MIN_VALUE, Integer.MAX_VALUE, 1));
 
 		this.buttons[0] = new JButton("Barajar");
 		this.buttons[0].addActionListener(e -> {
