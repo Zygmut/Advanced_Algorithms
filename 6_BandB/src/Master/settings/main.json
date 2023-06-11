@@ -1,0 +1,36 @@
+{
+	"requestMap": [
+		{
+			"code": "CALCULATE",
+			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "FETCH_STATS",
+			"services": ["MODEL"]
+		},
+		{
+			"code": "CREATE_DB",
+			"services": ["MODEL"]
+		}
+	],
+	"responseMap": [
+		{
+			"code": "CALCULATE",
+			"services": ["MODEL", "VIEW"]
+		},
+		{
+			"code": "FETCH_STATS",
+			"services": ["VIEW"]
+		}
+	],
+	"resToReqMap": [
+		{
+			"responseCode": "CALCULATE",
+			"requestCode": "CALCULATE"
+		},
+		{
+			"responseCode": "FETCH_STATS",
+			"requestCode": "FETCH_STATS"
+		}
+	]
+}
