@@ -3,11 +3,19 @@
 		{
 			"code": "GREET",
 			"services": ["CONTROLLER", "MODEL"]
+		},
+		{
+			"code": "CHECK_PRIMALITY",
+			"services": ["CONTROLLER"]
 		}
 	],
 	"responseMap": [
 		{
 			"code": "GREET_BACK",
+			"services": ["VIEW"]
+		},
+		{
+			"code": "CHECK_PRIMALITY",
 			"services": ["VIEW"]
 		}
 	],
@@ -15,6 +23,10 @@
 		{
 			"responseCode": "GREET_BACK",
 			"requestCode": "GREET"
+		},
+		{
+			"responseCode": "CHECK_PRIMALITY",
+			"requestCode": "CHECK_PRIMALITY"
 		}
 	]
 }
