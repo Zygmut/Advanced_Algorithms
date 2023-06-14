@@ -1,10 +1,14 @@
 package View;
 
+import java.math.BigInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
+import Controller.PrimalityFunction;
 import Master.MVC;
 import Services.Service;
 import Services.Comunication.Content.Body;
@@ -16,6 +20,7 @@ import betterSwing.utils.DirectionAndPosition;
 
 public class View implements Service {
 
+	final Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 	/**
 	 * The window of the view.
 	 */
@@ -63,7 +68,10 @@ public class View implements Service {
 	@Override
 	public void notifyRequest(Request request) {
 		switch (request.code) {
-			case GREET-> {
+			case CHECK_PRIMALITY -> {
+				logger.log(Level.INFO, (boolean) request.body.content ? "yes" : "no");
+			}
+			case GREET -> {
 				Logger.getLogger(this.getClass().getSimpleName())
 						.log(Level.INFO, "Hi {0}!.", request.origin);
 			}
@@ -86,7 +94,19 @@ public class View implements Service {
 			this.sendRequest(request);
 		});
 		demoSection.createButtons(new JButton[] { demoButton }, DirectionAndPosition.DIRECTION_ROW);
+		Section primality = new Section();
+		JPanel prime = new JPanel();
+		JTextField numberField = new JTextField(30);
+		JButton primeButton = new JButton("is Prime?");
+		primeButton.addActionListener(e -> {
+			this.sendRequest(new Request(RequestCode.CHECK_PRIMALITY, this, new Body(new Object[] {
+					PrimalityFunction.TRIAL_DIVISION, BigInteger.valueOf(Long.parseLong(numberField.getText())) })));
+		});
+		prime.add(numberField);
+		prime.add(primeButton);
+		primality.createFreeSection(prime);
 		this.window.addSection(demoSection, DirectionAndPosition.POSITION_TOP, "Demo");
+		this.window.addSection(primality, DirectionAndPosition.POSITION_CENTER, "Primality");
 	}
 
 }
