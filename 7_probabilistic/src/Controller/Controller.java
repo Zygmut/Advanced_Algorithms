@@ -1,11 +1,12 @@
 package Controller;
 
 import java.math.BigInteger;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.naming.OperationNotSupportedException;
-
+import Model.Result;
 import Services.Service;
 import Services.Comunication.Content.Body;
 import Services.Comunication.Request.Request;
@@ -49,6 +50,7 @@ public class Controller implements Service {
 				final PrimalityFunction function = (PrimalityFunction) params[0];
 				final BigInteger number = (BigInteger) params[1];
 
+				Instant start = Instant.now();
 				boolean isPrime = switch (function) {
 					case TRIAL_DIVISION -> PrimalityTest.trialDivision(number);
 					case FERMAT -> {
@@ -89,7 +91,10 @@ public class Controller implements Service {
 					}
 				};
 
-				this.sendResponse(new Response(ResponseCode.CHECK_PRIMALITY, this, new Body(isPrime)));
+				Instant end = Instant.now();
+
+				this.sendResponse(new Response(ResponseCode.CHECK_PRIMALITY, this,
+						new Body(new Result(Duration.between(start, end), isPrime))));
 
 			}
 			default -> {
