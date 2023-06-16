@@ -193,7 +193,7 @@ public class View implements Service {
 		JButton primeButton = new JButton("is Prime?");
 		primeButton.addActionListener(e -> {
 			this.sendRequest(new Request(RequestCode.CHECK_PRIMALITY, this, new Body(new Object[] {
-					PrimalityFunction.TRIAL_DIVISION, BigInteger.valueOf(Long.parseLong(numberField.getText())) })));
+					PrimalityFunction.TRIAL_DIVISION, numberField.getText() })));
 		});
 		JButton factorsButton = new JButton("get Factors");
 		factorsButton.addActionListener(e -> {

@@ -74,7 +74,7 @@ public class Controller implements Service {
 			case CHECK_PRIMALITY -> {
 				final Object[] params = (Object[]) request.body.content;
 				final PrimalityFunction function = (PrimalityFunction) params[0];
-				final BigInteger number = (BigInteger) params[1];
+				final BigInteger number = new BigInteger((String) params[1]);
 
 				Instant start = Instant.now();
 				boolean isPrime = switch (function) {
