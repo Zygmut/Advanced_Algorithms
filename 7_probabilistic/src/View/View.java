@@ -15,6 +15,8 @@ import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -104,6 +106,10 @@ public class View implements Service {
 				Result result = (Result) request.body.content;
 				logger.log(Level.INFO, "{0}, done in {1}ns", new Object[]{(boolean) result.result() ? "yes" : "no", result.time().toNanos()});
 			}
+			case GET_FACTORS-> {
+				Result result = (Result) request.body.content;
+				logger.log(Level.INFO, "{0}, done in {1}ms", new Object[]{(Map<BigInteger, BigInteger>)result.result(), result.time().toMillis()});
+			}
 			default -> {
 				logger.log(Level.SEVERE, "{0} is not implemented.", request);
 			}
@@ -189,8 +195,13 @@ public class View implements Service {
 			this.sendRequest(new Request(RequestCode.CHECK_PRIMALITY, this, new Body(new Object[] {
 					PrimalityFunction.TRIAL_DIVISION, BigInteger.valueOf(Long.parseLong(numberField.getText())) })));
 		});
+		JButton factorsButton = new JButton("get Factors");
+		factorsButton.addActionListener(e -> {
+			this.sendRequest(new Request(RequestCode.GET_FACTORS, this, new Body(numberField.getText())));
+		});
 		todo.add(numberField);
 		todo.add(primeButton);
+		todo.add(factorsButton);
 
 		content.add(todo, BorderLayout.CENTER);
 		splitPane.setLeftComponent(content);

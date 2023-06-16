@@ -3,11 +3,19 @@
 		{
 			"code": "CHECK_PRIMALITY",
 			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "GET_FACTORS",
+			"services": ["CONTROLLER"]
 		}
 	],
 	"responseMap": [
 		{
 			"code": "CHECK_PRIMALITY",
+			"services": ["VIEW"]
+		},
+		{
+			"code": "GET_FACTORS",
 			"services": ["VIEW"]
 		}
 	],
@@ -15,6 +23,10 @@
 		{
 			"responseCode": "CHECK_PRIMALITY",
 			"requestCode": "CHECK_PRIMALITY"
+		},
+		{
+			"responseCode": "GET_FACTORS",
+			"requestCode": "GET_FACTORS"
 		}
 	]
 }
