@@ -5,6 +5,5 @@ package Services.Comunication.Response;
  */
 public enum ResponseCode {
 	PROMISE,
-	GREET_BACK,
 	CHECK_PRIMALITY
 }

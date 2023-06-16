@@ -15,10 +15,10 @@ import Services.Comunication.Response.ResponseCode;
 
 public class Controller implements Service {
 
-	final Logger logger = Logger.getLogger(this.getClass().getSimpleName());
+	private final Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 
-	static final int BASE_ITERATIONS = 10;
-	static final int BASE_SEED = 27;
+	private static final int BASE_ITERATIONS = 10;
+	private static final int BASE_SEED = 27;
 
 	public Controller() {
 		// Initialize controller things here
@@ -26,25 +26,17 @@ public class Controller implements Service {
 
 	@Override
 	public void start() {
-		Logger.getLogger(this.getClass().getSimpleName())
-				.log(Level.INFO, "Controller started.");
+		logger.log(Level.INFO, "Controller started.");
 	}
 
 	@Override
 	public void stop() {
-		Logger.getLogger(this.getClass().getSimpleName())
-				.log(Level.INFO, "Controller stopped.");
+		logger.log(Level.INFO, "Controller stopped.");
 	}
 
 	@Override
 	public void notifyRequest(Request request) {
 		switch (request.code) {
-			case GREET -> {
-				Logger.getLogger(this.getClass().getSimpleName())
-						.log(Level.INFO, "Controller heard {0} say {1}",
-								new Object[] { request.origin, request.body.content });
-				this.sendResponse(new Response(ResponseCode.GREET_BACK, this, new Body("Controller's here!")));
-			}
 			case CHECK_PRIMALITY -> {
 				final Object[] params = (Object[]) request.body.content;
 				final PrimalityFunction function = (PrimalityFunction) params[0];
