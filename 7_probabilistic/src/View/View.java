@@ -174,9 +174,14 @@ public class View implements Service {
 		todo.setBackground(Color.GRAY);
 		JTextField numberField = new JTextField(30);
 		JButton primeButton = new JButton("is Prime?");
+		primeButton.setSize(100, 100);
 		primeButton.addActionListener(e -> {
-			this.sendRequest(new Request(RequestCode.CHECK_PRIMALITY, this, new Body(new Object[] {
-					PrimalityFunction.TRIAL_DIVISION, BigInteger.valueOf(Long.parseLong(numberField.getText())) })));
+		String inputText = numberField.getText();
+			if (!inputText.isEmpty()) {
+				this.sendRequest(new Request(RequestCode.CHECK_PRIMALITY, this, new Body(new Object[] {
+						PrimalityFunction.TRIAL_DIVISION,
+						BigInteger.valueOf(Long.parseLong(numberField.getText())) })));
+			}
 		});
 		todo.add(numberField);
 		todo.add(primeButton);
