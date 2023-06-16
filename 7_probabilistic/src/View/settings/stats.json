@@ -1,0 +1,15 @@
+{
+	"width": "500",
+	"height": "500",
+	"x": "0",
+	"y": "0",
+	"title": "Práctica 6 - Branch and Bound - Estadísticas",
+	"lookAndFeel": "Nimbus",
+	"windowOnCenter": "true",
+	"windowResizable": "true",
+	"windowCloseOperation": "DISPOSE_ON_CLOSE",
+	"windowIcon": "",
+	"windowWidthCenter": "true",
+	"windowOnLoadVisible": "true",
+	"bgColor": "black"
+}

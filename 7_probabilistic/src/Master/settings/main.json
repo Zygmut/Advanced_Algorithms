@@ -1,0 +1,20 @@
+{
+	"requestMap": [
+		{
+			"code": "CHECK_PRIMALITY",
+			"services": ["CONTROLLER"]
+		}
+	],
+	"responseMap": [
+		{
+			"code": "CHECK_PRIMALITY",
+			"services": ["VIEW"]
+		}
+	],
+	"resToReqMap": [
+		{
+			"responseCode": "CHECK_PRIMALITY",
+			"requestCode": "CHECK_PRIMALITY"
+		}
+	]
+}
