@@ -36,7 +36,36 @@ public class Controller implements Service {
 		logger.log(Level.INFO, "Controller stopped.");
 	}
 
-	public Map<BigInteger, BigInteger> getFactors(String number) {
+	private Duration getEstimatedTime(int length) {
+
+		final BigInteger x = BigInteger.valueOf(length);
+		final BigInteger coefficient1 = new BigInteger("-136037213");
+		final BigInteger coefficient2 = new BigInteger("104139000000");
+		final BigInteger coefficient3 = new BigInteger("529591153");
+		final BigInteger coefficient4 = new BigInteger("4959000000");
+		final BigInteger coefficient5 = new BigInteger("379750009");
+		final BigInteger coefficient6 = new BigInteger("119016000");
+		final BigInteger coefficient7 = new BigInteger("1762072807");
+		final BigInteger coefficient8 = new BigInteger("39672000");
+		final BigInteger coefficient9 = new BigInteger("3768076");
+		final BigInteger coefficient10 = new BigInteger("12825");
+		final BigInteger coefficient11 = new BigInteger("532529531");
+		final BigInteger coefficient12 = new BigInteger("661200");
+		final BigInteger coefficient13 = new BigInteger("25545169");
+		final BigInteger coefficient14 = new BigInteger("46284");
+
+		final BigInteger term1 = coefficient1.multiply(x.pow(6)).divide(coefficient2);
+		final BigInteger term2 = coefficient3.multiply(x.pow(5)).divide(coefficient4);
+		final BigInteger term3 = coefficient5.multiply(x.pow(4)).divide(coefficient6);
+		final BigInteger term4 = coefficient7.multiply(x.pow(3)).divide(coefficient8);
+		final BigInteger term5 = coefficient9.multiply(x.pow(2)).divide(coefficient10);
+		final BigInteger term6 = coefficient11.multiply(x).divide(coefficient12);
+		final BigInteger term7 = coefficient13.divide(coefficient14);
+
+		return compactTimeFromMillis(term1.subtract(term2).add(term3).subtract(term4).add(term5).subtract(term6).add(term7));
+	}
+
+	private Map<BigInteger, BigInteger> getFactors(String number) {
 
 		Map<BigInteger, BigInteger> primeFactors = new HashMap<>();
 		BigInteger num = new BigInteger(number);
@@ -59,13 +88,34 @@ public class Controller implements Service {
 		return primeFactors;
 	}
 
+	// If someone has a better idea, please do. This shit is disgusting 🤮
+	private Duration compactTimeFromMillis(BigInteger millis){
+		BigInteger time = new BigInteger(millis.toString());
+		TimeUnit unit = TimeUnit.MILLISECONDS;
+
+		for (int idx = 0; idx < TimeUnit.values().length && time.toString().length() > 5; idx++) {
+			time = unit.transform(time);
+			unit = TimeUnit.values()[idx];
+		}
+
+		Duration res = unit.intoDuration(time);
+		return res;
+
+	}
+
 	@Override
 	public void notifyRequest(Request request) {
 		switch (request.code) {
 			case GET_FACTORS -> {
-				Instant start = Instant.now();
-				Map<BigInteger, BigInteger> result = getFactors((String) request.body.content);
-				Instant end = Instant.now();
+				final String number = (String) request.body.content;
+				final Duration expectedTime= getEstimatedTime(number.length());
+				if (expectedTime.compareTo(Duration.ofMinutes(1)) >= 0) {
+					this.sendResponse(new Response(ResponseCode.GET_FACTORS, this,
+							new Body(new Result(expectedTime, null))));
+				}
+				final Instant start = Instant.now();
+				final Map<BigInteger, BigInteger> result = getFactors(number);
+				final Instant end = Instant.now();
 
 				this.sendResponse(new Response(ResponseCode.GET_FACTORS, this,
 						new Body(new Result(Duration.between(start, end), result))));
