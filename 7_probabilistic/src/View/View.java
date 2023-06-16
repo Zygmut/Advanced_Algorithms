@@ -30,9 +30,19 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
+import javax.swing.plaf.basic.BasicInternalFrameTitlePane.RestoreAction;
 
 import Controller.PrimalityFunction;
 import Master.MVC;
+import Model.Result;
+import Services.Service;
+import Services.Comunication.Content.Body;
+import Services.Comunication.Request.Request;
+import Services.Comunication.Request.RequestCode;
+import betterSwing.Section;
+import betterSwing.Window;
+import betterSwing.utils.DirectionAndPosition;
+
 
 public class View implements Service {
 
@@ -91,7 +101,8 @@ public class View implements Service {
 	public void notifyRequest(Request request) {
 		switch (request.code) {
 			case CHECK_PRIMALITY -> {
-				logger.log(Level.INFO, (boolean) request.body.content ? "yes" : "no");
+				Result result = (Result) request.body.content;
+				logger.log(Level.INFO, "{0}, done in {1}ns", new Object[]{(boolean) result.result() ? "yes" : "no", result.time().toNanos()});
 			}
 			default -> {
 				logger.log(Level.SEVERE, "{0} is not implemented.", request);
