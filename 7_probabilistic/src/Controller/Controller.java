@@ -37,6 +37,7 @@ public class Controller implements Service {
 		logger.log(Level.INFO, "Controller stopped.");
 	}
 
+	// https://planetcalc.com/9023/?xy=5%2010%0A7%2023%0A8%2061%0A10%20165%0A11%20428%0A14%2016596%0A15%2037864&interpolate=10%2020%2030%2040
 	private Duration getEstimatedTime(int length) {
 		final BigInteger x = BigInteger.valueOf(length);
 		BigInteger numerator1 = new BigInteger("5939");
