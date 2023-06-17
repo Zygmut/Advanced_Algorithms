@@ -424,12 +424,8 @@ public class App {
 		try (Connection conn = DriverManager.getConnection(JDBC_DRIVER)) {
 			// Create a statement
 			Statement stmt = conn.createStatement();
-			// Drop the table if it exists
-			String sql = "DROP TABLE IF EXISTS execution_times";
-			stmt.executeUpdate(sql);
-
 			// Create a table
-			sql = "CREATE TABLE IF NOT EXISTS execution_times (test_name TEXT, execution_time INTEGER)";
+			String sql = "CREATE TABLE IF NOT EXISTS execution_times (test_name TEXT, execution_time INTEGER)";
 			stmt.executeUpdate(sql);
 			stmt.close();
 
