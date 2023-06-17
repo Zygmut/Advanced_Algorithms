@@ -8,12 +8,15 @@ import Services.Service;
 import betterSwing.Section;
 import betterSwing.Window;
 import betterSwing.utils.DirectionAndPosition;
+import mesurament.Mesurament;
 import utils.Config;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.math.BigInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -145,10 +148,45 @@ public class View implements Service {
 		actionsPanel.add(Box.createVerticalStrut(5));
 		actionsPanel.add(todo);
 		actionsPanel.add(Box.createVerticalStrut(15));
-
+		JButton getMesurament = new JButton("Mesurament");
+		getMesurament.setSize(200, 100);
+		getMesurament.addActionListener(e -> {
+			//this.sendRequest(new Request(RequestCode.GET_MESURAMENT, this, new Body()));
+			String s = getMesurament();
+			JLabel label = new JLabel("Ratio: "+s);
+			actionsPanel.add(label);
+		});
+		actionsPanel.add(getMesurament);
 		sideBar.add(actionsPanel);
 
 		return sideBar;
+	}
+
+	private String getMesurament() {
+		// Crear un stream de salida en memoria para capturar la salida de System.out
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(outputStream);
+
+        // Guardar la salida estándar actual
+        PrintStream originalPrintStream = System.out;
+
+        // Redirigir la salida a nuestro stream de salida en memoria
+        System.setOut(printStream);
+
+        // Llamar al método mesura()
+        mesurament.Mesurament.mesura();
+
+        // Restaurar la salida estándar original
+        System.setOut(originalPrintStream);
+
+        // Obtener el resultado del stream de salida en memoria
+        String output = outputStream.toString();
+
+        // Procesar el resultado para extraer el valor del ratio
+        String ratioString = output.split(":")[1].trim();
+		ratioString = ratioString.replace("*", "").trim();
+		System.out.println(ratioString);
+		return ratioString;
 	}
 
 	private ImageIcon escalateImageIcon(String iconPath, int width, int height) {
