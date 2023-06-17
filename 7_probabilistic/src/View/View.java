@@ -151,9 +151,9 @@ public class View implements Service {
 		JButton getMesurament = new JButton("Mesurament");
 		getMesurament.setSize(200, 100);
 		getMesurament.addActionListener(e -> {
-			//this.sendRequest(new Request(RequestCode.GET_MESURAMENT, this, new Body()));
+			// this.sendRequest(new Request(RequestCode.GET_MESURAMENT, this, new Body()));
 			String s = getMesurament();
-			JLabel label = new JLabel("Ratio: "+s);
+			JLabel label = new JLabel("Ratio: " + s);
 			actionsPanel.add(label);
 		});
 		actionsPanel.add(getMesurament);
@@ -162,28 +162,29 @@ public class View implements Service {
 		return sideBar;
 	}
 
+	// TODO: Move this to the controller
 	private String getMesurament() {
 		// Crear un stream de salida en memoria para capturar la salida de System.out
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        PrintStream printStream = new PrintStream(outputStream);
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		PrintStream printStream = new PrintStream(outputStream);
 
-        // Guardar la salida estándar actual
-        PrintStream originalPrintStream = System.out;
+		// Guardar la salida estándar actual
+		PrintStream originalPrintStream = System.out;
 
-        // Redirigir la salida a nuestro stream de salida en memoria
-        System.setOut(printStream);
+		// Redirigir la salida a nuestro stream de salida en memoria
+		System.setOut(printStream);
 
-        // Llamar al método mesura()
-        mesurament.Mesurament.mesura();
+		// Llamar al método mesura()
+		Mesurament.mesura();
 
-        // Restaurar la salida estándar original
-        System.setOut(originalPrintStream);
+		// Restaurar la salida estándar original
+		System.setOut(originalPrintStream);
 
-        // Obtener el resultado del stream de salida en memoria
-        String output = outputStream.toString();
+		// Obtener el resultado del stream de salida en memoria
+		String output = outputStream.toString();
 
-        // Procesar el resultado para extraer el valor del ratio
-        String ratioString = output.split(":")[1].trim();
+		// Procesar el resultado para extraer el valor del ratio
+		String ratioString = output.split(":")[1].trim();
 		ratioString = ratioString.replace("*", "").trim();
 		System.out.println(ratioString);
 		return ratioString;
@@ -214,7 +215,7 @@ public class View implements Service {
 		JButton primeButton = new JButton("is Prime?");
 		primeButton.setSize(100, 100);
 		primeButton.addActionListener(e -> {
-		String inputText = numberField.getText();
+			String inputText = numberField.getText();
 			if (!inputText.isEmpty()) {
 				this.sendRequest(new Request(RequestCode.CHECK_PRIMALITY, this, new Body(new Object[] {
 						PrimalityFunction.TRIAL_DIVISION,
