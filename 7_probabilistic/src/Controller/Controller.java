@@ -3,6 +3,7 @@ package Controller;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -37,69 +38,69 @@ public class Controller implements Service {
 	}
 
 	private Duration getEstimatedTime(int length) {
-
 		final BigInteger x = BigInteger.valueOf(length);
-		final BigInteger coefficient1 = new BigInteger("-136037213");
-		final BigInteger coefficient2 = new BigInteger("104139000000");
-		final BigInteger coefficient3 = new BigInteger("529591153");
-		final BigInteger coefficient4 = new BigInteger("4959000000");
-		final BigInteger coefficient5 = new BigInteger("379750009");
-		final BigInteger coefficient6 = new BigInteger("119016000");
-		final BigInteger coefficient7 = new BigInteger("1762072807");
-		final BigInteger coefficient8 = new BigInteger("39672000");
-		final BigInteger coefficient9 = new BigInteger("3768076");
-		final BigInteger coefficient10 = new BigInteger("12825");
-		final BigInteger coefficient11 = new BigInteger("532529531");
-		final BigInteger coefficient12 = new BigInteger("661200");
-		final BigInteger coefficient13 = new BigInteger("25545169");
-		final BigInteger coefficient14 = new BigInteger("46284");
+		BigInteger numerator1 = new BigInteger("5939");
+		BigInteger denominator1 = new BigInteger("907200");
+		BigInteger term1 = numerator1.multiply(x.pow(6)).divide(denominator1);
 
-		final BigInteger term1 = coefficient1.multiply(x.pow(6)).divide(coefficient2);
-		final BigInteger term2 = coefficient3.multiply(x.pow(5)).divide(coefficient4);
-		final BigInteger term3 = coefficient5.multiply(x.pow(4)).divide(coefficient6);
-		final BigInteger term4 = coefficient7.multiply(x.pow(3)).divide(coefficient8);
-		final BigInteger term5 = coefficient9.multiply(x.pow(2)).divide(coefficient10);
-		final BigInteger term6 = coefficient11.multiply(x).divide(coefficient12);
-		final BigInteger term7 = coefficient13.divide(coefficient14);
+		BigInteger numerator2 = new BigInteger("409711");
+		BigInteger denominator2 = new BigInteger("181440");
+		BigInteger term2 = numerator2.multiply(x.pow(5)).divide(denominator2);
 
-		return compactTimeFromMillis(term1.subtract(term2).add(term3).subtract(term4).add(term5).subtract(term6).add(term7));
+		BigInteger numerator3 = new BigInteger("-17477987");
+		BigInteger denominator3 = new BigInteger("181440");
+		BigInteger term3 = numerator3.multiply(x.pow(4)).divide(denominator3);
+
+		BigInteger numerator4 = new BigInteger("40090411");
+		BigInteger denominator4 = new BigInteger("25920");
+		BigInteger term4 = numerator4.multiply(x.pow(3)).divide(denominator4);
+
+		BigInteger numerator5 = new BigInteger("-2739635491");
+		BigInteger denominator5 = new BigInteger("226800");
+		BigInteger term5 = numerator5.multiply(x.pow(2)).divide(denominator5);
+
+		BigInteger numerator6 = new BigInteger("2092430983");
+		BigInteger denominator6 = new BigInteger("45360");
+		BigInteger term6 = numerator6.multiply(x).divide(denominator6);
+
+		BigInteger numerator7 = new BigInteger("-3722729");
+		BigInteger denominator7 = new BigInteger("54");
+		BigInteger term7 = numerator7.divide(denominator7);
+
+		BigInteger result = term1.add(term2).add(term3).add(term4)
+				.add(term5).add(term6).add(term7);
+
+		return Duration.ofMillis(result.longValue());
+
 	}
 
-	private Map<BigInteger, BigInteger> getFactors(String number) {
+	private Result getFactors(String number) {
 
 		Map<BigInteger, BigInteger> primeFactors = new HashMap<>();
 		BigInteger num = new BigInteger(number);
 		BigInteger divisor = BigInteger.valueOf(2);
+		Instant start = Instant.now();
 
 		while (num.compareTo(BigInteger.ONE) > 0) {
+
+			if (Duration.between(start, Instant.now()).toMinutes() > 1) {
+				return new Result(getEstimatedTime(number.length()), Collections.emptyMap());
+			}
+
 			if (num.isProbablePrime(100)) {
 				primeFactors.put(num, BigInteger.ONE);
 				break;
 			}
 
-			if (num.remainder(divisor).equals(BigInteger.ZERO)) {
-				primeFactors.put(divisor, primeFactors.getOrDefault(divisor, BigInteger.ZERO).add(BigInteger.ONE));
-				num = num.divide(divisor);
-			} else {
+			if (!num.remainder(divisor).equals(BigInteger.ZERO)) {
 				divisor = divisor.nextProbablePrime();
+				continue;
 			}
+
+			primeFactors.put(divisor, primeFactors.getOrDefault(divisor, BigInteger.ZERO).add(BigInteger.ONE));
+			num = num.divide(divisor);
 		}
-
-		return primeFactors;
-	}
-
-	// If someone has a better idea, please do. This shit is disgusting 🤮
-	private Duration compactTimeFromMillis(BigInteger millis){
-		BigInteger time = new BigInteger(millis.toString());
-		TimeUnit unit = TimeUnit.MILLISECONDS;
-
-		for (int idx = 0; idx < TimeUnit.values().length && time.toString().length() > 5; idx++) {
-			time = unit.transform(time);
-			unit = TimeUnit.values()[idx];
-		}
-
-		Duration res = unit.intoDuration(time);
-		return res;
+		return new Result(Duration.between(start, Instant.now()), primeFactors);
 
 	}
 
@@ -108,17 +109,13 @@ public class Controller implements Service {
 		switch (request.code) {
 			case GET_FACTORS -> {
 				final String number = (String) request.body.content;
-				final Duration expectedTime= getEstimatedTime(number.length());
+				final Duration expectedTime = getEstimatedTime(number.length());
 				if (expectedTime.compareTo(Duration.ofMinutes(1)) >= 0) {
 					this.sendResponse(new Response(ResponseCode.GET_FACTORS, this,
 							new Body(new Result(expectedTime, null))));
 				}
-				final Instant start = Instant.now();
-				final Map<BigInteger, BigInteger> result = getFactors(number);
-				final Instant end = Instant.now();
 
-				this.sendResponse(new Response(ResponseCode.GET_FACTORS, this,
-						new Body(new Result(Duration.between(start, end), result))));
+				this.sendResponse(new Response(ResponseCode.GET_FACTORS, this, new Body(getFactors(number))));
 			}
 
 			case CHECK_PRIMALITY -> {
