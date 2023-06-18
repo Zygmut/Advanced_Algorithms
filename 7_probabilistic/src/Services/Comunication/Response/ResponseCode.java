@@ -5,5 +5,7 @@ package Services.Comunication.Response;
  */
 public enum ResponseCode {
 	PROMISE,
-	CHECK_PRIMALITY, GET_FACTORS
+	CHECK_PRIMALITY,
+	GET_FACTORS,
+	FETCH_STATS
 }
