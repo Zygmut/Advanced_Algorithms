@@ -170,16 +170,13 @@ public class View implements Service {
 		actionsPanel.setLayout(new BoxLayout(actionsPanel, BoxLayout.Y_AXIS));
 		actionsPanel.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));
 
-		JPanel todo = new JPanel();
-
-		actionsPanel.add(Box.createVerticalStrut(5));
-		actionsPanel.add(todo);
-		actionsPanel.add(Box.createVerticalStrut(15));
 		JButton getMesurament = new JButton("Mesurament");
 		getMesurament.setSize(200, 100);
 		getMesurament
 				.addActionListener(e -> this.sendRequest(new Request(RequestCode.GET_MESURAMENT, this)));
+		actionsPanel.add(Box.createVerticalStrut(5));
 		actionsPanel.add(getMesurament);
+		actionsPanel.add(Box.createVerticalStrut(15));
 		sideBar.add(actionsPanel);
 
 		return sideBar;
@@ -236,10 +233,9 @@ public class View implements Service {
 
 	private Section footer() {
 		Section footer = new Section();
-		this.buttons = new JButton[3];
-		this.buttons[0] = new JButton("Placeholder");
-		this.buttons[1] = new JButton("Generar Clave Pública");
-		this.buttons[2] = new JButton("Generar Clave Privada");
+		this.buttons = new JButton[2];
+		this.buttons[0] = new JButton("Generar Clave Pública");
+		this.buttons[1] = new JButton("Generar Clave Privada");
 		Section butons = new Section();
 		butons.createButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
 		JLabel cifrasLabel = new JLabel("Cifras RSA: ");
