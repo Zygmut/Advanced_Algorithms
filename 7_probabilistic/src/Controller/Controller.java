@@ -104,8 +104,8 @@ public class Controller implements Service {
 			primeFactors.put(divisor, primeFactors.getOrDefault(divisor, BigInteger.ZERO).add(BigInteger.ONE));
 			num = num.divide(divisor);
 		}
-		return new Result(Duration.between(start, Instant.now()), primeFactors);
 
+		return new Result(Duration.between(start, Instant.now()), primeFactors);
 	}
 
 	private String getMesurament() {
@@ -138,9 +138,24 @@ public class Controller implements Service {
 		return ratioString;
 	}
 
+	private long[] populateDB() {
+		final int TOP_NUM_OF_DIGITS = 20000;
+		long[] numbers = new long[TOP_NUM_OF_DIGITS];
+
+		for (int i = 1; i <= TOP_NUM_OF_DIGITS; i++) {
+			numbers[i - 1] = getEstimatedTime(i).toHours();
+		}
+
+		return numbers;
+	}
+
 	@Override
 	public void notifyRequest(Request request) {
 		switch (request.code) {
+			case POPULATE_DB -> {
+				long[] numbers = populateDB();
+				this.sendResponse(new Response(ResponseCode.POPULATE_DB, this, new Body(numbers)));
+			}
 			case GET_MESURAMENT -> {
 				this.sendResponse(new Response(ResponseCode.GET_MESURAMENT, this, new Body(getMesurament())));
 			}
@@ -199,6 +214,25 @@ public class Controller implements Service {
 						}
 						yield PrimalityTest.millerRabin(number, iterations, seed);
 					}
+					case MILLER_RABIN_PARALLEL -> {
+						int iterations = Controller.BASE_ITERATIONS;
+						try {
+							iterations = (Integer) params[2];
+						} catch (Exception e) {
+							logger.log(Level.INFO, "Set iteratios to fallback value of {0}",
+									Controller.BASE_ITERATIONS);
+						}
+
+						int seed = Controller.BASE_SEED;
+						try {
+							seed = (Integer) params[3];
+						} catch (Exception e) {
+							logger.log(Level.INFO, "Set seed to fallback value of {0}",
+									Controller.BASE_SEED);
+						}
+						yield PrimalityTest.millerRabinParallel(number, iterations, seed);
+					}
+					case TRIAL_DIVISION_PARALLEL -> PrimalityTest.trialDivisionParallel(number);
 				};
 
 				Instant end = Instant.now();

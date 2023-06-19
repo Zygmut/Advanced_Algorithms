@@ -19,6 +19,10 @@
 		{
 			"code": "FETCH_STATS",
 			"services": ["MODEL"]
+		},
+		{
+			"code": "POPULATE_DB",
+			"services": ["CONTROLLER"]
 		}
 	],
 	"responseMap": [
@@ -37,6 +41,10 @@
 		{
 			"code": "FETCH_STATS",
 			"services": ["VIEW"]
+		},
+		{
+			"code": "POPULATE_DB",
+			"services": ["MODEL"]
 		}
 	],
 	"resToReqMap": [
@@ -55,6 +63,10 @@
 		{
 			"responseCode": "FETCH_STATS",
 			"requestCode": "FETCH_STATS"
+		},
+		{
+			"responseCode": "POPULATE_DB",
+			"requestCode": "POPULATE_DB"
 		}
 	]
 }

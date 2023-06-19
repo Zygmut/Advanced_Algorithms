@@ -27,6 +27,19 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 public class App {
 
+ 	public static BigInteger generatePrime(int numberOfDigits, int seed) {
+        Random random = new Random(seed);
+        BigInteger lowerBound = BigInteger.TEN.pow(numberOfDigits - 1);
+        BigInteger upperBound = BigInteger.TEN.pow(numberOfDigits).subtract(BigInteger.ONE);
+
+        BigInteger prime;
+        do {
+            prime = new BigInteger(upperBound.bitLength(), random);
+        } while (prime.compareTo(lowerBound) < 0 || prime.compareTo(upperBound) > 0 || !prime.isProbablePrime(100));
+
+        return prime;
+    }
+
 	public static boolean isPrime(BigInteger number) {
 		final BigInteger zero = BigInteger.ZERO;
 		final BigInteger two = BigInteger.TWO;
@@ -449,6 +462,11 @@ public class App {
 	}
 
 	public static void main(String[] args) {
+
+		System.out.println(generatePrime(100, 0));
+		System.out.println(generatePrime(200, 0));
+		System.out.println(generatePrime(300, 0).multiply(generatePrime(300, 1)).toString().length());
+		System.exit(1);
 		// --------------------------- INIT JVM WARMUP ---------------------------
 		long startTime = System.nanoTime();
 		boolean isPrime = isPrime(number);

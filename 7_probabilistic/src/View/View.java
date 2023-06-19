@@ -112,13 +112,15 @@ public class View implements Service {
 				logger.log(Level.INFO, "{0}, done in {1}ms",
 						new Object[] { (Map<BigInteger, BigInteger>) result.result(), result.time().toMillis() });
 			}
-			case GET_MESURAMENT-> {
+			case GET_MESURAMENT -> {
 				String result = (String) request.body.content;
 				JOptionPane.showMessageDialog(null, result, "Mesurament ratio", JOptionPane.INFORMATION_MESSAGE);
 			}
 			case FETCH_STATS -> {
-				final Result[] results = (Result[]) request.body.content;
-				WindowStats stats = new WindowStats(results, new long[] { 0, 0 });
+				final Object[] content = (Object[]) request.body.content;
+				final Result[] results = (Result[]) content[0];
+				final long[] values = (long[]) content[1];
+				WindowStats stats = new WindowStats(results, values);
 				stats.show();
 			}
 			default -> {
@@ -282,7 +284,9 @@ public class View implements Service {
 
 		JMenu db = new JMenu("Datos");
 		JMenuItem load = new JMenuItem("Cargar BD");
-		load.addActionListener(e -> this.sendRequest(new Request(RequestCode.CREATE_DB, this)));
+		load.addActionListener(e -> {
+			this.sendRequest(new Request(RequestCode.CREATE_DB, this));
+		});
 		db.add(load);
 		menuBar.add(db);
 

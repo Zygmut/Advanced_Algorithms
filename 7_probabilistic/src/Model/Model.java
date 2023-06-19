@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 import Services.Service;
 import Services.Comunication.Content.Body;
 import Services.Comunication.Request.Request;
+import Services.Comunication.Request.RequestCode;
 import Services.Comunication.Response.Response;
 import Services.Comunication.Response.ResponseCode;
 import utils.Config;
@@ -42,12 +43,22 @@ public class Model implements Service {
 				this.saveResult(result);
 			}
 			case FETCH_STATS -> {
+				Object[] content = new Object[] { getAllResults(), getAllFactorTimes()};
 				this.sendResponse(new Response(ResponseCode.FETCH_STATS,
-						this, new Body(getAllResults())));
+						this, new Body(content)));
 			}
 			case CREATE_DB -> {
 				this.createDB();
 				logger.log(Level.INFO, "DB created.");
+				this.sendRequest(new Request(RequestCode.POPULATE_DB, this));
+			}
+			case SAVE_FACTOR_TIME -> {
+				final long[] time = (long[]) request.body.content;
+				this.saveFactorTime(time);
+			}
+			case POPULATE_DB -> {
+				final long[] time = (long[]) request.body.content;
+				this.saveFactorTime(time);
 			}
 			default -> {
 				logger.log(Level.SEVERE, "{0} is not implemented.", request);
@@ -68,8 +79,11 @@ public class Model implements Service {
 			this.dbApi.connect();
 			this.dbApi.setAutoCommit(false);
 			this.dbApi.executeUpdate("DROP TABLE IF EXISTS result;");
+			this.dbApi.executeUpdate("DROP TABLE IF EXISTS factor_times;");
 			this.dbApi.executeUpdate(
 					"CREATE TABLE result(id INTEGER PRIMARY KEY AUTOINCREMENT, time_ms INTEGER);");
+			this.dbApi.executeUpdate(
+					"CREATE TABLE factor_times(id INTEGER PRIMARY KEY AUTOINCREMENT, time_hours INTEGER);");
 			this.dbApi.commit();
 			this.dbApi.disconnect();
 		} catch (SQLException e) {
@@ -81,6 +95,28 @@ public class Model implements Service {
 			}
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, "Error while creating DB file.", e);
+		}
+	}
+
+	private void saveFactorTime(long[] time) {
+		try {
+			this.dbApi.connect();
+			this.dbApi.setAutoCommit(false);
+			StringBuilder sb = new StringBuilder();
+			for (long t : time) {
+				sb.append("(").append(t).append("),");
+			}
+			sb.deleteCharAt(sb.length() - 1);
+			this.dbApi.executeUpdate("INSERT INTO factor_times(time_hours) VALUES" + sb.toString() + ";");
+			this.dbApi.commit();
+			this.dbApi.disconnect();
+		} catch (SQLException e) {
+			logger.log(Level.SEVERE, "Error while saving factor time.", e);
+			try {
+				this.dbApi.rollback();
+			} catch (Exception e2) {
+				logger.log(Level.SEVERE, "Error while rolling back DB.", e2);
+			}
 		}
 	}
 
@@ -122,6 +158,29 @@ public class Model implements Service {
 		}
 
 		return results.toArray(Result[]::new);
+	}
+
+	private long[] getAllFactorTimes() {
+		ArrayList<Long> times = new ArrayList<>();
+		try {
+			this.dbApi.connect();
+			this.dbApi.setAutoCommit(false);
+			String[] rs = this.dbApi.executeQuery("SELECT * FROM factor_times;", new String[] { "time_hours" });
+			for (String r : rs) {
+				times.add(Long.parseLong(r));
+			}
+			this.dbApi.commit();
+			this.dbApi.disconnect();
+		} catch (SQLException e) {
+			logger.log(Level.SEVERE, "Error while getting all factor times.", e);
+			try {
+				this.dbApi.rollback();
+			} catch (Exception e2) {
+				logger.log(Level.SEVERE, "Error while rolling back DB.", e2);
+			}
+		}
+
+		return times.stream().mapToLong(l -> l).toArray();
 	}
 
 }

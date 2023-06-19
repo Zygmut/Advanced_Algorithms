@@ -2,6 +2,11 @@ package Controller;
 
 import java.math.BigInteger;
 import java.util.Random;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class PrimalityTest {
     private PrimalityTest() {
@@ -101,6 +106,103 @@ public class PrimalityTest {
 
         return true;
     }
+
+    public static boolean millerRabinParallel(BigInteger number, int iterations, int seed) {
+        final BigInteger TWO = BigInteger.valueOf(2);
+
+		if (number.equals(TWO) || number.equals(BigInteger.valueOf(3))) {
+			return true;
+		}
+
+		if (number.compareTo(TWO) < 0 || number.mod(TWO).equals(BigInteger.ZERO)) {
+			return false;
+		}
+
+		int s = 0;
+		BigInteger d = number.subtract(BigInteger.ONE);
+
+		while (d.mod(TWO).equals(BigInteger.ZERO)) {
+			s++;
+			d = d.divide(TWO);
+		}
+
+		ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+		final BigInteger finalD = d;
+		final int finalS = s;
+		try {
+			Random random = new Random(seed);
+			for (int i = 0; i < iterations; i++) {
+				Future<Boolean> future = executor
+						.submit(() -> isMillerRabinWitness(getRandomBase(number, random), number, finalD, finalS));
+
+				try {
+					if (!future.get()) {
+						return false; // Found a witness, number is composite
+					}
+				} catch (Exception e) {
+					e.printStackTrace(); // Handle any exception that occurred during computation
+				}
+			}
+		} finally {
+			executor.shutdown(); // Shutdown the executor service
+		}
+
+		return true; // No witnesses found, number is probably prime
+	}
+
+	public static boolean trialDivisionParallel(BigInteger number) {
+		final BigInteger zero = BigInteger.ZERO;
+		final BigInteger two = BigInteger.TWO;
+
+		if (number.compareTo(BigInteger.ONE) <= 0)
+			return false;
+
+		if (number.equals(two) || number.equals(BigInteger.valueOf(3)))
+			return true;
+
+		if (number.mod(two).equals(zero) || number.mod(BigInteger.valueOf(3)).equals(zero))
+			return false;
+
+		final BigInteger sqrt = number.sqrt();
+
+		int numThreads = Runtime.getRuntime().availableProcessors();
+		ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
+
+		try {
+			BigInteger i = BigInteger.valueOf(5);
+			BigInteger iPlusTwo = i.add(two);
+
+			while (i.compareTo(sqrt) <= 0) {
+				Future<Boolean>[] futures = new Future[numThreads];
+
+				for (int j = 0; j < numThreads; j++) {
+					final BigInteger currentI = i;
+					final BigInteger currentIPlusTwo = iPlusTwo;
+					futures[j] = executorService.submit(new Callable<Boolean>() {
+						@Override
+						public Boolean call() throws Exception {
+							return number.mod(currentI).equals(zero) || number.mod(currentIPlusTwo).equals(zero);
+						}
+					});
+
+					i = i.add(BigInteger.valueOf(6));
+					iPlusTwo = iPlusTwo.add(BigInteger.valueOf(6));
+				}
+
+				for (Future<Boolean> future : futures) {
+					if (future.get()) {
+						return false;
+					}
+				}
+			}
+		} catch (InterruptedException | ExecutionException e) {
+			e.printStackTrace();
+		} finally {
+			executorService.shutdown();
+		}
+
+		return true;
+	}
 
     private static boolean isMillerRabinWitness(BigInteger base, BigInteger number, BigInteger d, int s) {
         BigInteger x = base.modPow(d, number);
