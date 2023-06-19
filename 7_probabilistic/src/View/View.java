@@ -114,7 +114,7 @@ public class View implements Service {
 			}
 			case FETCH_STATS -> {
 				final Result[] results = (Result[]) request.body.content;
-				WindowStats stats = new WindowStats(results);
+				WindowStats stats = new WindowStats(results, new long[] { 0, 0 });
 				stats.show();
 			}
 			default -> {

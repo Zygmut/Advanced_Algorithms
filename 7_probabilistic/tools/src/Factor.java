@@ -1,22 +1,86 @@
+import java.awt.Dimension;
 import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
 import java.time.Duration;
-import java.time.Instant;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import javax.swing.JFrame;
+
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 
 public class Factor {
 
+	private static ChartPanel createChartPanel(XYSeriesCollection dataset) {
+		JFreeChart chart = ChartFactory.createXYLineChart(
+				"Execution time", "Number of digits", "Time (hour)",
+				dataset, PlotOrientation.VERTICAL, true, true, false);
+		return new ChartPanel(chart);
+	}
+
+	private static XYSeriesCollection createDataset(long[] vals) {
+		XYSeriesCollection dataset = new XYSeriesCollection();
+		XYSeries series = new XYSeries("Execution time");
+		XYSeries linear = new XYSeries("Regression line");
+		for (int i = 0; i < vals.length; i++) {
+			series.add(i + 1, vals[i]);
+		}
+
+		// Calculate linear regression
+		double n = vals.length;
+		double sumX = n * (n + 1) / 2;
+		double sumY = 0;
+		double sumXY = 0;
+		double sumXX = 0;
+		for (int i = 0; i < vals.length; i++) {
+			sumY += vals[i];
+			sumXY += (i + 1) * vals[i];
+			sumXX += (i + 1) * (i + 1);
+		}
+		double slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+		double intercept = (sumY - slope * sumX) / n;
+		for (int i = 0; i < vals.length; i++) {
+			linear.add(i + 1, slope * (i + 1) + intercept);
+		}
+
+		// Calculate R^2
+		double mean = sumY / n;
+		double ssTot = 0;
+		double ssRes = 0;
+		for (int i = 0; i < vals.length; i++) {
+			ssTot += Math.pow(vals[i] - mean, 2);
+			ssRes += Math.pow(vals[i] - (slope * (i + 1) + intercept), 2);
+		}
+		double rSquared = 1 - ssRes / ssTot;
+		System.out.println("R^2 = " + rSquared);
+
+		dataset.addSeries(series);
+		dataset.addSeries(linear);
+		return dataset;
+	}
+
+	private static void displayChart(XYSeriesCollection dataset) {
+		ChartPanel chartPanel = createChartPanel(dataset);
+		chartPanel.setPreferredSize(new Dimension(500, 270));
+		JFrame frame = new JFrame("Chart");
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setContentPane(chartPanel);
+		frame.pack();
+		frame.setVisible(true);
+	}
+
 	public static void main(String[] args) {
-		final int TOP_NUM_OF_DIGITS = 650;
+		final int TOP_NUM_OF_DIGITS = 2000;
 		long[] numbers = new long[TOP_NUM_OF_DIGITS];
 		for (int i = 1; i <= TOP_NUM_OF_DIGITS; i++) {
 			numbers[i - 1] = getEstimatedTime(i).toHours();
 		}
-		saveToDB(numbers);
+		// saveToDB(numbers);
+		displayChart(createDataset(numbers));
 	}
 
 	private static void saveToDB(long[] numbers) {

@@ -4,7 +4,7 @@ import betterSwing.Section;
 import betterSwing.Window;
 import betterSwing.utils.DirectionAndPosition;
 
-import java.awt.BorderLayout;
+import java.awt.GridLayout;
 
 import javax.swing.JPanel;
 
@@ -22,9 +22,11 @@ public class WindowStats {
 
 	private Window window;
 	private Result[] result;
+	private long[] vals;
 
-	public WindowStats(Result[] result) {
+	public WindowStats(Result[] result, long[] vals) {
 		this.result = result;
+		this.vals = vals;
 		this.window = new Window(Config.VIEW_STATS_WIN_CONFIG_PATH);
 		this.window.initConfig();
 		this.loadContent();
@@ -45,10 +47,13 @@ public class WindowStats {
 
 	private JPanel panelStats() {
 		JPanel panel = new JPanel();
-		panel.setLayout(new BorderLayout());
+		panel.setLayout(new GridLayout(1, 2));
 		ChartPanel chartPanel = this.createChartPanel(this.createDataset(),
-				"Estadísticas", "Ejecución", "Tiempo (ms)");
-		panel.add(chartPanel, BorderLayout.CENTER);
+				"Estadísticas ejecución algoritmos", "Ejecución", "Tiempo (ms)");
+		panel.add(chartPanel);
+		chartPanel = this.createChartPanel(this.createDataset(this.vals),
+				"Factorización números primos", "Número de dígitos", "Tiempo (horas)");
+		panel.add(chartPanel);
 		return panel;
 	}
 
@@ -74,6 +79,48 @@ public class WindowStats {
 				true,
 				false);
 		return new ChartPanel(chart);
+	}
+
+	private XYSeriesCollection createDataset(long[] vals) {
+		XYSeriesCollection dataset = new XYSeriesCollection();
+		XYSeries series = new XYSeries("Execution time");
+		XYSeries linear = new XYSeries("Regression line");
+		for (int i = 0; i < vals.length; i++) {
+			series.add(i + 1, vals[i]);
+		}
+
+		// Calculate linear regression
+		double n = vals.length;
+		double sumX = n * (n + 1) / 2;
+		double sumY = 0;
+		double sumXY = 0;
+		double sumXX = 0;
+		for (int i = 0; i < vals.length; i++) {
+			sumY += vals[i];
+			sumXY += (i + 1) * vals[i];
+			sumXX += (i + 1) * (i + 1);
+		}
+		double slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+		double intercept = (sumY - slope * sumX) / n;
+		for (int i = 0; i < vals.length; i++) {
+			linear.add(i + 1, slope * (i + 1) + intercept);
+		}
+
+		// Calculate R^2
+		double mean = sumY / n;
+		double ssTot = 0;
+		double ssRes = 0;
+		for (int i = 0; i < vals.length; i++) {
+			ssTot += Math.pow(vals[i] - mean, 2);
+			ssRes += Math.pow(vals[i] - (slope * (i + 1) + intercept), 2);
+		}
+		assert ssTot > 0;
+		double rSquared = 1 - ssRes / ssTot;
+		System.out.println("R^2 = " + rSquared);
+
+		dataset.addSeries(series);
+		dataset.addSeries(linear);
+		return dataset;
 	}
 
 	public void show() {
