@@ -16,6 +16,7 @@ import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.PrintStream;
 import java.math.BigInteger;
 import java.util.Map;
@@ -27,13 +28,19 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
+import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
 import Controller.PrimalityFunction;
 import Master.MVC;
 import Model.Result;
@@ -253,14 +260,19 @@ public class View implements Service {
 
 	private Section footer() {
 		Section footer = new Section();
-		this.buttons = new JButton[1];
+		this.buttons = new JButton[3];
 		this.buttons[0] = new JButton("Placeholder");
+		this.buttons[1] = new JButton("Generar Clave Pública");
+		this.buttons[2] = new JButton("Generar Clave Privada");
 		Section butons = new Section();
 		butons.createButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
+		JLabel cifrasLabel = new JLabel("Cifras RSA: ");
+		JSpinner cifras = new JSpinner(new SpinnerNumberModel(300, 100, 600, 1));
 
 		JPanel footerPanel = new JPanel();
 		footerPanel.add(butons.getPanel());
-
+		footerPanel.add(cifrasLabel);
+		footerPanel.add(cifras);
 		footer.createFreeSection(footerPanel);
 		return footer;
 	}
@@ -308,6 +320,35 @@ public class View implements Service {
 		});
 		help.add(about);
 		menuBar.add(help);
+
+		JMenu encriptacion = new JMenu("Encriptacion RSA");
+		JMenuItem encriptar = new JMenuItem("Encriptar fichero");
+		JMenuItem desencriptar = new JMenuItem("Desencriptar fichero");
+		encriptar.addActionListener(e -> {
+			JFileChooser fileChooser = new JFileChooser();
+			fileChooser.setDialogTitle("Selección fichero a encriptar");
+			fileChooser.setFileFilter(new FileNameExtensionFilter("Ficheros de texto", "txt"));
+			int result = fileChooser.showOpenDialog(null);
+			if (result == JFileChooser.APPROVE_OPTION) {
+				File selectedFile = fileChooser.getSelectedFile();
+				this.sendRequest(new Request(RequestCode.ENCRYPT_FILE, this, new Body(selectedFile)));
+			}
+		});
+
+		desencriptar.addActionListener(e -> {
+			JFileChooser fileChooser = new JFileChooser();
+			fileChooser.setDialogTitle("Selección fichero a desencriptar");
+			fileChooser.setFileFilter(new FileNameExtensionFilter("Ficheros de texto", "txt"));
+			int result = fileChooser.showOpenDialog(null);
+			if (result == JFileChooser.APPROVE_OPTION) {
+				File selectedFile = fileChooser.getSelectedFile();
+				this.sendRequest(new Request(RequestCode.DECRYPT_FILE, this, new Body(selectedFile)));
+			}
+		});
+
+		encriptacion.add(encriptar);
+		encriptacion.add(desencriptar);
+		menuBar.add(encriptacion);
 
 		return menuBar;
 	}
