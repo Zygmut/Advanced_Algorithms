@@ -231,7 +231,7 @@ public class View implements Service {
 
 		// TODO: Make this better
 		JPanel todo = new JPanel();
-		todo.setBackground(Color.GRAY);
+		todo.setBackground(Color.WHITE);
 		JTextField numberField = new JTextField(30);
 		JButton primeButton = new JButton("is Prime?");
 		primeButton.setSize(100, 100);
