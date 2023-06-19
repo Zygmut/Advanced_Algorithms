@@ -1,5 +1,7 @@
 package Controller;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.time.Instant;
@@ -15,6 +17,7 @@ import Services.Comunication.Content.Body;
 import Services.Comunication.Request.Request;
 import Services.Comunication.Response.Response;
 import Services.Comunication.Response.ResponseCode;
+import mesurament.Mesurament;
 
 public class Controller implements Service {
 
@@ -105,9 +108,42 @@ public class Controller implements Service {
 
 	}
 
+	private String getMesurament() {
+		// Crear un stream de salida en memoria para capturar la salida de System.out
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		PrintStream printStream = new PrintStream(outputStream);
+
+		// Guardar la salida estándar actual
+		PrintStream originalPrintStream = System.out;
+
+		// Redirigir la salida a nuestro stream de salida en memoria
+		System.setOut(printStream);
+
+		// Llamar al método mesura()
+		Mesurament.mesura();
+
+		// Restaurar la salida estándar original
+		System.setOut(originalPrintStream);
+
+		// Obtener el resultado del stream de salida en memoria
+		String output = outputStream.toString();
+
+		// Procesar el resultado para extraer el valor del ratio
+		String ratioString = output.split(":")[1].trim();
+		ratioString = ratioString.replace("*", "").trim();
+
+
+		logger.info(ratioString);
+
+		return ratioString;
+	}
+
 	@Override
 	public void notifyRequest(Request request) {
 		switch (request.code) {
+			case GET_MESURAMENT -> {
+				this.sendResponse(new Response(ResponseCode.GET_MESURAMENT, this, new Body(getMesurament())));
+			}
 			case GET_FACTORS -> {
 				final String number = (String) request.body.content;
 				final Duration expectedTime = getEstimatedTime(number.length());

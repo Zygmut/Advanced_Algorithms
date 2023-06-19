@@ -5,6 +5,10 @@
 			"services": ["CONTROLLER"]
 		},
 		{
+			"code": "GET_MESURAMENT",
+			"services": ["CONTROLLER"]
+		},
+		{
 			"code": "GET_FACTORS",
 			"services": ["CONTROLLER"]
 		},
@@ -27,6 +31,10 @@
 			"services": ["VIEW", "MODEL"]
 		},
 		{
+			"code": "GET_MESURAMENT",
+			"services": ["VIEW"]
+		},
+		{
 			"code": "FETCH_STATS",
 			"services": ["VIEW"]
 		}
@@ -39,6 +47,10 @@
 		{
 			"responseCode": "GET_FACTORS",
 			"requestCode": "GET_FACTORS"
+		},
+		{
+			"responseCode": "GET_MESURAMENT",
+			"requestCode": "GET_MESURAMENT"
 		},
 		{
 			"responseCode": "FETCH_STATS",

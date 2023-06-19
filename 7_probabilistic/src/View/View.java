@@ -33,11 +33,11 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
-import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -112,6 +112,10 @@ public class View implements Service {
 				logger.log(Level.INFO, "{0}, done in {1}ms",
 						new Object[] { (Map<BigInteger, BigInteger>) result.result(), result.time().toMillis() });
 			}
+			case GET_MESURAMENT-> {
+				String result = (String) request.body.content;
+				JOptionPane.showMessageDialog(null, result, "Mesurament ratio", JOptionPane.INFORMATION_MESSAGE);
+			}
 			case FETCH_STATS -> {
 				final Result[] results = (Result[]) request.body.content;
 				WindowStats stats = new WindowStats(results, new long[] { 0, 0 });
@@ -171,12 +175,8 @@ public class View implements Service {
 		actionsPanel.add(Box.createVerticalStrut(15));
 		JButton getMesurament = new JButton("Mesurament");
 		getMesurament.setSize(200, 100);
-		getMesurament.addActionListener(e -> {
-			// this.sendRequest(new Request(RequestCode.GET_MESURAMENT, this, new Body()));
-			String s = getMesurament();
-			JLabel label = new JLabel("Ratio: " + s);
-			actionsPanel.add(label);
-		});
+		getMesurament
+				.addActionListener(e -> this.sendRequest(new Request(RequestCode.GET_MESURAMENT, this)));
 		actionsPanel.add(getMesurament);
 		sideBar.add(actionsPanel);
 
@@ -184,32 +184,6 @@ public class View implements Service {
 	}
 
 	// TODO: Move this to the controller
-	private String getMesurament() {
-		// Crear un stream de salida en memoria para capturar la salida de System.out
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		PrintStream printStream = new PrintStream(outputStream);
-
-		// Guardar la salida estándar actual
-		PrintStream originalPrintStream = System.out;
-
-		// Redirigir la salida a nuestro stream de salida en memoria
-		System.setOut(printStream);
-
-		// Llamar al método mesura()
-		Mesurament.mesura();
-
-		// Restaurar la salida estándar original
-		System.setOut(originalPrintStream);
-
-		// Obtener el resultado del stream de salida en memoria
-		String output = outputStream.toString();
-
-		// Procesar el resultado para extraer el valor del ratio
-		String ratioString = output.split(":")[1].trim();
-		ratioString = ratioString.replace("*", "").trim();
-		System.out.println(ratioString);
-		return ratioString;
-	}
 
 	private ImageIcon escalateImageIcon(String iconPath, int width, int height) {
 		Image image = new ImageIcon(iconPath).getImage();
