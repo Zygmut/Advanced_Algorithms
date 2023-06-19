@@ -10,19 +10,19 @@ import Controller.Cryptography;
 
 public record PublicKey(BigInteger e, BigInteger n) {
 
- 	public BigInteger encrypt(BigInteger message) {
-        return Cryptography.modularExponentiation(message, this.e, this.n);
-    }
-
-	public String encrypt(File file, final int NUMBER_OF_WORDS_PER_CHUNK) throws IOException{
-		StringBuilder sb = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
-           }
-
-        }
-        return sb.toString();
+	public BigInteger encrypt(BigInteger message) {
+		return Cryptography.modularExponentiation(message, this.e, this.n);
 	}
+
+	public String encrypt(File file) throws IOException {
+		StringBuilder sb = new StringBuilder();
+		try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+			String line;
+			while ((line = br.readLine()) != null) {
+
+			}
+		}
+		return sb.toString();
+	}
+
 }

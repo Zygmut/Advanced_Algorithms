@@ -11,7 +11,7 @@ public record KeyPair(PrivateKey privateKey, PublicKey publicKey) {
 	}
 
 	public String encrypt(File file, final int BUFFER_SIZE) throws IOException {
-		return this.publicKey.encrypt(file, BUFFER_SIZE);
+		return this.publicKey.encrypt(file);
 	}
 
 	public BigInteger decrypt(String message) {
@@ -19,7 +19,7 @@ public record KeyPair(PrivateKey privateKey, PublicKey publicKey) {
 	}
 
 	public String decrypt(File file, final int BUFFER_SIZE) throws IOException {
-		return this.privateKey.decrypt(file, BUFFER_SIZE);
+		return this.privateKey.decrypt(file);
 	}
 
 }
