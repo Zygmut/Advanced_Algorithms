@@ -3,11 +3,31 @@
 		{
 			"code": "CHECK_PRIMALITY",
 			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "GET_FACTORS",
+			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "CREATE_DB",
+			"services": ["MODEL"]
+		},
+		{
+			"code": "FETCH_STATS",
+			"services": ["MODEL"]
 		}
 	],
 	"responseMap": [
 		{
 			"code": "CHECK_PRIMALITY",
+			"services": ["VIEW", "MODEL"]
+		},
+		{
+			"code": "GET_FACTORS",
+			"services": ["VIEW", "MODEL"]
+		},
+		{
+			"code": "FETCH_STATS",
 			"services": ["VIEW"]
 		}
 	],
@@ -15,6 +35,14 @@
 		{
 			"responseCode": "CHECK_PRIMALITY",
 			"requestCode": "CHECK_PRIMALITY"
+		},
+		{
+			"responseCode": "GET_FACTORS",
+			"requestCode": "GET_FACTORS"
+		},
+		{
+			"responseCode": "FETCH_STATS",
+			"requestCode": "FETCH_STATS"
 		}
 	]
 }

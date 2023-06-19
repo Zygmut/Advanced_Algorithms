@@ -18,6 +18,7 @@ import java.awt.Image;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.math.BigInteger;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,9 +34,9 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
-
 import Controller.PrimalityFunction;
 import Master.MVC;
+import Model.Result;
 
 public class View implements Service {
 
@@ -91,10 +92,23 @@ public class View implements Service {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public void notifyRequest(Request request) {
 		switch (request.code) {
 			case CHECK_PRIMALITY -> {
-				logger.log(Level.INFO, (boolean) request.body.content ? "yes" : "no");
+				Result result = (Result) request.body.content;
+				logger.log(Level.INFO, "{0}, done in {1}ns",
+						new Object[] { (boolean) result.result() ? "yes" : "no", result.time().toNanos() });
+			}
+			case GET_FACTORS -> {
+				Result result = (Result) request.body.content;
+				logger.log(Level.INFO, "{0}, done in {1}ms",
+						new Object[] { (Map<BigInteger, BigInteger>) result.result(), result.time().toMillis() });
+			}
+			case FETCH_STATS -> {
+				final Result[] results = (Result[]) request.body.content;
+				WindowStats stats = new WindowStats(results);
+				stats.show();
 			}
 			default -> {
 				logger.log(Level.SEVERE, "{0} is not implemented.", request);
@@ -222,8 +236,13 @@ public class View implements Service {
 						BigInteger.valueOf(Long.parseLong(numberField.getText())) })));
 			}
 		});
+		JButton factorsButton = new JButton("get Factors");
+		factorsButton.addActionListener(e -> {
+			this.sendRequest(new Request(RequestCode.GET_FACTORS, this, new Body(numberField.getText())));
+		});
 		todo.add(numberField);
 		todo.add(primeButton);
+		todo.add(factorsButton);
 
 		content.add(todo, BorderLayout.CENTER);
 		splitPane.setLeftComponent(content);
@@ -257,9 +276,7 @@ public class View implements Service {
 		JMenu options = new JMenu("Opciones");
 		JMenu stats = new JMenu("Estadisticas");
 		JMenuItem alg = new JMenuItem("Algoritmos");
-		alg.addActionListener(e -> {
-			// TODO
-		});
+		alg.addActionListener(e -> this.sendRequest(new Request(RequestCode.FETCH_STATS, this)));
 		JMenuItem jvm = new JMenuItem("JVM");
 		jvm.addActionListener(e -> {
 			WindowJVMStats jvmStats = new WindowJVMStats();
@@ -279,9 +296,7 @@ public class View implements Service {
 
 		JMenu db = new JMenu("Datos");
 		JMenuItem load = new JMenuItem("Cargar BD");
-		load.addActionListener(e -> {
-			// TODO
-		});
+		load.addActionListener(e -> this.sendRequest(new Request(RequestCode.CREATE_DB, this)));
 		db.add(load);
 		menuBar.add(db);
 
