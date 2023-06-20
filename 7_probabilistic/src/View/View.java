@@ -21,8 +21,12 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.function.LongToIntFunction;
+import java.util.function.ToLongFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -124,9 +128,10 @@ public class View implements Service {
 				Result result = (Result) request.body.content;
 				logger.log(Level.INFO, "{0}, done in {1}ns",
 						new Object[] { (boolean) result.result() ? "yes" : "no", result.time().toNanos() });
+				final String time = getTimeString(result.time());
 				final String text = "<html>Resultado: <br/> El número es "
 						+ ((boolean) result.result() ? "primo" : "compuesto") + "<br/> Calculado en: "
-						+ result.time().toNanos() + "ns</html>";
+						+ time + "ns</html>";
 				this.resultLabel.setText(text);
 			}
 			case GET_FACTORS -> {
@@ -134,12 +139,14 @@ public class View implements Service {
 				logger.log(Level.INFO, "{0}, done in {1}ms",
 						new Object[] { (Map<BigInteger, BigInteger>) result.result(), result.time().toMillis() });
 				String text = "";
-				if (Objects.isNull(result.result())) {
+				String time = getTimeString(result.time());
+				Map<BigInteger, BigInteger> factors = (Map<BigInteger, BigInteger>) result.result();
+				if (factors.isEmpty()) {
 					text = "<html>Resultado: <br/> No se ha calculado. <br/>" +
-							"Motivo: Tiempo aprox. de cálculo " + result.time().toHours() + "horas.</html>";
+							"Motivo: Tiempo aprox. de cálculo " + time + ".</html>";
 				} else {
 					text = "<html>Resultado: <br/> Los factores son: " + result.result()
-							+ "<br/> Calculado en: " + result.time().toMillis() + "ms</html>";
+							+ "<br/> Calculado en: " + time + "</html>";
 				}
 				this.resultLabel.setText(text);
 			}
@@ -172,6 +179,34 @@ public class View implements Service {
 				logger.log(Level.SEVERE, "{0} is not implemented.", request);
 			}
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private String getTimeString(Duration time) {
+		final ToLongFunction<Duration>[] precision = new ToLongFunction[] {
+				value -> ((Duration) value).toMillis(),
+				value -> ((Duration) value).toSeconds(),
+				value -> ((Duration) value).toMinutes(),
+				value -> ((Duration) value).toHours(),
+				value -> ((Duration) value).toDays(),
+		};
+		final String[] unit = new String[] { "ms", "s", "m", "h", "d" };
+
+		final LongToIntFunction getNumerOfDigits = value -> {
+			int digits = 0;
+			while (value > 0) {
+				value /= 10;
+				digits++;
+			}
+			return digits;
+		};
+
+		int i = 0;
+		for (i = 0; getNumerOfDigits.applyAsInt(precision[i].applyAsLong(time)) > 5 && i < precision.length - 1; i++) {
+			// find index, so no code is necesary
+		}
+
+		return String.format("%d %s", precision[i].applyAsLong(time), unit[i]);
 	}
 
 	/**
