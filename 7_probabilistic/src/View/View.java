@@ -32,6 +32,7 @@ import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -43,8 +44,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.filechooser.FileNameExtensionFilter;
 
 import Controller.PrimalityFunction;
 import Master.MVC;
@@ -62,12 +63,21 @@ public class View implements Service {
 	 */
 	private JSplitPane splitPane;
 	/**
-	 * The list of buttons of the view.
+	 * Displays the result of the primality test.
 	 */
-	private JSpinner cifras;
 	private JLabel resultLabel;
+	/**
+	 * Displays the time taken to perform encryption/decryption.
+	 */
 	private JLabel timeTaken;
+	/**
+	 * Holds the last file selected by the user.
+	 */
 	private File selectedFile;
+	/**
+	 * The dialog that displays the mesurament.
+	 */
+	private JDialog mesuramentDialog;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -135,7 +145,12 @@ public class View implements Service {
 			}
 			case GET_MESURAMENT -> {
 				String result = (String) request.body.content;
-				JOptionPane.showMessageDialog(null, result, "Ratio mesurament", JOptionPane.INFORMATION_MESSAGE);
+				logger.log(Level.INFO, "{0}", result);
+				JOptionPane pane = new JOptionPane(result, JOptionPane.INFORMATION_MESSAGE,
+						JOptionPane.DEFAULT_OPTION, null, new Object[] {}, null);
+				this.mesuramentDialog.dispose();
+				this.mesuramentDialog = pane.createDialog("Ratio mesurament");
+				this.mesuramentDialog.setVisible(true);
 			}
 			case FETCH_STATS -> {
 				final Object[] content = (Object[]) request.body.content;
@@ -191,7 +206,7 @@ public class View implements Service {
 		rsaDigitsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		rsaDigitsLabel.setFont(new Font("Arial", Font.ITALIC, 14));
 		rsaDigits.add(rsaDigitsLabel);
-		cifras = new JSpinner(new SpinnerNumberModel(300, 100, 600, 1));
+		JSpinner cifras = new JSpinner(new SpinnerNumberModel(300, 100, 600, 1));
 		cifras.setMaximumSize(new Dimension(100, 30));
 		rsaDigits.add(cifras);
 
@@ -255,8 +270,8 @@ public class View implements Service {
 		textArea.setEditable(true);
 		textArea.setFont(new Font("Arial", Font.PLAIN, 14));
 		JScrollPane scrollPane = new JScrollPane(textArea);
-		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		row1.add(scrollPane);
 		contentPanel.add(row1);
 		// Row 2
@@ -328,8 +343,8 @@ public class View implements Service {
 		textArea2.setEditable(true);
 		textArea2.setFont(new Font("Arial", Font.PLAIN, 14));
 		JScrollPane scrollPane2 = new JScrollPane(textArea2);
-		scrollPane2.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-		scrollPane2.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		scrollPane2.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+		scrollPane2.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		row12.add(scrollPane2, BorderLayout.CENTER);
 		contentPanel2.add(row12);
 		// Row 2
@@ -347,8 +362,8 @@ public class View implements Service {
 		textArea3.setEditable(false);
 		textArea3.setFont(new Font("Arial", Font.PLAIN, 14));
 		JScrollPane scrollPane3 = new JScrollPane(textArea3);
-		scrollPane3.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-		scrollPane3.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		scrollPane3.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+		scrollPane3.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		row22.add(scrollPane3);
 		contentPanel2.add(row22);
 		// Row 3
@@ -462,7 +477,14 @@ public class View implements Service {
 		JMenuItem load = new JMenuItem("Cargar BD");
 		load.addActionListener(e -> this.sendRequest(new Request(RequestCode.CREATE_DB, this)));
 		JMenuItem mesu = new JMenuItem("Mesurament");
-		mesu.addActionListener(e -> this.sendRequest(new Request(RequestCode.GET_MESURAMENT, this)));
+		mesu.addActionListener(e -> {
+			this.sendRequest(new Request(RequestCode.GET_MESURAMENT, this));
+			JOptionPane pane = new JOptionPane("Calculando...", JOptionPane.INFORMATION_MESSAGE,
+					JOptionPane.DEFAULT_OPTION, null, new Object[] {}, null);
+			mesuramentDialog = pane.createDialog("Ratio mesurament");
+			mesuramentDialog.setModal(false);
+			mesuramentDialog.setVisible(true);
+		});
 		db.add(load);
 		db.add(mesu);
 		menuBar.add(db);
