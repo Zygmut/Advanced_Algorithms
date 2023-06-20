@@ -68,7 +68,7 @@
 		},
 		{
 			"code": "GENERATE_RSA_KEYS",
-			"services": ["VIEW"]
+			"services": ["VIEW", "MODEL"]
 		}
 	],
 	"resToReqMap": [

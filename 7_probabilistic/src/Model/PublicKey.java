@@ -4,11 +4,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Serializable;
 import java.math.BigInteger;
 
 import Controller.Cryptography;
 
-public record PublicKey(BigInteger e, BigInteger n) {
+public record PublicKey(BigInteger e, BigInteger n) implements Serializable {
 
 	public BigInteger encrypt(String message) {
 		return Cryptography.modularExponentiation(new BigInteger(message), this.e, this.n);
@@ -33,4 +34,9 @@ public record PublicKey(BigInteger e, BigInteger n) {
 		return sb.toString();
 	}
 
+
+	@Override
+	public String toString() {
+		return this.e + "\n" + this.n;
+	}
 }

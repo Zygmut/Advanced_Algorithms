@@ -2,9 +2,10 @@ package Model;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.math.BigInteger;
 
-public record KeyPair(PrivateKey privateKey, PublicKey publicKey) {
+public record KeyPair(PrivateKey privateKey, PublicKey publicKey) implements Serializable {
 
 	public BigInteger encrypt(String message) {
 		return this.publicKey.encrypt(message);

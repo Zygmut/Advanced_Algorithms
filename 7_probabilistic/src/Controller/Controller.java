@@ -2,7 +2,9 @@ package Controller;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.math.BigInteger;
 import java.time.Duration;
@@ -13,6 +15,9 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import Model.KeyPair;
+import Model.PrivateKey;
+import Model.PublicKey;
 import Model.Result;
 import Services.Service;
 import Services.Comunication.Content.Body;
@@ -20,6 +25,7 @@ import Services.Comunication.Request.Request;
 import Services.Comunication.Response.Response;
 import Services.Comunication.Response.ResponseCode;
 import mesurament.Mesurament;
+import utils.Config;
 
 public class Controller implements Service {
 
@@ -178,16 +184,52 @@ public class Controller implements Service {
 			}
 			case DECRYPT_FILE -> {
 				logger.info("Decrypting file...");
-				// this.writeToFile("decrypted.txt", content);
+				final Object[] params = (Object[]) request.body.content;
+				final File file = (File) params[0];
+				final PrivateKey privateKey = (PrivateKey) params[1];
+
+				Result result = null;
+				try {
+					final Instant start = Instant.now();
+					final String decryptedFile = privateKey.decrypt(file);
+					final Instant end = Instant.now();
+					result = new Result(Duration.between(start, end), decryptedFile);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+				this.sendResponse(new Response(ResponseCode.DECRYPT_FILE, this, new Body(result)));
 			}
 			case ENCRYPT_FILE -> {
 				logger.info("Encrypting file...");
-				// this.writeToFile("encrypted.txt", content);
+				final Object[] params = (Object[]) request.body.content;
+				final File file = (File) params[0];
+				final PublicKey publicKey = (PublicKey) params[1];
+
+				Result result = null;
+				try {
+					final Instant start = Instant.now();
+					final String encryptedFile = publicKey.encrypt(file);
+					final Instant end = Instant.now();
+					result = new Result(Duration.between(start, end), encryptedFile);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+				this.sendResponse(new Response(ResponseCode.ENCRYPT_FILE, this, new Body(result)));
 			}
 			case GENERATE_RSA_KEYS -> {
 				logger.info("Generating RSA keys...");
-				// this.writeToFile("public.txt", content);
-				// this.writeToFile("private.txt", content);
+				final Object[] params = (Object[]) request.body.content;
+				final int keyLength = (int) params[0];
+				final int seed = (int) params[1];
+				final KeyPair kp = Cryptography.generateRSAKeyPair(
+						Cryptography.generatePrime(keyLength, seed).toString(),
+						Cryptography.generatePrime(keyLength, seed + 1).toString(), seed);
+
+				this.sendResponse(new Response(ResponseCode.GENERATE_RSA_KEYS, this, new Body(kp)));
+				this.writeToFile(Config.PUBLIC_KEY_FILE_NAME, kp.publicKey().toString());
+				this.writeToFile(Config.PRIVATE_KEY_FILE_NAME, kp.privateKey().toString());
 			}
 			case CHECK_PRIMALITY -> {
 				final Object[] params = (Object[]) request.body.content;

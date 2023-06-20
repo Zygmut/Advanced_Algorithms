@@ -24,7 +24,6 @@ import java.nio.file.Files;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.function.LongToIntFunction;
 import java.util.function.Predicate;
 import java.util.function.ToLongFunction;
@@ -54,6 +53,7 @@ import javax.swing.SpinnerNumberModel;
 
 import Controller.PrimalityFunction;
 import Master.MVC;
+import Model.KeyPair;
 import Model.Result;
 
 public class View implements Service {
@@ -83,6 +83,15 @@ public class View implements Service {
 	 * The dialog that displays the mesurament.
 	 */
 	private JDialog mesuramentDialog;
+	/**
+	 * The current keyPair selected to encrypt and decrypt things
+	 */
+	private KeyPair selectedKeyPair;
+
+	/**
+	 * Dialog containing the response of the encryption/decryption
+	 */
+	private JTextArea textAreaOutput;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -169,12 +178,18 @@ public class View implements Service {
 			}
 			case DECRYPT_FILE -> {
 				logger.info("File decrypted.");
+				final Result content = (Result) request.body.content;
+				this.textAreaOutput.setText((String) content.result());
+				this.timeTaken.setText("Tiempo de desencriptación: " + getTimeString(content.time()));
 			}
 			case ENCRYPT_FILE -> {
 				logger.info("File encrypted.");
+				final Result content = (Result) request.body.content;
+				this.textAreaOutput.setText((String) content.result());
+				this.timeTaken.setText("Tiempo de encriptación: " + getTimeString(content.time()));
 			}
 			case GENERATE_RSA_KEYS -> {
-				logger.info("RSA keys generated.");
+				this.selectedKeyPair = (KeyPair) request.body.content;
 			}
 			default -> {
 				logger.log(Level.SEVERE, "{0} is not implemented.", request);
@@ -255,15 +270,31 @@ public class View implements Service {
 		JSpinner cifras = new JSpinner(new SpinnerNumberModel(300, 100, 600, 1));
 		cifras.setMaximumSize(new Dimension(100, 30));
 		rsaDigits.add(cifras);
+		JSpinner seed = new JSpinner(new SpinnerNumberModel(0, 0, 600, 1));
+		seed.setMaximumSize(new Dimension(100, 30));
+		rsaDigits.add(seed);
+		JComboBox<String> keys = new JComboBox<String>();
+		keys.setMaximumSize(new Dimension(100, 30));
+		// TODO: Get the keys from the server
+		keys.addItem("Clave pública");
+		keys.addItem("Clave privada");
+		keys.addActionListener(e -> {
+			// TODO
+			View.this.selectedKeyPair = new KeyPair(null, null);
+		});
+		rsaDigits.add(keys);
 
 		JPanel rsaActions = new JPanel();
 		rsaActions.setBackground(Color.WHITE);
 		rsaActions.setLayout(new BoxLayout(rsaActions, BoxLayout.X_AXIS));
 		JButton rsaCheckPrimal = new JButton("Generar claves");
-		rsaCheckPrimal.addActionListener(
-				e -> this.notifyRequest(new Request(RequestCode.GENERATE_RSA_KEYS, new Body((int) cifras.getValue()))));
+		rsaCheckPrimal.addActionListener(e -> {
+			Object[] content = new Object[] { cifras.getValue(), seed.getValue() };
+			logger.log(Level.INFO, "Generating RSA keys with {0} digits and seed {1}", content);
+			this.sendRequest(new Request(RequestCode.GENERATE_RSA_KEYS, this, new Body(content)));
+			logger.info("Request sended.");
+		});
 		rsaActions.add(rsaCheckPrimal);
-
 		actionsPanel.add(Box.createVerticalStrut(30));
 		actionsPanel.add(rsaDigits);
 		actionsPanel.add(Box.createVerticalStrut(15));
@@ -427,12 +458,12 @@ public class View implements Service {
 		title22.setAlignmentX(Component.CENTER_ALIGNMENT);
 		title22.setFont(new Font(fontName, Font.BOLD, 14));
 		row22.add(title22, BorderLayout.NORTH);
-		JTextArea textArea3 = new JTextArea(7, 30);
-		textArea3.setLineWrap(true);
-		textArea3.setWrapStyleWord(true);
-		textArea3.setEditable(false);
-		textArea3.setFont(new Font(fontName, Font.PLAIN, 14));
-		JScrollPane scrollPane3 = new JScrollPane(textArea3);
+		textAreaOutput = new JTextArea(7, 30);
+		textAreaOutput.setLineWrap(true);
+		textAreaOutput.setWrapStyleWord(true);
+		textAreaOutput.setEditable(false);
+		textAreaOutput.setFont(new Font(fontName, Font.PLAIN, 14));
+		JScrollPane scrollPane3 = new JScrollPane(textAreaOutput);
 		scrollPane3.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 		scrollPane3.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		row22.add(scrollPane3);
@@ -451,7 +482,7 @@ public class View implements Service {
 				return;
 			}
 			this.timeTaken.setText("Calculando...");
-			this.sendRequest(new Request(RequestCode.ENCRYPT_FILE, this, new Body(this.selectedFile)));
+			this.sendRequest(new Request(RequestCode.ENCRYPT_FILE, this, new Body(new Object[]{this.selectedFile, this.selectedKeyPair.publicKey()})));
 			this.selectedFile = null;
 		});
 		JButton decrypt = new JButton("Desencriptar");
@@ -462,7 +493,7 @@ public class View implements Service {
 				return;
 			}
 			this.timeTaken.setText("Calculando...");
-			this.sendRequest(new Request(RequestCode.DECRYPT_FILE, this, new Body(this.selectedFile)));
+			this.sendRequest(new Request(RequestCode.DECRYPT_FILE, this, new Body(new Object[]{this.selectedFile, this.selectedKeyPair.privateKey()})));
 			this.selectedFile = null;
 		});
 		JButton load = new JButton("Cargar");
@@ -472,6 +503,7 @@ public class View implements Service {
 			fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 			fileChooser.setAcceptAllFileFilterUsed(false);
 			if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+				this.textAreaOutput.setText("");
 				File file = fileChooser.getSelectedFile();
 				this.selectedFile = file;
 				try {
@@ -483,7 +515,7 @@ public class View implements Service {
 		});
 		JButton save = new JButton("Guardar");
 		save.addActionListener(e -> {
-			if (textArea3.getText().isEmpty()) {
+			if (textAreaOutput.getText().isEmpty()) {
 				JOptionPane.showMessageDialog(null, "No hay nada que guardar", "Error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
@@ -495,7 +527,7 @@ public class View implements Service {
 				File file = fileChooser.getSelectedFile();
 				this.selectedFile = file;
 				try {
-					Files.write(file.toPath(), textArea3.getText().getBytes());
+					Files.write(file.toPath(), textAreaOutput.getText().getBytes());
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
