@@ -131,7 +131,7 @@ public class View implements Service {
 				final String time = getTimeString(result.time());
 				final String text = "<html>Resultado: <br/> El número es "
 						+ ((boolean) result.result() ? "primo" : "compuesto") + "<br/> Calculado en: "
-						+ time + "ns</html>";
+						+ time + "</html>";
 				this.resultLabel.setText(text);
 			}
 			case GET_FACTORS -> {
