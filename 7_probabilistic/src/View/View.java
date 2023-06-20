@@ -50,6 +50,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.filechooser.FileFilter;
 
 import Controller.PrimalityFunction;
 import Master.MVC;
@@ -482,7 +483,8 @@ public class View implements Service {
 				return;
 			}
 			this.timeTaken.setText("Calculando...");
-			this.sendRequest(new Request(RequestCode.ENCRYPT_FILE, this, new Body(new Object[]{this.selectedFile, this.selectedKeyPair.publicKey()})));
+			this.sendRequest(new Request(RequestCode.ENCRYPT_FILE, this,
+					new Body(new Object[] { this.selectedFile, this.selectedKeyPair.publicKey() })));
 			this.selectedFile = null;
 		});
 		JButton decrypt = new JButton("Desencriptar");
@@ -493,7 +495,8 @@ public class View implements Service {
 				return;
 			}
 			this.timeTaken.setText("Calculando...");
-			this.sendRequest(new Request(RequestCode.DECRYPT_FILE, this, new Body(new Object[]{this.selectedFile, this.selectedKeyPair.privateKey()})));
+			this.sendRequest(new Request(RequestCode.DECRYPT_FILE, this,
+					new Body(new Object[] { this.selectedFile, this.selectedKeyPair.privateKey() })));
 			this.selectedFile = null;
 		});
 		JButton load = new JButton("Cargar");
@@ -520,11 +523,30 @@ public class View implements Service {
 				return;
 			}
 			JFileChooser fileChooser = new JFileChooser();
+			FileFilter filter = new FileFilter() {
+				@Override
+				public boolean accept(File file) {
+					// Allow directories and files with the desired extension
+					return file.isDirectory() || file.getName().endsWith(Config.ENCRYPTED_FILE_EXTENSION);
+				}
+
+				@Override
+				public String getDescription() {
+					// Description shown in the file chooser dialog
+					return "Encripted Files (*" + Config.ENCRYPTED_FILE_EXTENSION + ")";
+				}
+			};
+			fileChooser.setFileFilter(filter);
 			fileChooser.setDialogTitle("Selecciona un fichero");
 			fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 			fileChooser.setAcceptAllFileFilterUsed(false);
 			if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
 				File file = fileChooser.getSelectedFile();
+				if(!file.getName().endsWith(Config.ENCRYPTED_FILE_EXTENSION)){
+					JOptionPane.showMessageDialog(null, "Solo se permite guardar en ficheros encriptados (*.crypt)", "Error",
+						JOptionPane.ERROR_MESSAGE);
+				return;
+				}
 				this.selectedFile = file;
 				try {
 					Files.write(file.toPath(), textAreaOutput.getText().getBytes());

@@ -63,4 +63,8 @@ public class Config {
 	 * Indicates the name of the private key file.
 	 */
 	public static final String PRIVATE_KEY_FILE_NAME = "key.pri";
+	/**
+	 * Indicates the encrypted file extension
+	 */
+	public static final String ENCRYPTED_FILE_EXTENSION = ".crypt";
 }
