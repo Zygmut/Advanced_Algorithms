@@ -7,18 +7,18 @@ import java.math.BigInteger;
 public record KeyPair(PrivateKey privateKey, PublicKey publicKey) {
 
 	public BigInteger encrypt(String message) {
-		return this.publicKey.encrypt(new BigInteger(message));
+		return this.publicKey.encrypt(message);
 	}
 
-	public String encrypt(File file, final int BUFFER_SIZE) throws IOException {
+	public String encrypt(File file) throws IOException {
 		return this.publicKey.encrypt(file);
 	}
 
 	public BigInteger decrypt(String message) {
-		return this.privateKey.decrypt(new BigInteger(message));
+		return this.privateKey.decrypt(message);
 	}
 
-	public String decrypt(File file, final int BUFFER_SIZE) throws IOException {
+	public String decrypt(File file) throws IOException {
 		return this.privateKey.decrypt(file);
 	}
 
