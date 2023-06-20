@@ -259,12 +259,11 @@ public class View implements Service {
 		// Row 2
 		JPanel row2 = new JPanel();
 		row2.setBackground(Color.WHITE);
-		// TODO: Make this dynamic
 		JComboBox<String> primalityFunction = new JComboBox<>();
-		primalityFunction.addItem("División por tentativa");
-		primalityFunction.addItem("Fermat");
-		primalityFunction.addItem("Miller-Rabin");
-		primalityFunction.addItem("Solovay-Strassen");
+		for (PrimalityFunction function : PrimalityFunction.values()) {
+			primalityFunction.addItem(function.toString());
+		}
+		primalityFunction.setSelectedItem(PrimalityFunction.TRIAL_DIVISION);
 		JButton checkPrimal = new JButton("Comprobar primalidad");
 		checkPrimal.addActionListener(e -> {
 			String inputText = textArea.getText();
