@@ -55,4 +55,8 @@ public class Config {
 	 * Indicates where is the database located at.
 	 */
 	public static final String PATH_TO_DB = "./src/Model/db/db.sqlite";
+	/**
+	 * Indicates where is the {@code View} where the loading gif is located at.
+	 */
+	public static final String PATH_TO_LOADING_ASSET = "./assets/loading.gif";
 }

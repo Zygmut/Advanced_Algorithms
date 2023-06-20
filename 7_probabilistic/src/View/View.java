@@ -61,6 +61,9 @@ public class View implements Service {
 	 */
 	private JButton[] buttons;
 
+	private JLabel loadingFeedback;
+	private JLabel loadingLabel;
+
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
 	 *
@@ -115,6 +118,8 @@ public class View implements Service {
 			case GET_MESURAMENT -> {
 				String result = (String) request.body.content;
 				JOptionPane.showMessageDialog(null, result, "Mesurament ratio", JOptionPane.INFORMATION_MESSAGE);
+				this.loadingFeedback.setIcon(null);
+				this.loadingLabel.setText("");
 			}
 			case FETCH_STATS -> {
 				final Object[] content = (Object[]) request.body.content;
@@ -173,12 +178,26 @@ public class View implements Service {
 		JButton getMesurament = new JButton("Mesurament");
 		getMesurament.setSize(200, 100);
 		getMesurament
-				.addActionListener(e -> this.sendRequest(new Request(RequestCode.GET_MESURAMENT, this)));
+				.addActionListener(e -> {
+					this.sendRequest(new Request(RequestCode.GET_MESURAMENT, this));
+					this.loadingLabel.setText("Calculando...");
+					ImageIcon loading = new ImageIcon(Config.PATH_TO_LOADING_ASSET);
+					loading.setImage(loading.getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT));
+					this.loadingFeedback.setIcon(loading);
+				});
 		actionsPanel.add(Box.createVerticalStrut(5));
 		actionsPanel.add(getMesurament);
 		actionsPanel.add(Box.createVerticalStrut(15));
 		sideBar.add(actionsPanel);
 
+		// Loading panel
+		JPanel loadingPanel = new JPanel();
+		loadingPanel.setBackground(Color.WHITE);
+		this.loadingLabel = new JLabel("");
+		this.loadingFeedback = new JLabel();
+		loadingPanel.add(this.loadingLabel);
+		loadingPanel.add(this.loadingFeedback);
+		sideBar.add(loadingPanel);
 		return sideBar;
 	}
 
