@@ -18,7 +18,9 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.io.File;
+import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Files;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -62,9 +64,10 @@ public class View implements Service {
 	/**
 	 * The list of buttons of the view.
 	 */
-	private JButton[] buttons;
 	private JSpinner cifras;
 	private JLabel resultLabel;
+	private JLabel timeTaken;
+	private File selectedFile;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -296,6 +299,132 @@ public class View implements Service {
 
 		JPanel right = new JPanel();
 		right.setBackground(Color.GRAY);
+		right.setLayout(new BorderLayout(0, 0));
+		// Title
+		JPanel titlePanel2 = new JPanel();
+		titlePanel2.setBackground(Color.WHITE);
+		JLabel title2 = new JLabel("RSA con ficheros");
+		title2.setFont(new Font("Arial", Font.BOLD, 24));
+		titlePanel2.add(title2);
+		right.add(titlePanel2, BorderLayout.NORTH);
+		// Content
+		JPanel contentPanel2 = new JPanel();
+		contentPanel2.setBackground(Color.WHITE);
+		contentPanel2.setLayout(new GridLayout(3, 1));
+		// Row 1
+		JPanel row12 = new JPanel();
+		row12.setPreferredSize(new Dimension(0, 0));
+		row12.setLayout(new BorderLayout());
+		// Title
+		JLabel title12 = new JLabel("Entrada: ");
+		title12.setAlignmentX(Component.CENTER_ALIGNMENT);
+		title12.setFont(new Font("Arial", Font.BOLD, 14));
+		row12.add(title12, BorderLayout.NORTH);
+		row12.setPreferredSize(new Dimension(0, 0));
+		row12.setBackground(Color.WHITE);
+		JTextArea textArea2 = new JTextArea(7, 30);
+		textArea2.setLineWrap(true);
+		textArea2.setWrapStyleWord(true);
+		textArea2.setEditable(true);
+		textArea2.setFont(new Font("Arial", Font.PLAIN, 14));
+		JScrollPane scrollPane2 = new JScrollPane(textArea2);
+		scrollPane2.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		scrollPane2.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		row12.add(scrollPane2, BorderLayout.CENTER);
+		contentPanel2.add(row12);
+		// Row 2
+		JPanel row22 = new JPanel();
+		row22.setBackground(Color.WHITE);
+		row22.setLayout(new BorderLayout());
+		// Title
+		JLabel title22 = new JLabel("Salida: ");
+		title22.setAlignmentX(Component.CENTER_ALIGNMENT);
+		title22.setFont(new Font("Arial", Font.BOLD, 14));
+		row22.add(title22, BorderLayout.NORTH);
+		JTextArea textArea3 = new JTextArea(7, 30);
+		textArea3.setLineWrap(true);
+		textArea3.setWrapStyleWord(true);
+		textArea3.setEditable(false);
+		textArea3.setFont(new Font("Arial", Font.PLAIN, 14));
+		JScrollPane scrollPane3 = new JScrollPane(textArea3);
+		scrollPane3.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		scrollPane3.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		row22.add(scrollPane3);
+		contentPanel2.add(row22);
+		// Row 3
+		JPanel row32 = new JPanel();
+		row32.setBackground(Color.WHITE);
+		row32.setLayout(new BorderLayout());
+		JPanel buttons = new JPanel();
+		buttons.setBackground(Color.WHITE);
+		JButton encrypt = new JButton("Encriptar");
+		encrypt.addActionListener(e -> {
+			if (Objects.isNull(this.selectedFile)) {
+				JOptionPane.showMessageDialog(null, "No se ha seleccionado ningún fichero", "Error",
+						JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			this.timeTaken.setText("Calculando...");
+			this.sendRequest(new Request(RequestCode.ENCRYPT_FILE, this, new Body(this.selectedFile)));
+			this.selectedFile = null;
+		});
+		JButton decrypt = new JButton("Desencriptar");
+		decrypt.addActionListener(e -> {
+			if (Objects.isNull(this.selectedFile)) {
+				JOptionPane.showMessageDialog(null, "No se ha seleccionado ningún fichero", "Error",
+						JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			this.timeTaken.setText("Calculando...");
+			this.sendRequest(new Request(RequestCode.DECRYPT_FILE, this, new Body(this.selectedFile)));
+			this.selectedFile = null;
+		});
+		JButton load = new JButton("Cargar");
+		load.addActionListener(e -> {
+			JFileChooser fileChooser = new JFileChooser();
+			fileChooser.setDialogTitle("Selecciona un fichero");
+			fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+			fileChooser.setAcceptAllFileFilterUsed(false);
+			if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+				File file = fileChooser.getSelectedFile();
+				this.selectedFile = file;
+				try {
+					textArea2.setText(new String(Files.readAllBytes(file.toPath())));
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		JButton save = new JButton("Guardar");
+		save.addActionListener(e -> {
+			if (textArea3.getText().isEmpty()) {
+				JOptionPane.showMessageDialog(null, "No hay nada que guardar", "Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			JFileChooser fileChooser = new JFileChooser();
+			fileChooser.setDialogTitle("Selecciona un fichero");
+			fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+			fileChooser.setAcceptAllFileFilterUsed(false);
+			if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+				File file = fileChooser.getSelectedFile();
+				this.selectedFile = file;
+				try {
+					Files.write(file.toPath(), textArea3.getText().getBytes());
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		buttons.add(encrypt);
+		buttons.add(decrypt);
+		buttons.add(load);
+		buttons.add(save);
+		row32.add(buttons, BorderLayout.NORTH);
+		timeTaken = new JLabel("");
+		timeTaken.setFont(new Font("Arial", Font.PLAIN, 14));
+		row32.add(timeTaken, BorderLayout.CENTER);
+		contentPanel2.add(row32);
+		right.add(contentPanel2, BorderLayout.CENTER);
 
 		content.add(left);
 		content.add(right);
@@ -331,9 +460,7 @@ public class View implements Service {
 
 		JMenu db = new JMenu("Datos");
 		JMenuItem load = new JMenuItem("Cargar BD");
-		load.addActionListener(e -> {
-			this.sendRequest(new Request(RequestCode.CREATE_DB, this));
-		});
+		load.addActionListener(e -> this.sendRequest(new Request(RequestCode.CREATE_DB, this)));
 		JMenuItem mesu = new JMenuItem("Mesurament");
 		mesu.addActionListener(e -> this.sendRequest(new Request(RequestCode.GET_MESURAMENT, this)));
 		db.add(load);
@@ -348,35 +475,6 @@ public class View implements Service {
 		});
 		help.add(about);
 		menuBar.add(help);
-
-		JMenu encriptacion = new JMenu("Encriptacion RSA");
-		JMenuItem encriptar = new JMenuItem("Encriptar fichero");
-		JMenuItem desencriptar = new JMenuItem("Desencriptar fichero");
-		encriptar.addActionListener(e -> {
-			JFileChooser fileChooser = new JFileChooser();
-			fileChooser.setDialogTitle("Selección fichero a encriptar");
-			fileChooser.setFileFilter(new FileNameExtensionFilter("Ficheros de texto", "txt"));
-			int result = fileChooser.showOpenDialog(null);
-			if (result == JFileChooser.APPROVE_OPTION) {
-				File selectedFile = fileChooser.getSelectedFile();
-				this.sendRequest(new Request(RequestCode.ENCRYPT_FILE, this, new Body(selectedFile)));
-			}
-		});
-
-		desencriptar.addActionListener(e -> {
-			JFileChooser fileChooser = new JFileChooser();
-			fileChooser.setDialogTitle("Selección fichero a desencriptar");
-			fileChooser.setFileFilter(new FileNameExtensionFilter("Ficheros de texto", "txt"));
-			int result = fileChooser.showOpenDialog(null);
-			if (result == JFileChooser.APPROVE_OPTION) {
-				File selectedFile = fileChooser.getSelectedFile();
-				this.sendRequest(new Request(RequestCode.DECRYPT_FILE, this, new Body(selectedFile)));
-			}
-		});
-
-		encriptacion.add(encriptar);
-		encriptacion.add(desencriptar);
-		menuBar.add(encriptacion);
 
 		return menuBar;
 	}
