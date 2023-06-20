@@ -301,9 +301,9 @@ public class View implements Service {
 			logger.info("Request sended.");
 		});
 		rsaActions.add(rsaCheckPrimal);
-		actionsPanel.add(Box.createVerticalStrut(30));
-		actionsPanel.add(rsaDigits);
 		actionsPanel.add(Box.createVerticalStrut(15));
+		actionsPanel.add(rsaDigits);
+		actionsPanel.add(Box.createVerticalStrut(5));
 		actionsPanel.add(rsaActions);
 		actionsPanel.add(Box.createVerticalStrut(15));
 		sideBar.add(actionsPanel);
@@ -487,7 +487,7 @@ public class View implements Service {
 						JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			if(Objects.isNull(this.selectedKeyPair)){
+			if (Objects.isNull(this.selectedKeyPair)) {
 				JOptionPane.showMessageDialog(null, "No se ha seleccionado una 'Key Pair'", "Error",
 						JOptionPane.ERROR_MESSAGE);
 				return;
@@ -503,7 +503,7 @@ public class View implements Service {
 						JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			if(Objects.isNull(this.selectedKeyPair)){
+			if (Objects.isNull(this.selectedKeyPair)) {
 				JOptionPane.showMessageDialog(null, "No se ha seleccionado una 'Key Pair'", "Error",
 						JOptionPane.ERROR_MESSAGE);
 				return;
