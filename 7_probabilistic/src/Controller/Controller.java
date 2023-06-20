@@ -1,5 +1,9 @@
 package Controller;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.util.zip.DeflaterOutputStream;
+import java.util.zip.InflaterInputStream;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -138,7 +142,7 @@ public class Controller implements Service {
 		return ratioString;
 	}
 
-	private long[] populateDB() {
+	private long[] generateFunctionPoints() {
 		final int TOP_NUM_OF_DIGITS = 3200;
 		long[] numbers = new long[TOP_NUM_OF_DIGITS];
 
@@ -160,8 +164,45 @@ public class Controller implements Service {
 	@Override
 	public void notifyRequest(Request request) {
 		switch (request.code) {
+			case SAVE_ENCRYPTED_FILE -> {
+				final Object[] params = (Object[]) request.body.content;
+				final File file = (File) params[0];
+				final String text = (String) params[1];
+
+				try (
+						FileOutputStream fos = new FileOutputStream(file.getAbsolutePath());
+						DeflaterOutputStream dos = new DeflaterOutputStream(fos);) {
+
+					dos.write(text.getBytes());
+
+					dos.finish();
+					logger.info("Text file compressed successfully.");
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+
+			case LOAD_ENCRYPTED_FILE -> {
+				final File file = (File) request.body.content;
+
+				try (
+						FileInputStream fis = new FileInputStream(file.getAbsolutePath());
+						InflaterInputStream iis = new InflaterInputStream(fis);
+						ByteArrayOutputStream baos = new ByteArrayOutputStream();) {
+					byte[] buffer = new byte[1024];
+					int bytesRead;
+
+					while ((bytesRead = iis.read(buffer)) != -1) {
+						baos.write(buffer, 0, bytesRead);
+					}
+
+					this.sendResponse(new Response(ResponseCode.LOAD_ENCRYPTED_FILE, this, new Body(baos.toString())));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 			case POPULATE_DB -> {
-				long[] numbers = populateDB();
+				long[] numbers = generateFunctionPoints();
 				this.sendResponse(new Response(ResponseCode.POPULATE_DB, this, new Body(numbers)));
 			}
 			case GET_MESURAMENT -> {
@@ -182,41 +223,51 @@ public class Controller implements Service {
 				this.sendResponse(new Response(ResponseCode.GET_FACTORS, this,
 						new Body(new Result(Duration.between(start, end), primeFactors))));
 			}
-			case DECRYPT_FILE -> {
-				logger.info("Decrypting file...");
+			case DECRYPT_TEXT -> {
+				logger.info("Decrypting text...");
 				final Object[] params = (Object[]) request.body.content;
-				final File file = (File) params[0];
+				final String text = (String) params[0];
 				final PrivateKey privateKey = (PrivateKey) params[1];
 
 				Result result = null;
-				try {
-					final Instant start = Instant.now();
-					final String decryptedFile = privateKey.decrypt(file);
-					final Instant end = Instant.now();
-					result = new Result(Duration.between(start, end), decryptedFile);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				StringBuilder decryptedText = new StringBuilder();
+				final Instant start = Instant.now();
+				for (String string : text.split("\n")) {
+					if (string.equals("$")) {
+						decryptedText.append("\n");
+						continue;
+					}
+					decryptedText.append((char) privateKey.decrypt(string).intValue());
 
-				this.sendResponse(new Response(ResponseCode.DECRYPT_FILE, this, new Body(result)));
+				}
+				final Instant end = Instant.now();
+				result = new Result(Duration.between(start, end), decryptedText.toString());
+
+				this.sendResponse(new Response(ResponseCode.DECRYPT_TEXT, this, new Body(result)));
 			}
-			case ENCRYPT_FILE -> {
-				logger.info("Encrypting file...");
+			case ENCRYPT_TEXT -> {
+				logger.info("Encrypting text...");
 				final Object[] params = (Object[]) request.body.content;
-				final File file = (File) params[0];
+				final String text = (String) params[0];
 				final PublicKey publicKey = (PublicKey) params[1];
 
 				Result result = null;
-				try {
-					final Instant start = Instant.now();
-					final String encryptedFile = publicKey.encrypt(file);
-					final Instant end = Instant.now();
-					result = new Result(Duration.between(start, end), encryptedFile);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				StringBuilder encryptedText = new StringBuilder();
+				final Instant start = Instant.now();
 
-				this.sendResponse(new Response(ResponseCode.ENCRYPT_FILE, this, new Body(result)));
+				for (String string : text.split("\n")) {
+					string.chars().forEach(e -> {
+						final BigInteger encrypted = publicKey.encrypt(String.valueOf(e));
+						encryptedText.append(encrypted.toString()).append("\n");
+					});
+					// Add special character to indicate end of line
+					encryptedText.append("$\n");
+				}
+				encryptedText.deleteCharAt(encryptedText.length() - 1);
+				final Instant end = Instant.now();
+				result = new Result(Duration.between(start, end), encryptedText.toString());
+
+				this.sendResponse(new Response(ResponseCode.ENCRYPT_TEXT, this, new Body(result)));
 			}
 			case GENERATE_RSA_KEYS -> {
 				logger.info("Generating RSA keys...");

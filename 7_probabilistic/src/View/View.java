@@ -77,10 +77,6 @@ public class View implements Service {
 	 */
 	private JLabel timeTaken;
 	/**
-	 * Holds the last file selected by the user.
-	 */
-	private File selectedFile;
-	/**
 	 * The dialog that displays the mesurament.
 	 */
 	private JDialog mesuramentDialog;
@@ -93,6 +89,11 @@ public class View implements Service {
 	 * Dialog containing the response of the encryption/decryption
 	 */
 	private JTextArea textAreaOutput;
+
+	/**
+	 * Dialog containing the input of the encryption/decryption
+	 */
+	private JTextArea textAreaInput;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -135,6 +136,10 @@ public class View implements Service {
 	@SuppressWarnings("unchecked")
 	public void notifyRequest(Request request) {
 		switch (request.code) {
+			case LOAD_ENCRYPTED_FILE -> {
+				logger.info((String) request.body.content);
+				this.textAreaInput.setText((String) request.body.content);
+			}
 			case CHECK_PRIMALITY -> {
 				Result result = (Result) request.body.content;
 				logger.log(Level.INFO, "{0}, done in {1}ns",
@@ -177,13 +182,13 @@ public class View implements Service {
 				WindowStats stats = new WindowStats(results, values);
 				stats.show();
 			}
-			case DECRYPT_FILE -> {
+			case DECRYPT_TEXT -> {
 				logger.info("File decrypted.");
 				final Result content = (Result) request.body.content;
 				this.textAreaOutput.setText((String) content.result());
 				this.timeTaken.setText("Tiempo de desencriptación: " + getTimeString(content.time()));
 			}
-			case ENCRYPT_FILE -> {
+			case ENCRYPT_TEXT -> {
 				logger.info("File encrypted.");
 				final Result content = (Result) request.body.content;
 				this.textAreaOutput.setText((String) content.result());
@@ -440,12 +445,12 @@ public class View implements Service {
 		row12.add(title12, BorderLayout.NORTH);
 		row12.setPreferredSize(new Dimension(0, 0));
 		row12.setBackground(Color.WHITE);
-		JTextArea textArea2 = new JTextArea(7, 30);
-		textArea2.setLineWrap(true);
-		textArea2.setWrapStyleWord(true);
-		textArea2.setEditable(true);
-		textArea2.setFont(new Font(fontName, Font.PLAIN, 14));
-		JScrollPane scrollPane2 = new JScrollPane(textArea2);
+		textAreaInput = new JTextArea(7, 30);
+		textAreaInput.setLineWrap(true);
+		textAreaInput.setWrapStyleWord(true);
+		textAreaInput.setEditable(true);
+		textAreaInput.setFont(new Font(fontName, Font.PLAIN, 14));
+		JScrollPane scrollPane2 = new JScrollPane(textAreaInput);
 		scrollPane2.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 		scrollPane2.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		row12.add(scrollPane2, BorderLayout.CENTER);
@@ -477,27 +482,35 @@ public class View implements Service {
 		buttons.setBackground(Color.WHITE);
 		JButton encrypt = new JButton("Encriptar");
 		encrypt.addActionListener(e -> {
-			if (Objects.isNull(this.selectedFile)) {
-				JOptionPane.showMessageDialog(null, "No se ha seleccionado ningún fichero", "Error",
+			if (this.textAreaInput.getText().isBlank()) {
+				JOptionPane.showMessageDialog(null, "No hay nada que encriptar", "Error",
+						JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			if(Objects.isNull(this.selectedKeyPair)){
+				JOptionPane.showMessageDialog(null, "No se ha seleccionado una 'Key Pair'", "Error",
 						JOptionPane.ERROR_MESSAGE);
 				return;
 			}
 			this.timeTaken.setText("Calculando...");
-			this.sendRequest(new Request(RequestCode.ENCRYPT_FILE, this,
-					new Body(new Object[] { this.selectedFile, this.selectedKeyPair.publicKey() })));
-			this.selectedFile = null;
+			this.sendRequest(new Request(RequestCode.ENCRYPT_TEXT, this,
+					new Body(new Object[] { this.textAreaInput.getText(), this.selectedKeyPair.publicKey() })));
 		});
 		JButton decrypt = new JButton("Desencriptar");
 		decrypt.addActionListener(e -> {
-			if (Objects.isNull(this.selectedFile)) {
-				JOptionPane.showMessageDialog(null, "No se ha seleccionado ningún fichero", "Error",
+			if (this.textAreaInput.getText().isBlank()) {
+				JOptionPane.showMessageDialog(null, "No hay nada de desencriptar", "Error",
+						JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			if(Objects.isNull(this.selectedKeyPair)){
+				JOptionPane.showMessageDialog(null, "No se ha seleccionado una 'Key Pair'", "Error",
 						JOptionPane.ERROR_MESSAGE);
 				return;
 			}
 			this.timeTaken.setText("Calculando...");
-			this.sendRequest(new Request(RequestCode.DECRYPT_FILE, this,
-					new Body(new Object[] { this.selectedFile, this.selectedKeyPair.privateKey() })));
-			this.selectedFile = null;
+			this.sendRequest(new Request(RequestCode.DECRYPT_TEXT, this,
+					new Body(new Object[] { this.textAreaInput.getText(), this.selectedKeyPair.privateKey() })));
 		});
 		JButton load = new JButton("Cargar");
 		load.addActionListener(e -> {
@@ -508,9 +521,12 @@ public class View implements Service {
 			if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 				this.textAreaOutput.setText("");
 				File file = fileChooser.getSelectedFile();
-				this.selectedFile = file;
+				if (file.getName().endsWith(Config.ENCRYPTED_FILE_EXTENSION)) {
+					this.sendRequest(new Request(RequestCode.LOAD_ENCRYPTED_FILE, this, new Body(file)));
+					return;
+				}
 				try {
-					textArea2.setText(new String(Files.readAllBytes(file.toPath())));
+					textAreaInput.setText(new String(Files.readAllBytes(file.toPath())));
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
@@ -542,17 +558,14 @@ public class View implements Service {
 			fileChooser.setAcceptAllFileFilterUsed(false);
 			if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
 				File file = fileChooser.getSelectedFile();
-				if(!file.getName().endsWith(Config.ENCRYPTED_FILE_EXTENSION)){
-					JOptionPane.showMessageDialog(null, "Solo se permite guardar en ficheros encriptados (*.crypt)", "Error",
-						JOptionPane.ERROR_MESSAGE);
-				return;
+				if (!file.getName().endsWith(Config.ENCRYPTED_FILE_EXTENSION)) {
+					JOptionPane.showMessageDialog(null, "Solo se permite guardar en ficheros encriptados (*.crypt)",
+							"Error",
+							JOptionPane.ERROR_MESSAGE);
+					return;
 				}
-				this.selectedFile = file;
-				try {
-					Files.write(file.toPath(), textAreaOutput.getText().getBytes());
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
+				this.sendRequest(new Request(RequestCode.SAVE_ENCRYPTED_FILE, this,
+						new Body(new Object[] { file, textAreaOutput.getText() })));
 			}
 		});
 		buttons.add(encrypt);
