@@ -8,18 +8,19 @@ import Services.Service;
 import betterSwing.Section;
 import betterSwing.Window;
 import betterSwing.utils.DirectionAndPosition;
-import mesurament.Mesurament;
 import utils.Config;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Image;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.PrintStream;
 import java.math.BigInteger;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -28,6 +29,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -35,9 +37,10 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
-import javax.swing.JTextField;
+import javax.swing.JTextArea;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -60,9 +63,8 @@ public class View implements Service {
 	 * The list of buttons of the view.
 	 */
 	private JButton[] buttons;
-
-	private JLabel loadingFeedback;
-	private JLabel loadingLabel;
+	private JSpinner cifras;
+	private JLabel resultLabel;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -109,17 +111,28 @@ public class View implements Service {
 				Result result = (Result) request.body.content;
 				logger.log(Level.INFO, "{0}, done in {1}ns",
 						new Object[] { (boolean) result.result() ? "yes" : "no", result.time().toNanos() });
+				final String text = "<html>Resultado: <br/> El número es "
+						+ ((boolean) result.result() ? "primo" : "compuesto") + "<br/> Calculado en: "
+						+ result.time().toNanos() + "ns</html>";
+				this.resultLabel.setText(text);
 			}
 			case GET_FACTORS -> {
 				Result result = (Result) request.body.content;
 				logger.log(Level.INFO, "{0}, done in {1}ms",
 						new Object[] { (Map<BigInteger, BigInteger>) result.result(), result.time().toMillis() });
+				String text = "";
+				if (Objects.isNull(result.result())) {
+					text = "<html>Resultado: <br/> No se ha calculado. <br/>" +
+							"Motivo: Tiempo aprox. de cálculo " + result.time().toHours() + "horas.</html>";
+				} else {
+					text = "<html>Resultado: <br/> Los factores son: " + result.result()
+							+ "<br/> Calculado en: " + result.time().toMillis() + "ms</html>";
+				}
+				this.resultLabel.setText(text);
 			}
 			case GET_MESURAMENT -> {
 				String result = (String) request.body.content;
-				JOptionPane.showMessageDialog(null, result, "Mesurament ratio", JOptionPane.INFORMATION_MESSAGE);
-				this.loadingFeedback.setIcon(null);
-				this.loadingLabel.setText("");
+				JOptionPane.showMessageDialog(null, result, "Ratio mesurament", JOptionPane.INFORMATION_MESSAGE);
 			}
 			case FETCH_STATS -> {
 				final Object[] content = (Object[]) request.body.content;
@@ -142,14 +155,7 @@ public class View implements Service {
 		this.window.addMenuBar(this.menu());
 		this.initSplitPane();
 		this.splitPane.setRightComponent(this.sideBar());
-		this.window.addSection(
-				this.body(),
-				DirectionAndPosition.POSITION_CENTER,
-				"Body");
-		this.window.addSection(
-				this.footer(),
-				DirectionAndPosition.POSITION_BOTTOM,
-				"Footer");
+		this.window.addSection(this.body(), DirectionAndPosition.POSITION_CENTER, "Body");
 	}
 
 	private JPanel sideBar() {
@@ -175,33 +181,34 @@ public class View implements Service {
 		actionsPanel.setLayout(new BoxLayout(actionsPanel, BoxLayout.Y_AXIS));
 		actionsPanel.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));
 
-		JButton getMesurament = new JButton("Mesurament");
-		getMesurament.setSize(200, 100);
-		getMesurament
-				.addActionListener(e -> {
-					this.sendRequest(new Request(RequestCode.GET_MESURAMENT, this));
-					this.loadingLabel.setText("Calculando...");
-					ImageIcon loading = new ImageIcon(Config.PATH_TO_LOADING_ASSET);
-					loading.setImage(loading.getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT));
-					this.loadingFeedback.setIcon(loading);
-				});
-		actionsPanel.add(Box.createVerticalStrut(5));
-		actionsPanel.add(getMesurament);
+		JPanel rsaDigits = new JPanel();
+		rsaDigits.setBackground(Color.WHITE);
+		rsaDigits.setLayout(new BoxLayout(rsaDigits, BoxLayout.Y_AXIS));
+		JLabel rsaDigitsLabel = new JLabel("Número de cifras:");
+		rsaDigitsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		rsaDigitsLabel.setFont(new Font("Arial", Font.ITALIC, 14));
+		rsaDigits.add(rsaDigitsLabel);
+		cifras = new JSpinner(new SpinnerNumberModel(300, 100, 600, 1));
+		cifras.setMaximumSize(new Dimension(100, 30));
+		rsaDigits.add(cifras);
+
+		JPanel rsaActions = new JPanel();
+		rsaActions.setBackground(Color.WHITE);
+		rsaActions.setLayout(new BoxLayout(rsaActions, BoxLayout.X_AXIS));
+		JButton rsaCheckPrimal = new JButton("Generar claves");
+		rsaCheckPrimal.addActionListener(
+				e -> this.notifyRequest(new Request(RequestCode.GENERATE_RSA_KEYS, new Body((int) cifras.getValue()))));
+		rsaActions.add(rsaCheckPrimal);
+
+		actionsPanel.add(Box.createVerticalStrut(30));
+		actionsPanel.add(rsaDigits);
+		actionsPanel.add(Box.createVerticalStrut(15));
+		actionsPanel.add(rsaActions);
 		actionsPanel.add(Box.createVerticalStrut(15));
 		sideBar.add(actionsPanel);
 
-		// Loading panel
-		JPanel loadingPanel = new JPanel();
-		loadingPanel.setBackground(Color.WHITE);
-		this.loadingLabel = new JLabel("");
-		this.loadingFeedback = new JLabel();
-		loadingPanel.add(this.loadingLabel);
-		loadingPanel.add(this.loadingFeedback);
-		sideBar.add(loadingPanel);
 		return sideBar;
 	}
-
-	// TODO: Move this to the controller
 
 	private ImageIcon escalateImageIcon(String iconPath, int width, int height) {
 		Image image = new ImageIcon(iconPath).getImage();
@@ -218,61 +225,87 @@ public class View implements Service {
 
 	private Section body() {
 		JPanel content = new JPanel();
-		content.setLayout(new BorderLayout());
+		content.setLayout(new GridLayout(1, 2));
 		content.setBackground(Color.WHITE);
 
-		// TODO: Make this better
-		JPanel todo = new JPanel();
-		todo.setBackground(Color.WHITE);
-		JTextField numberField = new JTextField(30);
-		JButton primeButton = new JButton("is Prime?");
-		primeButton.setSize(100, 100);
-		primeButton.addActionListener(e -> {
-			String inputText = numberField.getText();
+		JPanel left = new JPanel();
+		left.setBackground(Color.WHITE);
+		left.setLayout(new BorderLayout());
+		// Title
+		JPanel titlePanel = new JPanel();
+		titlePanel.setBackground(Color.WHITE);
+		JLabel title = new JLabel("Primalidad");
+		title.setFont(new Font("Arial", Font.BOLD, 24));
+		titlePanel.add(title);
+		left.add(titlePanel, BorderLayout.NORTH);
+		// Content
+		JPanel contentPanel = new JPanel();
+		contentPanel.setBackground(Color.WHITE);
+		contentPanel.setLayout(new GridLayout(3, 1));
+		// Row 1
+		JPanel row1 = new JPanel();
+		row1.setPreferredSize(new Dimension(0, 0));
+		row1.setBackground(Color.WHITE);
+		JTextArea textArea = new JTextArea(7, 30);
+		textArea.setLineWrap(true);
+		textArea.setWrapStyleWord(true);
+		textArea.setEditable(true);
+		textArea.setFont(new Font("Arial", Font.PLAIN, 14));
+		JScrollPane scrollPane = new JScrollPane(textArea);
+		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		row1.add(scrollPane);
+		contentPanel.add(row1);
+		// Row 2
+		JPanel row2 = new JPanel();
+		row2.setBackground(Color.WHITE);
+		// TODO: Make this dynamic
+		JComboBox<String> primalityFunction = new JComboBox<>();
+		primalityFunction.addItem("División por tentativa");
+		primalityFunction.addItem("Fermat");
+		primalityFunction.addItem("Miller-Rabin");
+		primalityFunction.addItem("Solovay-Strassen");
+		JButton checkPrimal = new JButton("Comprobar primalidad");
+		checkPrimal.addActionListener(e -> {
+			String inputText = textArea.getText();
 			if (!inputText.isEmpty()) {
+				resultLabel.setText("Calculando...");
 				this.sendRequest(new Request(RequestCode.CHECK_PRIMALITY, this, new Body(new Object[] {
-						PrimalityFunction.TRIAL_DIVISION,
-						BigInteger.valueOf(Long.parseLong(numberField.getText())) })));
+						PrimalityFunction.TRIAL_DIVISION, inputText })));
 			}
 		});
-		JButton factorsButton = new JButton("get Factors");
-		factorsButton.addActionListener(e -> {
-			this.sendRequest(new Request(RequestCode.GET_FACTORS, this, new Body(numberField.getText())));
+		JButton getFactors = new JButton("Obtener factores");
+		getFactors.addActionListener(e -> {
+			String inputText = textArea.getText();
+			if (!inputText.isEmpty()) {
+				resultLabel.setText("Calculando...");
+				this.sendRequest(new Request(RequestCode.GET_FACTORS, this, new Body(inputText)));
+			}
 		});
-		todo.add(numberField);
-		todo.add(primeButton);
-		todo.add(factorsButton);
+		row2.add(primalityFunction);
+		row2.add(checkPrimal);
+		row2.add(getFactors);
+		contentPanel.add(row2);
+		// Row 3
+		JPanel row3 = new JPanel();
+		row3.setBackground(Color.WHITE);
+		resultLabel = new JLabel("<html>Resultado:<br/>Ejecuta el algoritmo para ver los resultados.</html>");
+		resultLabel.setFont(new Font("Arial", Font.BOLD, 14));
+		row3.add(resultLabel);
+		contentPanel.add(row3);
+		left.add(contentPanel, BorderLayout.CENTER);
 
-		content.add(todo, BorderLayout.CENTER);
+		JPanel right = new JPanel();
+		right.setBackground(Color.GRAY);
+
+		content.add(left);
+		content.add(right);
 		splitPane.setLeftComponent(content);
 		Section body = new Section();
 		body.createJSplitPaneSection(splitPane);
 		return body;
 	}
 
-	private Section footer() {
-		Section footer = new Section();
-		this.buttons = new JButton[2];
-		this.buttons[0] = new JButton("Generar Clave Pública");
-		this.buttons[1] = new JButton("Generar Clave Privada");
-		Section butons = new Section();
-		butons.createButtons(buttons, DirectionAndPosition.DIRECTION_ROW);
-		JLabel cifrasLabel = new JLabel("Cifras RSA: ");
-		JSpinner cifras = new JSpinner(new SpinnerNumberModel(300, 100, 600, 1));
-
-		JPanel footerPanel = new JPanel();
-		footerPanel.add(butons.getPanel());
-		footerPanel.add(cifrasLabel);
-		footerPanel.add(cifras);
-		footer.createFreeSection(footerPanel);
-		return footer;
-	}
-
-	/**
-	 * This method creates the menu bar of the view.
-	 *
-	 * @return JMenuBar The menu bar of the view.
-	 */
 	private JMenuBar menu() {
 		JMenuBar menuBar = new JMenuBar();
 
@@ -302,7 +335,10 @@ public class View implements Service {
 		load.addActionListener(e -> {
 			this.sendRequest(new Request(RequestCode.CREATE_DB, this));
 		});
+		JMenuItem mesu = new JMenuItem("Mesurament");
+		mesu.addActionListener(e -> this.sendRequest(new Request(RequestCode.GET_MESURAMENT, this)));
 		db.add(load);
+		db.add(mesu);
 		menuBar.add(db);
 
 		JMenu help = new JMenu("Ayuda");

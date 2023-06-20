@@ -56,7 +56,11 @@ public class Config {
 	 */
 	public static final String PATH_TO_DB = "./src/Model/db/db.sqlite";
 	/**
-	 * Indicates where is the {@code View} where the loading gif is located at.
+	 * Indicates the name of the public key file.
 	 */
-	public static final String PATH_TO_LOADING_ASSET = "./assets/loading.gif";
+	public static final String PUBLIC_KEY_FILE_NAME = "key.pub";
+	/**
+	 * Indicates the name of the private key file.
+	 */
+	public static final String PRIVATE_KEY_FILE_NAME = "key.pri";
 }

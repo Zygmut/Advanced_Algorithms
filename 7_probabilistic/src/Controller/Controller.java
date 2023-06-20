@@ -1,6 +1,8 @@
 package Controller;
 
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
+import java.io.FileWriter;
 import java.io.PrintStream;
 import java.math.BigInteger;
 import java.time.Duration;
@@ -132,14 +134,13 @@ public class Controller implements Service {
 		String ratioString = output.split(":")[1].trim();
 		ratioString = ratioString.replace("*", "").trim();
 
-
 		logger.info(ratioString);
 
 		return ratioString;
 	}
 
 	private long[] populateDB() {
-		final int TOP_NUM_OF_DIGITS = 20000;
+		final int TOP_NUM_OF_DIGITS = 3200;
 		long[] numbers = new long[TOP_NUM_OF_DIGITS];
 
 		for (int i = 1; i <= TOP_NUM_OF_DIGITS; i++) {
@@ -147,6 +148,14 @@ public class Controller implements Service {
 		}
 
 		return numbers;
+	}
+
+	private void writeToFile(String filename, String content) {
+		try (BufferedWriter br = new BufferedWriter(new FileWriter(filename))) {
+			br.write(content);
+		} catch (Exception e) {
+			logger.warning(e.getMessage());
+		}
 	}
 
 	@Override
@@ -169,7 +178,6 @@ public class Controller implements Service {
 
 				this.sendResponse(new Response(ResponseCode.GET_FACTORS, this, new Body(getFactors(number))));
 			}
-
 			case CHECK_PRIMALITY -> {
 				final Object[] params = (Object[]) request.body.content;
 				final PrimalityFunction function = (PrimalityFunction) params[0];
@@ -239,7 +247,6 @@ public class Controller implements Service {
 
 				this.sendResponse(new Response(ResponseCode.CHECK_PRIMALITY, this,
 						new Body(new Result(Duration.between(start, end), isPrime))));
-
 			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())
