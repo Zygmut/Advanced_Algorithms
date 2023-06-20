@@ -19,6 +19,10 @@ public record PrivateKey(BigInteger d, BigInteger n) {
 		try (BufferedReader br = new BufferedReader(new FileReader(file))) {
 			String line;
 			while ((line = br.readLine()) != null) {
+				if (line.equals("$")) {
+					sb.append("\n");
+					continue;
+				}
 				sb.append((char) this.decrypt(line).intValue());
 			}
 		}
