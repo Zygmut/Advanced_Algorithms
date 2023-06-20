@@ -79,18 +79,12 @@ public class Controller implements Service {
 		return Duration.ofMillis(result.longValue());
 	}
 
-	private Result getFactors(String number) {
-
+	private Map<BigInteger, BigInteger> getFactors(String number) {
 		Map<BigInteger, BigInteger> primeFactors = new HashMap<>();
 		BigInteger num = new BigInteger(number);
 		BigInteger divisor = BigInteger.valueOf(2);
-		Instant start = Instant.now();
 
 		while (num.compareTo(BigInteger.ONE) > 0) {
-
-			if (Duration.between(start, Instant.now()).toMinutes() > 1) {
-				return new Result(getEstimatedTime(number.length()), Collections.emptyMap());
-			}
 
 			if (num.isProbablePrime(100)) {
 				primeFactors.put(num, BigInteger.ONE);
@@ -106,7 +100,7 @@ public class Controller implements Service {
 			num = num.divide(divisor);
 		}
 
-		return new Result(Duration.between(start, Instant.now()), primeFactors);
+		return primeFactors;
 	}
 
 	private String getMesurament() {
@@ -170,12 +164,17 @@ public class Controller implements Service {
 			case GET_FACTORS -> {
 				final String number = (String) request.body.content;
 				final Duration expectedTime = getEstimatedTime(number.length());
-				if (expectedTime.compareTo(Duration.ofMinutes(1)) >= 0) {
+				logger.info("expectedTime: " + expectedTime.toMinutes() + "mins");
+				if (expectedTime.toMinutes() >= 1 || expectedTime.toMinutes() < 0) {
 					this.sendResponse(new Response(ResponseCode.GET_FACTORS, this,
-							new Body(new Result(expectedTime, null))));
+							new Body(new Result(expectedTime, Collections.emptyMap()))));
 				}
+				final Instant start = Instant.now();
+				final Map<BigInteger, BigInteger> primeFactors = getFactors(number);
+				final Instant end = Instant.now();
 
-				this.sendResponse(new Response(ResponseCode.GET_FACTORS, this, new Body(getFactors(number))));
+				this.sendResponse(new Response(ResponseCode.GET_FACTORS, this,
+						new Body(new Result(Duration.between(start, end), primeFactors))));
 			}
 			case DECRYPT_FILE -> {
 				logger.info("Decrypting file...");
