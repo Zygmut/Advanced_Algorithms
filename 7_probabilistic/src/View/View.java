@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.LongToIntFunction;
+import java.util.function.Predicate;
 import java.util.function.ToLongFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -328,22 +329,46 @@ public class View implements Service {
 			primalityFunction.addItem(function.toString());
 		}
 		primalityFunction.setSelectedItem(PrimalityFunction.TRIAL_DIVISION);
+
+		Predicate<String> isNumeric = s -> {
+			try {
+				for (int i = 0; i < s.length(); i++) {
+					Integer.parseInt(String.valueOf(s.charAt(i)));
+				}
+				return true;
+			} catch (NumberFormatException e) {
+				return false;
+			}
+		};
+
 		JButton checkPrimal = new JButton("Comprobar primalidad");
 		checkPrimal.addActionListener(e -> {
 			String inputText = textArea.getText();
-			if (!inputText.isEmpty()) {
-				resultLabel.setText("Calculando...");
-				this.sendRequest(new Request(RequestCode.CHECK_PRIMALITY, this, new Body(new Object[] {
-						PrimalityFunction.TRIAL_DIVISION, inputText })));
+			if (isNumeric.test(inputText)) {
+				if (!inputText.isEmpty()) {
+					resultLabel.setText("Calculando...");
+					this.sendRequest(new Request(RequestCode.CHECK_PRIMALITY, this, new Body(new Object[] {
+							PrimalityFunction.TRIAL_DIVISION, inputText })));
+				}
+				return;
 			}
+
+			JOptionPane.showMessageDialog(null, "Error: Solo se aceptan valores númericos", "Error",
+					JOptionPane.ERROR_MESSAGE);
 		});
 		JButton getFactors = new JButton("Obtener factores");
 		getFactors.addActionListener(e -> {
 			String inputText = textArea.getText();
-			if (!inputText.isEmpty()) {
-				resultLabel.setText("Calculando...");
-				this.sendRequest(new Request(RequestCode.GET_FACTORS, this, new Body(inputText)));
+			if (isNumeric.test(inputText)) {
+				if (!inputText.isEmpty()) {
+					resultLabel.setText("Calculando...");
+					this.sendRequest(new Request(RequestCode.GET_FACTORS, this, new Body(inputText)));
+				}
+				return;
 			}
+
+			JOptionPane.showMessageDialog(null, "Error: Solo se aceptan valores númericos", "Error",
+					JOptionPane.ERROR_MESSAGE);
 		});
 		row2.add(primalityFunction);
 		row2.add(checkPrimal);
