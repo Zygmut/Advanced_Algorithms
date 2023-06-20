@@ -77,7 +77,6 @@ public class Controller implements Service {
 				.add(term5).add(term6).add(term7);
 
 		return Duration.ofMillis(result.longValue());
-
 	}
 
 	private Result getFactors(String number) {
@@ -177,6 +176,19 @@ public class Controller implements Service {
 				}
 
 				this.sendResponse(new Response(ResponseCode.GET_FACTORS, this, new Body(getFactors(number))));
+			}
+			case DECRYPT_FILE -> {
+				logger.info("Decrypting file...");
+				// this.writeToFile("decrypted.txt", content);
+			}
+			case ENCRYPT_FILE -> {
+				logger.info("Encrypting file...");
+				// this.writeToFile("encrypted.txt", content);
+			}
+			case GENERATE_RSA_KEYS -> {
+				logger.info("Generating RSA keys...");
+				// this.writeToFile("public.txt", content);
+				// this.writeToFile("private.txt", content);
 			}
 			case CHECK_PRIMALITY -> {
 				final Object[] params = (Object[]) request.body.content;

@@ -23,6 +23,18 @@
 		{
 			"code": "POPULATE_DB",
 			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "ENCRYPT_FILE",
+			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "DECRYPT_FILE",
+			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "GENERATE_RSA_KEYS",
+			"services": ["CONTROLLER"]
 		}
 	],
 	"responseMap": [
@@ -45,6 +57,18 @@
 		{
 			"code": "POPULATE_DB",
 			"services": ["MODEL"]
+		},
+		{
+			"code": "ENCRYPT_FILE",
+			"services": ["VIEW"]
+		},
+		{
+			"code": "DECRYPT_FILE",
+			"services": ["VIEW"]
+		},
+		{
+			"code": "GENERATE_RSA_KEYS",
+			"services": ["VIEW"]
 		}
 	],
 	"resToReqMap": [
@@ -67,6 +91,18 @@
 		{
 			"responseCode": "POPULATE_DB",
 			"requestCode": "POPULATE_DB"
+		},
+		{
+			"responseCode": "ENCRYPT_FILE",
+			"requestCode": "ENCRYPT_FILE"
+		},
+		{
+			"responseCode": "DECRYPT_FILE",
+			"requestCode": "DECRYPT_FILE"
+		},
+		{
+			"responseCode": "GENERATE_RSA_KEYS",
+			"requestCode": "GENERATE_RSA_KEYS"
 		}
 	]
 }

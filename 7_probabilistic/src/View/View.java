@@ -159,6 +159,15 @@ public class View implements Service {
 				WindowStats stats = new WindowStats(results, values);
 				stats.show();
 			}
+			case DECRYPT_FILE -> {
+				logger.info("File decrypted.");
+			}
+			case ENCRYPT_FILE -> {
+				logger.info("File encrypted.");
+			}
+			case GENERATE_RSA_KEYS -> {
+				logger.info("RSA keys generated.");
+			}
 			default -> {
 				logger.log(Level.SEVERE, "{0} is not implemented.", request);
 			}
@@ -180,6 +189,7 @@ public class View implements Service {
 		JPanel sideBar = new JPanel();
 		sideBar.setBackground(Color.WHITE);
 		sideBar.setLayout(new GridLayout(3, 1));
+		final String fontName = "Arial";
 
 		// Logo panel
 		JPanel logoPanel = new JPanel();
@@ -204,7 +214,7 @@ public class View implements Service {
 		rsaDigits.setLayout(new BoxLayout(rsaDigits, BoxLayout.Y_AXIS));
 		JLabel rsaDigitsLabel = new JLabel("Número de cifras:");
 		rsaDigitsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-		rsaDigitsLabel.setFont(new Font("Arial", Font.ITALIC, 14));
+		rsaDigitsLabel.setFont(new Font(fontName, Font.ITALIC, 14));
 		rsaDigits.add(rsaDigitsLabel);
 		JSpinner cifras = new JSpinner(new SpinnerNumberModel(300, 100, 600, 1));
 		cifras.setMaximumSize(new Dimension(100, 30));
@@ -245,6 +255,7 @@ public class View implements Service {
 		JPanel content = new JPanel();
 		content.setLayout(new GridLayout(1, 2));
 		content.setBackground(Color.WHITE);
+		final String fontName = "Arial";
 
 		JPanel left = new JPanel();
 		left.setBackground(Color.WHITE);
@@ -253,7 +264,7 @@ public class View implements Service {
 		JPanel titlePanel = new JPanel();
 		titlePanel.setBackground(Color.WHITE);
 		JLabel title = new JLabel("Primalidad");
-		title.setFont(new Font("Arial", Font.BOLD, 24));
+		title.setFont(new Font(fontName, Font.BOLD, 24));
 		titlePanel.add(title);
 		left.add(titlePanel, BorderLayout.NORTH);
 		// Content
@@ -268,7 +279,7 @@ public class View implements Service {
 		textArea.setLineWrap(true);
 		textArea.setWrapStyleWord(true);
 		textArea.setEditable(true);
-		textArea.setFont(new Font("Arial", Font.PLAIN, 14));
+		textArea.setFont(new Font(fontName, Font.PLAIN, 14));
 		JScrollPane scrollPane = new JScrollPane(textArea);
 		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -307,7 +318,7 @@ public class View implements Service {
 		JPanel row3 = new JPanel();
 		row3.setBackground(Color.WHITE);
 		resultLabel = new JLabel("<html>Resultado:<br/>Ejecuta el algoritmo para ver los resultados.</html>");
-		resultLabel.setFont(new Font("Arial", Font.BOLD, 14));
+		resultLabel.setFont(new Font(fontName, Font.BOLD, 14));
 		row3.add(resultLabel);
 		contentPanel.add(row3);
 		left.add(contentPanel, BorderLayout.CENTER);
@@ -319,7 +330,7 @@ public class View implements Service {
 		JPanel titlePanel2 = new JPanel();
 		titlePanel2.setBackground(Color.WHITE);
 		JLabel title2 = new JLabel("RSA con ficheros");
-		title2.setFont(new Font("Arial", Font.BOLD, 24));
+		title2.setFont(new Font(fontName, Font.BOLD, 24));
 		titlePanel2.add(title2);
 		right.add(titlePanel2, BorderLayout.NORTH);
 		// Content
@@ -333,7 +344,7 @@ public class View implements Service {
 		// Title
 		JLabel title12 = new JLabel("Entrada: ");
 		title12.setAlignmentX(Component.CENTER_ALIGNMENT);
-		title12.setFont(new Font("Arial", Font.BOLD, 14));
+		title12.setFont(new Font(fontName, Font.BOLD, 14));
 		row12.add(title12, BorderLayout.NORTH);
 		row12.setPreferredSize(new Dimension(0, 0));
 		row12.setBackground(Color.WHITE);
@@ -341,7 +352,7 @@ public class View implements Service {
 		textArea2.setLineWrap(true);
 		textArea2.setWrapStyleWord(true);
 		textArea2.setEditable(true);
-		textArea2.setFont(new Font("Arial", Font.PLAIN, 14));
+		textArea2.setFont(new Font(fontName, Font.PLAIN, 14));
 		JScrollPane scrollPane2 = new JScrollPane(textArea2);
 		scrollPane2.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 		scrollPane2.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -354,13 +365,13 @@ public class View implements Service {
 		// Title
 		JLabel title22 = new JLabel("Salida: ");
 		title22.setAlignmentX(Component.CENTER_ALIGNMENT);
-		title22.setFont(new Font("Arial", Font.BOLD, 14));
+		title22.setFont(new Font(fontName, Font.BOLD, 14));
 		row22.add(title22, BorderLayout.NORTH);
 		JTextArea textArea3 = new JTextArea(7, 30);
 		textArea3.setLineWrap(true);
 		textArea3.setWrapStyleWord(true);
 		textArea3.setEditable(false);
-		textArea3.setFont(new Font("Arial", Font.PLAIN, 14));
+		textArea3.setFont(new Font(fontName, Font.PLAIN, 14));
 		JScrollPane scrollPane3 = new JScrollPane(textArea3);
 		scrollPane3.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 		scrollPane3.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -436,7 +447,7 @@ public class View implements Service {
 		buttons.add(save);
 		row32.add(buttons, BorderLayout.NORTH);
 		timeTaken = new JLabel("");
-		timeTaken.setFont(new Font("Arial", Font.PLAIN, 14));
+		timeTaken.setFont(new Font(fontName, Font.PLAIN, 14));
 		row32.add(timeTaken, BorderLayout.CENTER);
 		contentPanel2.add(row32);
 		right.add(contentPanel2, BorderLayout.CENTER);
