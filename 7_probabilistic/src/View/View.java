@@ -574,7 +574,7 @@ public class View implements Service {
 		buttons.add(save);
 		row32.add(buttons, BorderLayout.NORTH);
 		timeTaken = new JLabel("");
-		timeTaken.setFont(new Font(fontName, Font.PLAIN, 14));
+		timeTaken.setFont(new Font(fontName, Font.BOLD, 14));
 		row32.add(timeTaken, BorderLayout.CENTER);
 		contentPanel2.add(row32);
 		right.add(contentPanel2, BorderLayout.CENTER);
