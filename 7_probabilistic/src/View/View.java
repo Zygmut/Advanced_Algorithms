@@ -196,9 +196,7 @@ public class View implements Service {
 			}
 			case FETCH_STATS -> {
 				final Object[] content = (Object[]) request.body.content;
-				final Result[] results = (Result[]) content[0];
-				final long[] values = (long[]) content[1];
-				WindowStats stats = new WindowStats(results, values);
+				WindowStats stats = new WindowStats(new Result[0], (long[]) content[content.length - 1]);
 				stats.show();
 			}
 			case DECRYPT_TEXT -> {

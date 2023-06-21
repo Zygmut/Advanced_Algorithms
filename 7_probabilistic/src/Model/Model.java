@@ -2,12 +2,15 @@ package Model;
 
 import java.io.File;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import Services.Service;
 import Services.Comunication.Content.Body;
@@ -39,14 +42,17 @@ public class Model implements Service {
 	@Override
 	public void notifyRequest(Request request) {
 		switch (request.code) {
-			case CHECK_PRIMALITY, GET_FACTORS -> {
-				final Result result = (Result) request.body.content;
-				this.saveResult(result);
-			}
 			case FETCH_STATS -> {
-				Object[] content = new Object[] { getAllResults(), getAllFactorTimes() };
-				this.sendResponse(new Response(ResponseCode.FETCH_STATS,
-						this, new Body(content)));
+				ArrayList<Object> stats = new ArrayList<>();
+				for (TableName table : TableName.values()) {
+					if (table == TableName.NEWTON_INTERPOLATION) {
+						continue;
+					}
+					stats.add(getTimesFrom(table));
+				}
+				stats.add(getNewtonianFunction());
+
+				this.sendResponse(new Response(ResponseCode.FETCH_STATS, this, new Body(stats.toArray())));
 			}
 			case GET_STORED_KEYS -> {
 				KeyPair[] kps = this.getAllRSAKeys();
@@ -60,23 +66,37 @@ public class Model implements Service {
 				logger.info("DB created.");
 				this.sendRequest(new Request(RequestCode.POPULATE_DB, this));
 			}
-			case SAVE_FACTOR_TIME -> {
-				final long[] time = (long[]) request.body.content;
-				this.saveFactorTime(time);
-			}
 			case POPULATE_DB -> {
 				final long[] time = (long[]) request.body.content;
-				this.saveFactorTime(time);
+				this.saveNewtonInterpolation(time);
 			}
+			case CHECK_PRIMALITY -> this.saveResult((Result) request.body.content, TableName.IS_PRIME_RESULT);
+			case GET_FACTORS -> this.saveResult((Result) request.body.content, TableName.GET_FACTOR_RESULT);
 			case GENERATE_RSA_KEYS -> {
-				final Result res = (Result) request.body.content;
 				logger.info("Saving RSA keys.");
-				this.saveRSAKeys((KeyPair) res.result());
-				this.saveResult(res);
+				final Result res = (Result) request.body.content;
+				this.saveResult(res, TableName.RSA_KEY_RESULT);
 				this.sendRequest(new Request(RequestCode.GET_STORED_KEYS, this));
 			}
 			default -> {
 				logger.log(Level.SEVERE, "{0} is not implemented.", request);
+			}
+		}
+	}
+
+	private void saveResult(Result res, TableName table) {
+		try {
+			this.dbApi.connect();
+			this.dbApi.setAutoCommit(false);
+			this.dbApi.executeUpdate(table.getInsertString(res));
+			this.dbApi.commit();
+			this.dbApi.disconnect();
+		} catch (SQLException e) {
+			logger.log(Level.SEVERE, "Error while saving to {0}.", table);
+			try {
+				this.dbApi.rollback();
+			} catch (Exception e2) {
+				logger.log(Level.SEVERE, "Error while rolling back DB.", e2);
 			}
 		}
 	}
@@ -93,15 +113,37 @@ public class Model implements Service {
 			}
 			this.dbApi.connect();
 			this.dbApi.setAutoCommit(false);
-			this.dbApi.executeUpdate("DROP TABLE IF EXISTS result;");
-			this.dbApi.executeUpdate("DROP TABLE IF EXISTS factor_times;");
-			this.dbApi.executeUpdate("DROP TABLE IF EXISTS rsa_keys;");
+
+			this.dbApi.executeUpdate("DROP TABLE IF EXISTS " + TableName.ENCRYPT_RESULT + ";");
 			this.dbApi.executeUpdate(
-					"CREATE TABLE result(id INTEGER PRIMARY KEY AUTOINCREMENT, time_ms INTEGER);");
+					"CREATE TABLE " + TableName.ENCRYPT_RESULT
+							+ "(id INTEGER PRIMARY KEY AUTOINCREMENT, time JSON, encryption STRING);");
+
+			this.dbApi.executeUpdate("DROP TABLE IF EXISTS " + TableName.DECRYPT_RESULT + ";");
 			this.dbApi.executeUpdate(
-					"CREATE TABLE factor_times(id INTEGER PRIMARY KEY AUTOINCREMENT, time_hours INTEGER);");
+					"CREATE TABLE " + TableName.DECRYPT_RESULT
+							+ "(id INTEGER PRIMARY KEY AUTOINCREMENT, time JSON, decryption STRING);");
+
+			this.dbApi.executeUpdate("DROP TABLE IF EXISTS " + TableName.NEWTON_INTERPOLATION + ";");
 			this.dbApi.executeUpdate(
-					"CREATE TABLE rsa_keys(id INTEGER PRIMARY KEY AUTOINCREMENT, public_key TEXT, private_key TEXT);");
+					"CREATE TABLE " + TableName.NEWTON_INTERPOLATION
+							+ "(id INTEGER PRIMARY KEY AUTOINCREMENT, hours INTEGER);");
+
+			this.dbApi.executeUpdate("DROP TABLE IF EXISTS " + TableName.IS_PRIME_RESULT + ";");
+			this.dbApi.executeUpdate(
+					"CREATE TABLE " + TableName.IS_PRIME_RESULT
+							+ "(id INTEGER PRIMARY KEY AUTOINCREMENT, time JSON, is_prime INTEGER);");
+
+			this.dbApi.executeUpdate("DROP TABLE IF EXISTS " + TableName.GET_FACTOR_RESULT + ";");
+			this.dbApi.executeUpdate(
+					"CREATE TABLE " + TableName.GET_FACTOR_RESULT
+							+ "(id INTEGER PRIMARY KEY AUTOINCREMENT, time JSON, factors JSON);");
+
+			this.dbApi.executeUpdate("DROP TABLE IF EXISTS " + TableName.RSA_KEY_RESULT + ";");
+			this.dbApi.executeUpdate(
+					"CREATE TABLE " + TableName.RSA_KEY_RESULT
+							+ "(id INTEGER PRIMARY KEY AUTOINCREMENT, time JSON, key_pair JSON);");
+
 			this.dbApi.commit();
 			this.dbApi.disconnect();
 		} catch (SQLException e) {
@@ -116,26 +158,7 @@ public class Model implements Service {
 		}
 	}
 
-	private void saveRSAKeys(KeyPair kp) {
-		try {
-			this.dbApi.connect();
-			this.dbApi.setAutoCommit(false);
-			this.dbApi
-					.executeUpdate("INSERT INTO rsa_keys(public_key, private_key) VALUES('" + kp.publicKey().toString()
-							+ "', '" + kp.privateKey().toString() + "');");
-			this.dbApi.commit();
-			this.dbApi.disconnect();
-		} catch (SQLException e) {
-			logger.log(Level.SEVERE, "Error while saving RSA keys.", e);
-			try {
-				this.dbApi.rollback();
-			} catch (Exception e2) {
-				logger.log(Level.SEVERE, "Error while rolling back DB.", e2);
-			}
-		}
-	}
-
-	private void saveFactorTime(long[] time) {
+	private void saveNewtonInterpolation(long[] time) {
 		try {
 			this.dbApi.connect();
 			this.dbApi.setAutoCommit(false);
@@ -144,7 +167,8 @@ public class Model implements Service {
 				sb.append("(").append(t).append("),");
 			}
 			sb.deleteCharAt(sb.length() - 1);
-			this.dbApi.executeUpdate("INSERT INTO factor_times(time_hours) VALUES" + sb.toString() + ";");
+			this.dbApi.executeUpdate(
+					"INSERT INTO " + TableName.NEWTON_INTERPOLATION + "(hours) VALUES " + sb.toString() + ";");
 			this.dbApi.commit();
 			this.dbApi.disconnect();
 		} catch (SQLException e) {
@@ -157,34 +181,21 @@ public class Model implements Service {
 		}
 	}
 
-	private void saveResult(Result result) {
+	private Duration[] getTimesFrom(TableName table) {
 		try {
 			this.dbApi.connect();
 			this.dbApi.setAutoCommit(false);
-			this.dbApi.executeUpdate("INSERT INTO result(time_ms) VALUES(" + result.time().toMillis() + ");");
-			this.dbApi.commit();
-			this.dbApi.disconnect();
-		} catch (SQLException e) {
-			logger.log(Level.SEVERE, "Error while saving result.", e);
-			try {
-				this.dbApi.rollback();
-			} catch (Exception e2) {
-				logger.log(Level.SEVERE, "Error while rolling back DB.", e2);
-			}
-		}
-	}
 
-	private Result[] getAllResults() {
-		ArrayList<Result> results = new ArrayList<>();
-		try {
-			this.dbApi.connect();
-			this.dbApi.setAutoCommit(false);
-			String[] rs = this.dbApi.executeQuery("SELECT * FROM result;", new String[] { "time_ms" });
-			for (String r : rs) {
-				results.add(new Result(Duration.ofMillis(Long.parseLong(r)), null));
-			}
+			final Gson gson = new GsonBuilder()
+					.registerTypeAdapter(Duration.class, new DurationTypeAdapter())
+					.create();
+			final String[] rs = this.dbApi.executeQuery("SELECT * FROM " + table + ";", new String[] { "time" });
+			Duration[] durations = Arrays.stream(rs).map(e -> gson.fromJson(e, Duration.class))
+					.toArray(Duration[]::new);
+
 			this.dbApi.commit();
 			this.dbApi.disconnect();
+			return durations;
 		} catch (SQLException e) {
 			logger.log(Level.SEVERE, "Error while getting all results.", e);
 			try {
@@ -194,20 +205,20 @@ public class Model implements Service {
 			}
 		}
 
-		return results.toArray(Result[]::new);
+		return new Duration[0];
+
 	}
 
-	private long[] getAllFactorTimes() {
-		ArrayList<Long> times = new ArrayList<>();
+	private long[] getNewtonianFunction() {
 		try {
 			this.dbApi.connect();
 			this.dbApi.setAutoCommit(false);
-			String[] rs = this.dbApi.executeQuery("SELECT * FROM factor_times;", new String[] { "time_hours" });
-			for (String r : rs) {
-				times.add(Long.parseLong(r));
-			}
+			String[] rs = this.dbApi.executeQuery("SELECT * FROM " + TableName.NEWTON_INTERPOLATION + ";",
+					new String[] { "hours" });
+			long[] values = Arrays.stream(rs).mapToLong(Long::parseLong).toArray();
 			this.dbApi.commit();
 			this.dbApi.disconnect();
+			return values;
 		} catch (SQLException e) {
 			logger.log(Level.SEVERE, "Error while getting all factor times.", e);
 			try {
@@ -217,30 +228,25 @@ public class Model implements Service {
 			}
 		}
 
-		return times.stream().mapToLong(l -> l).toArray();
+		return new long[0];
 	}
 
 	private KeyPair[] getAllRSAKeys() {
-		ArrayList<KeyPair> keys = new ArrayList<>();
 		try {
 			this.dbApi.connect();
 			this.dbApi.setAutoCommit(false);
-			String[] rs = this.dbApi.executeQuery("SELECT * FROM rsa_keys;",
-					new String[] { "public_key", "private_key" });
-			for (int i = 0; i < rs.length; i += 2) {
-				final String[] pubs = rs[i].split("\n");
-				assert pubs.length == 2;
-				final PublicKey pub = new PublicKey(new BigInteger(pubs[0]), new BigInteger(pubs[1]));
 
-				final String[] privs = rs[i + 1].split("\n");
-				assert privs.length == 2;
-				final PrivateKey priv = new PrivateKey(new BigInteger(privs[0]), new BigInteger(privs[1]));
+			final Gson gson = new GsonBuilder()
+					.registerTypeAdapter(Duration.class, new DurationTypeAdapter())
+					.create();
+			final String[] rs = this.dbApi.executeQuery("SELECT * FROM " + TableName.RSA_KEY_RESULT + ";",
+					new String[] { "key_pair" });
 
-				keys.add(new KeyPair(priv, pub));
-			}
+			KeyPair[] keys = Arrays.stream(rs).map(e -> gson.fromJson(e, KeyPair.class)).toArray(KeyPair[]::new);
 
 			this.dbApi.commit();
 			this.dbApi.disconnect();
+			return keys;
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Error while getting all RSA keys.", e);
 			try {
@@ -250,7 +256,7 @@ public class Model implements Service {
 			}
 		}
 
-		return keys.toArray(KeyPair[]::new);
+		return new KeyPair[0];
 	}
 
 }
