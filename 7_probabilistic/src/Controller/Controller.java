@@ -1,5 +1,15 @@
 package Controller;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.util.zip.DeflaterOutputStream;
+import java.util.zip.InflaterInputStream;
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.time.Instant;
@@ -9,12 +19,17 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import Model.KeyPair;
+import Model.PrivateKey;
+import Model.PublicKey;
 import Model.Result;
 import Services.Service;
 import Services.Comunication.Content.Body;
 import Services.Comunication.Request.Request;
 import Services.Comunication.Response.Response;
 import Services.Comunication.Response.ResponseCode;
+import mesurament.Mesurament;
+import utils.Config;
 
 public class Controller implements Service {
 
@@ -72,21 +87,14 @@ public class Controller implements Service {
 				.add(term5).add(term6).add(term7);
 
 		return Duration.ofMillis(result.longValue());
-
 	}
 
-	private Result getFactors(String number) {
-
+	private Map<BigInteger, BigInteger> getFactors(String number) {
 		Map<BigInteger, BigInteger> primeFactors = new HashMap<>();
 		BigInteger num = new BigInteger(number);
 		BigInteger divisor = BigInteger.valueOf(2);
-		Instant start = Instant.now();
 
 		while (num.compareTo(BigInteger.ONE) > 0) {
-
-			if (Duration.between(start, Instant.now()).toMinutes() > 1) {
-				return new Result(getEstimatedTime(number.length()), Collections.emptyMap());
-			}
 
 			if (num.isProbablePrime(100)) {
 				primeFactors.put(num, BigInteger.ONE);
@@ -101,24 +109,182 @@ public class Controller implements Service {
 			primeFactors.put(divisor, primeFactors.getOrDefault(divisor, BigInteger.ZERO).add(BigInteger.ONE));
 			num = num.divide(divisor);
 		}
-		return new Result(Duration.between(start, Instant.now()), primeFactors);
 
+		return primeFactors;
+	}
+
+	private String getMesurament() {
+		// Crear un stream de salida en memoria para capturar la salida de System.out
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		PrintStream printStream = new PrintStream(outputStream);
+
+		// Guardar la salida estándar actual
+		PrintStream originalPrintStream = System.out;
+
+		// Redirigir la salida a nuestro stream de salida en memoria
+		System.setOut(printStream);
+
+		// Llamar al método mesura()
+		Mesurament.mesura();
+
+		// Restaurar la salida estándar original
+		System.setOut(originalPrintStream);
+
+		// Obtener el resultado del stream de salida en memoria
+		String output = outputStream.toString();
+
+		// Procesar el resultado para extraer el valor del ratio
+		String ratioString = output.split(":")[1].trim();
+		ratioString = ratioString.replace("*", "").trim();
+
+		logger.info(ratioString);
+
+		return ratioString;
+	}
+
+	private long[] generateFunctionPoints() {
+		final int TOP_NUM_OF_DIGITS = 3200;
+		long[] numbers = new long[TOP_NUM_OF_DIGITS];
+
+		for (int i = 1; i <= TOP_NUM_OF_DIGITS; i++) {
+			numbers[i - 1] = getEstimatedTime(i).toHours();
+		}
+
+		return numbers;
+	}
+
+	private void writeToFile(String filename, String content) {
+		try (BufferedWriter br = new BufferedWriter(new FileWriter(filename))) {
+			br.write(content);
+		} catch (Exception e) {
+			logger.warning(e.getMessage());
+		}
 	}
 
 	@Override
 	public void notifyRequest(Request request) {
 		switch (request.code) {
+			case SAVE_ENCRYPTED_FILE -> {
+				final Object[] params = (Object[]) request.body.content;
+				final File file = (File) params[0];
+				final String text = (String) params[1];
+
+				try (
+						FileOutputStream fos = new FileOutputStream(file.getAbsolutePath());
+						DeflaterOutputStream dos = new DeflaterOutputStream(fos);) {
+
+					dos.write(text.getBytes());
+
+					dos.finish();
+					logger.info("Text file compressed successfully.");
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+
+			case LOAD_ENCRYPTED_FILE -> {
+				final File file = (File) request.body.content;
+
+				try (
+						FileInputStream fis = new FileInputStream(file.getAbsolutePath());
+						InflaterInputStream iis = new InflaterInputStream(fis);
+						ByteArrayOutputStream baos = new ByteArrayOutputStream();) {
+					byte[] buffer = new byte[1024];
+					int bytesRead;
+
+					while ((bytesRead = iis.read(buffer)) != -1) {
+						baos.write(buffer, 0, bytesRead);
+					}
+
+					this.sendResponse(new Response(ResponseCode.LOAD_ENCRYPTED_FILE, this, new Body(baos.toString())));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			case POPULATE_DB -> {
+				long[] numbers = generateFunctionPoints();
+				this.sendResponse(new Response(ResponseCode.POPULATE_DB, this, new Body(numbers)));
+			}
+			case GET_MESURAMENT -> {
+				this.sendResponse(new Response(ResponseCode.GET_MESURAMENT, this, new Body(getMesurament())));
+			}
 			case GET_FACTORS -> {
 				final String number = (String) request.body.content;
 				final Duration expectedTime = getEstimatedTime(number.length());
-				if (expectedTime.compareTo(Duration.ofMinutes(1)) >= 0) {
+				logger.info("expectedTime: " + expectedTime.toMinutes() + "mins");
+				if (expectedTime.toMinutes() >= 1 || expectedTime.toMinutes() < 0) {
 					this.sendResponse(new Response(ResponseCode.GET_FACTORS, this,
-							new Body(new Result(expectedTime, null))));
+							new Body(new Result(expectedTime, Collections.emptyMap()))));
 				}
+				final Instant start = Instant.now();
+				final Map<BigInteger, BigInteger> primeFactors = getFactors(number);
+				final Instant end = Instant.now();
 
-				this.sendResponse(new Response(ResponseCode.GET_FACTORS, this, new Body(getFactors(number))));
+				this.sendResponse(new Response(ResponseCode.GET_FACTORS, this,
+						new Body(new Result(Duration.between(start, end), primeFactors))));
 			}
+			case DECRYPT_TEXT -> {
+				logger.info("Decrypting text...");
+				final Object[] params = (Object[]) request.body.content;
+				final String text = (String) params[0];
+				final PrivateKey privateKey = (PrivateKey) params[1];
 
+				Result result = null;
+				StringBuilder decryptedText = new StringBuilder();
+				final Instant start = Instant.now();
+				for (String string : text.split("\n")) {
+					if (string.equals("$")) {
+						decryptedText.append("\n");
+						continue;
+					}
+					decryptedText.append((char) privateKey.decrypt(string).intValue());
+
+				}
+				final Instant end = Instant.now();
+				result = new Result(Duration.between(start, end), decryptedText.toString());
+
+				this.sendResponse(new Response(ResponseCode.DECRYPT_TEXT, this, new Body(result)));
+			}
+			case ENCRYPT_TEXT -> {
+				logger.info("Encrypting text...");
+				final Object[] params = (Object[]) request.body.content;
+				final String text = (String) params[0];
+				final PublicKey publicKey = (PublicKey) params[1];
+
+				Result result = null;
+				StringBuilder encryptedText = new StringBuilder();
+				final Instant start = Instant.now();
+
+				for (String string : text.split("\n")) {
+					string.chars().forEach(e -> {
+						final BigInteger encrypted = publicKey.encrypt(String.valueOf(e));
+						encryptedText.append(encrypted.toString()).append("\n");
+					});
+					// Add special character to indicate end of line
+					encryptedText.append("$\n");
+				}
+				encryptedText.deleteCharAt(encryptedText.length() - 1);
+				final Instant end = Instant.now();
+				result = new Result(Duration.between(start, end), encryptedText.toString());
+
+				this.sendResponse(new Response(ResponseCode.ENCRYPT_TEXT, this, new Body(result)));
+			}
+			case GENERATE_RSA_KEYS -> {
+				logger.info("Generating RSA keys...");
+				final Object[] params = (Object[]) request.body.content;
+				final int keyLength = (int) params[0];
+				final int seed = (int) params[1];
+				final Instant start = Instant.now();
+				final KeyPair kp = Cryptography.generateRSAKeyPair(
+						Cryptography.generatePrime(keyLength, seed).toString(),
+						Cryptography.generatePrime(keyLength, seed + 1).toString(), seed);
+				final Instant end = Instant.now();
+				logger.info("RSA keys generated in " + Duration.between(start, end).toMillis() + "ms");
+				final Result result = new Result(Duration.between(start, end), kp);
+				this.sendResponse(new Response(ResponseCode.GENERATE_RSA_KEYS, this, new Body(result)));
+				this.writeToFile(Config.PUBLIC_KEY_FILE_NAME, kp.publicKey().toString());
+				this.writeToFile(Config.PRIVATE_KEY_FILE_NAME, kp.privateKey().toString());
+			}
 			case CHECK_PRIMALITY -> {
 				final Object[] params = (Object[]) request.body.content;
 				final PrimalityFunction function = (PrimalityFunction) params[0];
@@ -163,13 +329,31 @@ public class Controller implements Service {
 						}
 						yield PrimalityTest.millerRabin(number, iterations, seed);
 					}
+					case MILLER_RABIN_PARALLEL -> {
+						int iterations = Controller.BASE_ITERATIONS;
+						try {
+							iterations = (Integer) params[2];
+						} catch (Exception e) {
+							logger.log(Level.INFO, "Set iteratios to fallback value of {0}",
+									Controller.BASE_ITERATIONS);
+						}
+
+						int seed = Controller.BASE_SEED;
+						try {
+							seed = (Integer) params[3];
+						} catch (Exception e) {
+							logger.log(Level.INFO, "Set seed to fallback value of {0}",
+									Controller.BASE_SEED);
+						}
+						yield PrimalityTest.millerRabinParallel(number, iterations, seed);
+					}
+					case TRIAL_DIVISION_PARALLEL -> PrimalityTest.trialDivisionParallel(number);
 				};
 
 				Instant end = Instant.now();
 
 				this.sendResponse(new Response(ResponseCode.CHECK_PRIMALITY, this,
 						new Body(new Result(Duration.between(start, end), isPrime))));
-
 			}
 			default -> {
 				Logger.getLogger(this.getClass().getSimpleName())

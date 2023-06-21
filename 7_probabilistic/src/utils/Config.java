@@ -55,4 +55,16 @@ public class Config {
 	 * Indicates where is the database located at.
 	 */
 	public static final String PATH_TO_DB = "./src/Model/db/db.sqlite";
+	/**
+	 * Indicates the name of the public key file.
+	 */
+	public static final String PUBLIC_KEY_FILE_NAME = "key.pub";
+	/**
+	 * Indicates the name of the private key file.
+	 */
+	public static final String PRIVATE_KEY_FILE_NAME = "key.pri";
+	/**
+	 * Indicates the encrypted file extension
+	 */
+	public static final String ENCRYPTED_FILE_EXTENSION = ".crypt";
 }

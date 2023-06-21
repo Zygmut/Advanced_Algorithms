@@ -5,6 +5,10 @@
 			"services": ["CONTROLLER"]
 		},
 		{
+			"code": "GET_MESURAMENT",
+			"services": ["CONTROLLER"]
+		},
+		{
 			"code": "GET_FACTORS",
 			"services": ["CONTROLLER"]
 		},
@@ -14,6 +18,34 @@
 		},
 		{
 			"code": "FETCH_STATS",
+			"services": ["MODEL"]
+		},
+		{
+			"code": "POPULATE_DB",
+			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "ENCRYPT_TEXT",
+			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "DECRYPT_TEXT",
+			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "LOAD_ENCRYPTED_FILE",
+			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "SAVE_ENCRYPTED_FILE",
+			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "GENERATE_RSA_KEYS",
+			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "GET_STORED_KEYS",
 			"services": ["MODEL"]
 		}
 	],
@@ -27,7 +59,35 @@
 			"services": ["VIEW", "MODEL"]
 		},
 		{
+			"code": "GET_MESURAMENT",
+			"services": ["VIEW"]
+		},
+		{
 			"code": "FETCH_STATS",
+			"services": ["VIEW"]
+		},
+		{
+			"code": "POPULATE_DB",
+			"services": ["MODEL"]
+		},
+		{
+			"code": "ENCRYPT_TEXT",
+			"services": ["VIEW", "MODEL"]
+		},
+		{
+			"code": "DECRYPT_TEXT",
+			"services": ["VIEW", "MODEL"]
+		},
+		{
+			"code": "LOAD_ENCRYPTED_FILE",
+			"services": ["VIEW"]
+		},
+		{
+			"code": "GENERATE_RSA_KEYS",
+			"services": ["VIEW", "MODEL"]
+		},
+		{
+			"code": "GET_STORED_KEYS",
 			"services": ["VIEW"]
 		}
 	],
@@ -41,8 +101,36 @@
 			"requestCode": "GET_FACTORS"
 		},
 		{
+			"responseCode": "LOAD_ENCRYPTED_FILE",
+			"requestCode": "LOAD_ENCRYPTED_FILE"
+		},
+		{
+			"responseCode": "GET_MESURAMENT",
+			"requestCode": "GET_MESURAMENT"
+		},
+		{
 			"responseCode": "FETCH_STATS",
 			"requestCode": "FETCH_STATS"
+		},
+		{
+			"responseCode": "POPULATE_DB",
+			"requestCode": "POPULATE_DB"
+		},
+		{
+			"responseCode": "ENCRYPT_TEXT",
+			"requestCode": "ENCRYPT_TEXT"
+		},
+		{
+			"responseCode": "DECRYPT_TEXT",
+			"requestCode": "DECRYPT_TEXT"
+		},
+		{
+			"responseCode": "GENERATE_RSA_KEYS",
+			"requestCode": "GENERATE_RSA_KEYS"
+		},
+		{
+			"responseCode": "GET_STORED_KEYS",
+			"requestCode": "GET_STORED_KEYS"
 		}
 	]
 }
