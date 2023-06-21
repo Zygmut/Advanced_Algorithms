@@ -54,24 +54,18 @@ public class Model implements Service {
 
 				this.sendResponse(new Response(ResponseCode.FETCH_STATS, this, new Body(stats.toArray())));
 			}
-			case GET_STORED_KEYS -> {
-				KeyPair[] kps = this.getAllRSAKeys();
-				for (KeyPair kp : kps) {
-					logger.log(Level.INFO, "KeyPair: {0}", kp);
-				}
-				this.sendResponse(new Response(ResponseCode.GET_STORED_KEYS, this, new Body(kps)));
-			}
+			case GET_STORED_KEYS ->
+				this.sendResponse(new Response(ResponseCode.GET_STORED_KEYS, this, new Body(this.getAllRSAKeys())));
 			case CREATE_DB -> {
 				this.createDB();
 				logger.info("DB created.");
 				this.sendRequest(new Request(RequestCode.POPULATE_DB, this));
 			}
-			case POPULATE_DB -> {
-				final long[] time = (long[]) request.body.content;
-				this.saveNewtonInterpolation(time);
-			}
+			case POPULATE_DB -> this.saveNewtonInterpolation((long[]) request.body.content);
 			case CHECK_PRIMALITY -> this.saveResult((Result) request.body.content, TableName.IS_PRIME_RESULT);
 			case GET_FACTORS -> this.saveResult((Result) request.body.content, TableName.GET_FACTOR_RESULT);
+			case ENCRYPT_TEXT -> this.saveResult((Result) request.body.content, TableName.ENCRYPT_RESULT);
+			case DECRYPT_TEXT -> this.saveResult((Result) request.body.content, TableName.DECRYPT_RESULT);
 			case GENERATE_RSA_KEYS -> {
 				logger.info("Saving RSA keys.");
 				final Result res = (Result) request.body.content;

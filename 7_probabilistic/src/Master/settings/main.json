@@ -72,11 +72,11 @@
 		},
 		{
 			"code": "ENCRYPT_TEXT",
-			"services": ["VIEW"]
+			"services": ["VIEW", "MODEL"]
 		},
 		{
 			"code": "DECRYPT_TEXT",
-			"services": ["VIEW"]
+			"services": ["VIEW", "MODEL"]
 		},
 		{
 			"code": "LOAD_ENCRYPTED_FILE",
