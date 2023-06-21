@@ -103,6 +103,10 @@ public class View implements Service {
 	 * Combo box containing the list of key pairs
 	 */
 	private JComboBox<String> keys;
+	/**
+	 * The selected primality function
+	 */
+	private PrimalityFunction selectedPrimalityFunction;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -395,6 +399,13 @@ public class View implements Service {
 			primalityFunction.addItem(function.toString());
 		}
 		primalityFunction.setSelectedItem(PrimalityFunction.TRIAL_DIVISION);
+		this.selectedPrimalityFunction = PrimalityFunction.TRIAL_DIVISION;
+		primalityFunction.addActionListener(e -> {
+			final int index = primalityFunction.getSelectedIndex();
+			if (index >= 0) {
+				this.selectedPrimalityFunction = PrimalityFunction.values()[index];
+			}
+		});
 
 		Predicate<String> isNumeric = s -> {
 			try {
@@ -414,7 +425,7 @@ public class View implements Service {
 				if (!inputText.isEmpty()) {
 					resultLabel.setText("Calculando...");
 					this.sendRequest(new Request(RequestCode.CHECK_PRIMALITY, this, new Body(new Object[] {
-							PrimalityFunction.TRIAL_DIVISION, inputText })));
+							this.selectedPrimalityFunction, inputText })));
 				}
 				return;
 			}
