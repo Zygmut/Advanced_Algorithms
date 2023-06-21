@@ -2,6 +2,7 @@ package Model;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -47,6 +48,13 @@ public class Model implements Service {
 				this.sendResponse(new Response(ResponseCode.FETCH_STATS,
 						this, new Body(content)));
 			}
+			case GET_STORED_KEYS -> {
+				KeyPair[] kps = this.getAllRSAKeys();
+				for (KeyPair kp : kps) {
+					logger.log(Level.INFO, "KeyPair: {0}", kp);
+				}
+				this.sendResponse(new Response(ResponseCode.GET_STORED_KEYS, this, new Body(kps)));
+			}
 			case CREATE_DB -> {
 				this.createDB();
 				logger.info("DB created.");
@@ -65,6 +73,7 @@ public class Model implements Service {
 				logger.info("Saving RSA keys.");
 				this.saveRSAKeys((KeyPair) res.result());
 				this.saveResult(res);
+				this.sendRequest(new Request(RequestCode.GET_STORED_KEYS, this));
 			}
 			default -> {
 				logger.log(Level.SEVERE, "{0} is not implemented.", request);
@@ -209,6 +218,39 @@ public class Model implements Service {
 		}
 
 		return times.stream().mapToLong(l -> l).toArray();
+	}
+
+	private KeyPair[] getAllRSAKeys() {
+		ArrayList<KeyPair> keys = new ArrayList<>();
+		try {
+			this.dbApi.connect();
+			this.dbApi.setAutoCommit(false);
+			String[] rs = this.dbApi.executeQuery("SELECT * FROM rsa_keys;",
+					new String[] { "public_key", "private_key" });
+			for (int i = 0; i < rs.length; i += 2) {
+				final String[] pubs = rs[i].split("\n");
+				assert pubs.length == 2;
+				final PublicKey pub = new PublicKey(new BigInteger(pubs[0]), new BigInteger(pubs[1]));
+
+				final String[] privs = rs[i + 1].split("\n");
+				assert privs.length == 2;
+				final PrivateKey priv = new PrivateKey(new BigInteger(privs[0]), new BigInteger(privs[1]));
+
+				keys.add(new KeyPair(priv, pub));
+			}
+
+			this.dbApi.commit();
+			this.dbApi.disconnect();
+		} catch (Exception e) {
+			logger.log(Level.SEVERE, "Error while getting all RSA keys.", e);
+			try {
+				this.dbApi.rollback();
+			} catch (Exception e2) {
+				logger.log(Level.SEVERE, "Error while rolling back DB.", e2);
+			}
+		}
+
+		return keys.toArray(KeyPair[]::new);
 	}
 
 }

@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.LongToIntFunction;
@@ -94,6 +95,14 @@ public class View implements Service {
 	 * Dialog containing the input of the encryption/decryption
 	 */
 	private JTextArea textAreaInput;
+	/**
+	 * List of key pairs registered in the database
+	 */
+	private ArrayList<KeyPair> keyPairs;
+	/**
+	 * Combo box containing the list of key pairs
+	 */
+	private JComboBox<String> keys;
 
 	/**
 	 * This constructor creates a view with the MVC hub without any configuration
@@ -136,6 +145,16 @@ public class View implements Service {
 	@SuppressWarnings("unchecked")
 	public void notifyRequest(Request request) {
 		switch (request.code) {
+			case GET_STORED_KEYS -> {
+				KeyPair[] kps = (KeyPair[]) request.body.content;
+				logger.log(Level.INFO, "Got {0} key pairs", kps.length);
+				this.keyPairs = new ArrayList<>(kps.length);
+				this.keys.removeAllItems();
+				for (int i = 0; i < kps.length; i++) {
+					this.keyPairs.add(kps[i]);
+					this.keys.addItem("Key " + (i + 1));
+				}
+			}
 			case LOAD_ENCRYPTED_FILE -> {
 				logger.info((String) request.body.content);
 				this.textAreaInput.setText((String) request.body.content);
@@ -289,16 +308,16 @@ public class View implements Service {
 		JSpinner seed = new JSpinner(new SpinnerNumberModel(0, 0, 600, 1));
 		seed.setMaximumSize(new Dimension(100, 30));
 		rsaDigits.add(seed);
-		JComboBox<String> keys = new JComboBox<String>();
+		keys = new JComboBox<>();
 		keys.setMaximumSize(new Dimension(100, 30));
-		// TODO: Get the keys from the server
-		keys.addItem("Clave pública");
-		keys.addItem("Clave privada");
 		keys.addActionListener(e -> {
-			// TODO
-			View.this.selectedKeyPair = new KeyPair(null, null);
+			final int index = keys.getSelectedIndex();
+			if (index >= 0) {
+				this.selectedKeyPair = this.keyPairs.get(index);
+			}
 		});
 		rsaDigits.add(keys);
+		this.sendRequest(new Request(RequestCode.GET_STORED_KEYS, this));
 
 		JPanel rsaActions = new JPanel();
 		rsaActions.setBackground(Color.WHITE);
@@ -623,7 +642,10 @@ public class View implements Service {
 
 		JMenu db = new JMenu("Datos");
 		JMenuItem load = new JMenuItem("Cargar BD");
-		load.addActionListener(e -> this.sendRequest(new Request(RequestCode.CREATE_DB, this)));
+		load.addActionListener(e -> {
+			this.sendRequest(new Request(RequestCode.CREATE_DB, this));
+			View.this.keys.removeAllItems();
+		});
 		JMenuItem mesu = new JMenuItem("Mesurament");
 		mesu.addActionListener(e -> {
 			this.sendRequest(new Request(RequestCode.GET_MESURAMENT, this));

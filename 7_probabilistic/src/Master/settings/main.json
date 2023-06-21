@@ -43,6 +43,10 @@
 		{
 			"code": "GENERATE_RSA_KEYS",
 			"services": ["CONTROLLER"]
+		},
+		{
+			"code": "GET_STORED_KEYS",
+			"services": ["MODEL"]
 		}
 	],
 	"responseMap": [
@@ -81,6 +85,10 @@
 		{
 			"code": "GENERATE_RSA_KEYS",
 			"services": ["VIEW", "MODEL"]
+		},
+		{
+			"code": "GET_STORED_KEYS",
+			"services": ["VIEW"]
 		}
 	],
 	"resToReqMap": [
@@ -119,6 +127,10 @@
 		{
 			"responseCode": "GENERATE_RSA_KEYS",
 			"requestCode": "GENERATE_RSA_KEYS"
+		},
+		{
+			"responseCode": "GET_STORED_KEYS",
+			"requestCode": "GET_STORED_KEYS"
 		}
 	]
 }
