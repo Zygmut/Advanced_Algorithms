@@ -274,11 +274,14 @@ public class Controller implements Service {
 				final Object[] params = (Object[]) request.body.content;
 				final int keyLength = (int) params[0];
 				final int seed = (int) params[1];
+				final Instant start = Instant.now();
 				final KeyPair kp = Cryptography.generateRSAKeyPair(
 						Cryptography.generatePrime(keyLength, seed).toString(),
 						Cryptography.generatePrime(keyLength, seed + 1).toString(), seed);
-
-				this.sendResponse(new Response(ResponseCode.GENERATE_RSA_KEYS, this, new Body(kp)));
+				final Instant end = Instant.now();
+				logger.info("RSA keys generated in " + Duration.between(start, end).toMillis() + "ms");
+				final Result result = new Result(Duration.between(start, end), kp);
+				this.sendResponse(new Response(ResponseCode.GENERATE_RSA_KEYS, this, new Body(result)));
 				this.writeToFile(Config.PUBLIC_KEY_FILE_NAME, kp.publicKey().toString());
 				this.writeToFile(Config.PRIVATE_KEY_FILE_NAME, kp.privateKey().toString());
 			}

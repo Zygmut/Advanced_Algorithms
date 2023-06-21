@@ -195,7 +195,17 @@ public class View implements Service {
 				this.timeTaken.setText("Tiempo de encriptación: " + getTimeString(content.time()));
 			}
 			case GENERATE_RSA_KEYS -> {
-				this.selectedKeyPair = (KeyPair) request.body.content;
+				final Result res = (Result) request.body.content;
+				this.selectedKeyPair = (KeyPair) res.result();
+				logger.info("RSA keys generated.");
+				final String content = "Claves generadas correctamente.\n" +
+						"Las claves han sido guardadas en los ficheros:\n" +
+						Config.PRIVATE_KEY_FILE_NAME + "\n" + Config.PUBLIC_KEY_FILE_NAME +
+						"\nSe han generado en " + getTimeString(res.time()) + ".";
+				JOptionPane pane = new JOptionPane(content, JOptionPane.INFORMATION_MESSAGE,
+						JOptionPane.DEFAULT_OPTION, null, new Object[] {}, null);
+				JDialog dialog = pane.createDialog("Claves generadas");
+				dialog.setVisible(true);
 			}
 			default -> {
 				logger.log(Level.SEVERE, "{0} is not implemented.", request);

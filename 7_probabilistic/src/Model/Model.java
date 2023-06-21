@@ -43,13 +43,13 @@ public class Model implements Service {
 				this.saveResult(result);
 			}
 			case FETCH_STATS -> {
-				Object[] content = new Object[] { getAllResults(), getAllFactorTimes()};
+				Object[] content = new Object[] { getAllResults(), getAllFactorTimes() };
 				this.sendResponse(new Response(ResponseCode.FETCH_STATS,
 						this, new Body(content)));
 			}
 			case CREATE_DB -> {
 				this.createDB();
-				logger.log(Level.INFO, "DB created.");
+				logger.info("DB created.");
 				this.sendRequest(new Request(RequestCode.POPULATE_DB, this));
 			}
 			case SAVE_FACTOR_TIME -> {
@@ -59,6 +59,12 @@ public class Model implements Service {
 			case POPULATE_DB -> {
 				final long[] time = (long[]) request.body.content;
 				this.saveFactorTime(time);
+			}
+			case GENERATE_RSA_KEYS -> {
+				final Result res = (Result) request.body.content;
+				logger.info("Saving RSA keys.");
+				this.saveRSAKeys((KeyPair) res.result());
+				this.saveResult(res);
 			}
 			default -> {
 				logger.log(Level.SEVERE, "{0} is not implemented.", request);
@@ -80,10 +86,13 @@ public class Model implements Service {
 			this.dbApi.setAutoCommit(false);
 			this.dbApi.executeUpdate("DROP TABLE IF EXISTS result;");
 			this.dbApi.executeUpdate("DROP TABLE IF EXISTS factor_times;");
+			this.dbApi.executeUpdate("DROP TABLE IF EXISTS rsa_keys;");
 			this.dbApi.executeUpdate(
 					"CREATE TABLE result(id INTEGER PRIMARY KEY AUTOINCREMENT, time_ms INTEGER);");
 			this.dbApi.executeUpdate(
 					"CREATE TABLE factor_times(id INTEGER PRIMARY KEY AUTOINCREMENT, time_hours INTEGER);");
+			this.dbApi.executeUpdate(
+					"CREATE TABLE rsa_keys(id INTEGER PRIMARY KEY AUTOINCREMENT, public_key TEXT, private_key TEXT);");
 			this.dbApi.commit();
 			this.dbApi.disconnect();
 		} catch (SQLException e) {
@@ -95,6 +104,25 @@ public class Model implements Service {
 			}
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, "Error while creating DB file.", e);
+		}
+	}
+
+	private void saveRSAKeys(KeyPair kp) {
+		try {
+			this.dbApi.connect();
+			this.dbApi.setAutoCommit(false);
+			this.dbApi
+					.executeUpdate("INSERT INTO rsa_keys(public_key, private_key) VALUES('" + kp.publicKey().toString()
+							+ "', '" + kp.privateKey().toString() + "');");
+			this.dbApi.commit();
+			this.dbApi.disconnect();
+		} catch (SQLException e) {
+			logger.log(Level.SEVERE, "Error while saving RSA keys.", e);
+			try {
+				this.dbApi.rollback();
+			} catch (Exception e2) {
+				logger.log(Level.SEVERE, "Error while rolling back DB.", e2);
+			}
 		}
 	}
 
