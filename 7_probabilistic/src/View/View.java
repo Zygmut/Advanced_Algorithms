@@ -200,7 +200,13 @@ public class View implements Service {
 			}
 			case FETCH_STATS -> {
 				final Object[] content = (Object[]) request.body.content;
-				WindowStats stats = new WindowStats(new Result[0], (long[]) content[content.length - 1]);
+				ArrayList<Duration[]> statistics = new ArrayList<>();
+				for (int i = 0; i < content.length - 1; i++) {
+					statistics.add((Duration[]) content[i]);
+				}
+
+				WindowStats stats = new WindowStats(statistics.toArray(Duration[][]::new),
+						(long[]) content[content.length - 1]);
 				stats.show();
 			}
 			case DECRYPT_TEXT -> {
