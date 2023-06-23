@@ -1,0 +1,23 @@
+\subsection{Vista}
+
+La vista contiene los componentes para representar la interfaz del usuario (IU) del programa y las herramientas con las cuales el usuario puede interactuar con los datos de la aplicación. Adicionalmente, la vista se encarga de recibir e interpretar adecuadamente los datos obtenidos del modelo.\bigskip
+
+\texttt{loadContent} es el encargado de cargar el contenido inicial en la ventana. Para esta práctica, carga los siguientes elementos semánticos:\bigskip
+
+\texttt{createProgressBar}, función que crea y configura la barra de progreso de la ejecución del algoritmo, permitiendo dar feedback al usuario del estado del mismo.
+
+\texttt{header} del programa mediante \texttt{headerSection}, generando las imágenes y la posible interación del usuario con las fichas, permitiendo así, elegir que ficha desea seleccionar para la ejecución del \say{Backtracking}.\bigskip
+
+\texttt{main} del programa mediante \texttt{mainSection}, cargando el tablero con respecto a las variables por defecto encontradas en el modelo.\bigskip
+
+\texttt{sidebar} del programa mediante \texttt{sideBarSection}, generando las sección de estadísticas del programa.\bigskip
+
+\texttt{footer} del programa mediante \texttt{footerSection}, que ocupará la zona inferior de la interfaz, conteniendo, las acciones de iniciar y reinicar la ejecución del algoritmo.\bigskip
+
+Adicionalmente, la clase contiene un conjunto de métodos o funciones que facilitan la generación de los elementos en la interfaz de usuario. A continuación se explicarán brevemente los más importantes:\bigskip
+
+\texttt{getPieceListener} permite que el usuario seleccione una ficha del \say{header}, además de crear una efecto de previsualización al pasar el cursor por encima de estas.\bigskip
+
+\texttt{Board}, esta clase permite generar el tablero de la interfaz a partir de un array bidimensional.\bigskip
+
+\texttt{BoxBoard}, esta clase permite generar cada casilla de la clase Board, además de permitir la interacción por individual de cada casilla con el usuario através de la función \texttt{getPieceListener}.\bigskip

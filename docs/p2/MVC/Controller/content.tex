@@ -1,0 +1,32 @@
+\subsection{Controlador}
+El controlador en un MVC es el responsable de recibir y procesar la entrada del usuario y actualizar el modelo. En esta práctica, dicha responsabilidad es la de calcular el problema del \say{Knigt's tour}\cite{schwenk1994knight} para un conjunto indeterminado de piezas.\\
+
+El algoritmo es una implementación recursiva con backtracking que toma los siguientes parámetros:\medskip
+
+\begin{description}[leftmargin=0pt]
+\item[visitedTowns]: Indica las posiciones que ya han sido visitadas.
+\item[pieces]: Cola que representan las posiciones de las piezas que se usarán para el algoritmo y el orden de ejecución.
+\item[board]: Representa el estado actual del tablero.
+\item[iteration]: Lleva cuenta del número de iteraciones.
+\end{description}
+\medskip
+
+En primer lugar, se comprueba si se ha reiniciado la ejecución del algoritmo o si ya se han visitado todas las posiciones. A estas dos clausuras son las posibles condiciones de salida del algoritmo e impiden que este se ejecute de manera indefinida. \\
+
+A continuación, eliminamos el primer elemento de la cola y se recorren en todos los posibles movimientos legales y no visitados de la pieza en esa posición. \\
+
+Por cada movimiento, se actualiza esa posición como visitada, se modifica la cola de piezas añadiendo el nuevo movimiento, se ejecuta el movimiento en el tablero, se aumenta en uno la iteración y se crea una petición al hub para que el modelo pueda obtener los resultados. Esto es posible debido a que, al ser un módulo del MVC modificado, implementa la interfaz \texttt{Notify} y el método \texttt{notifyRequest} que le permite comunicarse con los otros módulos. \\
+
+Una vez salida de esa llamada recursiva, se revisa si el algoritmo se ha reiniciado para salir lo antes posible de este. En caso contrario, se deshacen los cambios previamente mencionados y se pasa al siguiente movimiento. \\
+
+Una vez se han visitado todos los movimientos, al saber que no se ha encontrado una solución para esta llamada, se añade la posición eliminada al principio del algoritmo para mantener la estructura de los parámetros intacta.\\
+
+La ejecución del algoritmo se realiza en un thread virtual, obteniendo una mejora en el tiempo de respuesta de la aplicación; permitiendo que otros eventos puedan tomar el thread principal, aprovechando los cores de la CPU y reduciendo el bloqueo de la aplicación; permitiendo que el thread principal sea menos probable de quedarse bloqueado debido a cálculos de larga duración.\\
+
+Con respecto al tiempo computación asintótco, el algoritmo visita cada casilla del tablero como máximo una vez, por lo que obtendríamos $O(n^2)$. \\
+
+Seguidamente, el algoritmo debe explorar, por cada casilla, el conjunto de movimientos de una pieza. Al tener una gran extensión de piezas y desconocer cuales se van a tomar, se tomará el peor caso posible en el que la pieza a escoger puede visitar todas las posiciones del tablero, lo que sería $O(n^2)$. \\
+
+Para la obtención de los movimientos se toma una complejidad de $O(n)$ al crear un rango de movimientos en vez de recorrer toda la matriz, lo que quedaría como $O(n + n^2)$ por llamada recursiva, que se simplificaría a $O(n^2)$. Teniendo en cuenta todos los factores previamente comentados, podemos decir que la complejidad temporar del algoritmo es de $O\left( n^{2^{n^2}}\right)$ lo que es exponencial con respecto al número de casillas del tablero. \\
+
+Adicionalmente, comentar que, debido a la naturaleza de los parámetros, no se llama directamente a este algoritmo, sino que primero pasa por una función que prepara todos los datos. De esta manera ocultamos los precálculos en otro método, creando una experiencia más limpia.\\

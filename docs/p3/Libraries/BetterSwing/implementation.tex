@@ -1,0 +1,36 @@
+\subsubsection{Implementación}
+
+Para el desarrollo de esta librería se ha centrado en la simplicidad hacia el usuario final y la eficiencia de código mediante funciones sencillas de emplear y optimizadas para asegurar un mayor rendimiento de la interfaz de usuario. Este paquete se divide en dos principales partes:\bigskip
+
+\begin{description}
+    \item[Window:] Consiste en un conjunto de funciones para la creación y configuración de la ventana.
+    \item[Section: ] Consiste en un conjunto de funciones base para la creación de secciones en la ventana.
+\end{description}\bigskip
+
+La implementación de la \texttt{Window} consiste en diversas partes: gestión de teclas, configuración, creación y actualización de la ventana y creación de las secciones.\bigskip
+
+La gestión de las teclas se realiza mediante una clase llamada \texttt{KeyActionManager}, que implementa la interfaz \texttt{KeyListener}. Esta clase permite gestionar los eventos de teclado de la ventana y se utiliza para la depuración y el desarrollo del programa.\bigskip
+
+En cuanto, la configuración, creación y actualización de la ventana y la creación de las secciones, se han desarrollado una serie de métodos que envuelven a un conjunto de funciones propias de java swing. Por tanto, con este conjunto de métodos y funciones se obtiene la clase \texttt{Window}.\bigskip
+
+A continuación se explicarán los principales métodos de \texttt{Better swing}:\bigskip
+
+\texttt{initConfig} es un método que permite cargar la configuración de la vista y crea el marco de la vista, incluyendo apariencia, posición, tamaño, icono, color de fondo y manejo de eventos de teclado. \bigskip
+
+\texttt{start} permite la visualización de la ventana, haciendo que la ventana sea visible para el usuario.\bigskip
+
+\texttt{stop} actua como wrapper de \texttt{JFrame::dispose}.\bigskip
+
+\texttt{addSection} permite añadir una sección a un objeto \texttt{Window} indicándole la posición y dirección del panel mediante el conjunto de variables definidas en \texttt{DirectionAndPosition}. \bigskip
+
+\texttt{updateSection} permite actualizar una sección indicándole la posición y dirección del panel mediante el conjunto de variables definidas en \texttt{DirectionAndPosition}. \bigskip
+
+\texttt{deleteComponent} permite borrar un componente específico de la ventana que se le haya pasado por parámetro al método.\bigskip
+
+\texttt{repaintComponent} permite repintar un componente específico de la ventana que se le haya pasado por parámetro al método.\bigskip
+
+\texttt{repaintAllComponents} repinta todos los componentes de la ventana.\bigskip
+
+La implementación de la \texttt{Section} consiste en diversas partes, las cuales son las siguientes: Los métodos que permiten crear las secciones ya configuradas y las clases en las que se basan los métodos anteriores.\bigskip
+
+La propia librería contiene muchas más clases y métodos que si el lector desea explorar puede acceder a su documentación a través del código fuente proporcionado en la entrega de la práctica.

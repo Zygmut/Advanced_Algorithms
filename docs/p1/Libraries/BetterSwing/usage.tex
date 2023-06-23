@@ -1,0 +1,50 @@
+\subsubsection{Manual de uso}
+
+En este apartado se describe como emplear la librería para su correcto funcionamiento.\bigskip
+
+Para emplear la librería es tan sencillo como crear una instancia de la clase \texttt{Window}, llamar al método \texttt{initConfig} indicando el fichero de configuración de la ventana, si se desea, en caso contrario se deberá pasar un \texttt{null} y se emplearán la configuración por defecto, y finalmente llamar a la función \texttt{start} cuando se desee inicializar la ventana.\bigskip
+
+Es importante inicializar la configuración antes de ejecutar la función \texttt{start}, ya que en caso contrario se producirá una excepción. A continuación se muestra un sencillo ejemplo:
+
+\begin{code}{\scriptsize}{java}
+Window view = new Window(); 
+view.initConfig("config.txt"); 
+view.start(); 
+\end{code}
+
+Como se observa, la librería permite cargar la configuración e iniciar la ventana independientemente, permitiendo una mayor flexibilidad.\bigskip
+
+Además, en el caso de querer reiniciar la configuración, cambiar la visibilidad de la ventana o guardar el contenido de esta sin tener que volver a compilar el código, se puede realizar a través de unos atajos de teclado, que son los siguientes:\medskip
+
+\begin{description}
+    \item[Q:] Cerrar programa.
+    \item[R:] Reiniciar configuración.
+    \item[V:] Cambiar visibilidad.
+    \item[G:] Guardar contenido.
+\end{description}\bigskip
+
+Por ejemplo, al cambiar la configuración y reiniciar la ventana se aplicarán los cambios automáticamente sin compilar de nuevo el código, es decir, se permite el conocido \say{Hot Reloading}.\bigskip
+
+En el caso de querer crear una sección y añadirla, se realizaría de la siguiente forma:
+
+\begin{code}{\scriptsize}{java}
+Window view = new Window(); 
+Section section = new Section();
+// Los datos pueden ser de longitudes irregulares
+long[][] data = { ... }; 
+Color chartColors[] = { Color.RED, Color.BLACK };
+String chartColumnLabels[] = { "Linea 1",
+                               "Linea 2" };
+section.createLineChart(labels, 
+                        data, 
+                        chartColors, 
+                        chartColumnLabels, 
+                        "Ejemplo Lineas");
+view.addSection(section, 
+                DirectionAndPosition.POSITION_TOP, 
+                "Chart");
+\end{code}
+
+En el ejemplo anterior se crearía una gráfica de líneas con dos líneas, una de color rojo y otra negra, con los nombres \say{Linea 1} y \say{Linea 2}, con el título \say{Ejemplos Lineas} y con los puntos del array data.\bigskip
+
+Finalmente, comentar que hay ilimitadas posibilidades de creación y personalización de componentes con los ya configurados y las posibilidades de crear libremente los propios componentes.

@@ -1,0 +1,71 @@
+\subsection{Controlador}
+El controlador en un MVC es el responsable de recibir y procesar la entrada del usuario y actualizar el modelo. En esta práctica, dicha responsabilidad es la de  verificar el input del usuario, transformar el los datos de los mapas a un conjunto de objetos que el modelo pueda entender y ejecutar los algoritmos de \say{pathfinding} para el conjunto de puntos definidos por el usuario.
+
+\subsubsection{Diseño}
+El controlador se separa en tres grandes secciones como ya se ha mencionado previamente. \\
+
+El usuario puede, bajo su libre albedrío, interactuar en cualquier punto del mapa. Por ende, será necesario procesar la entrada del usuario. Así pues, cada vez que el usuario interactúe con el mapa, se notifica al controlador que determine si está cerca de algún punto del grafo. Para ello, buscamos el primer nodo cuya distancia entre él y el punto interactuado con el usuario sea menor que una distancia predefinida \textit{x}. De esta manera, podemos controlar el tamaño virtual de cada nodo. Una vez detectado (si es que se detecta) se devuelve tanto a la vista como al modelo, para visualizarlo y guardarlo respectivamente.\\
+
+Los datos de los mapas se guardan en formato JSON, proporcionando las conexiones y posiciones de cada uno de los nodos, entre otros datos. Mediante el uso de la librería \href{https://github.com/google/gson}{GSON}, transformamos todos los datos contenidos en él y generamos nuestro mapa. Posteriormente, se entrega al modelo para mantener la instancia actual.\\
+
+Finalmente, el controlador permite ejecutar los algoritmos de \href{https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm}{Dijkstra} y \href{https://en.wikipedia.org/wiki/Greedy_algorithm}{Greedy} aplicando una de las siguientes heuristicas para definir la distancia entre dos nodos:\\
+
+\begin{itemize}
+    \item EUCLIDEAN,
+    \item MANHATTAN,
+    \item CHEBYSHEV,
+    \item COSINE,
+    \item MINKOWSKI,
+    \item HAVERSINE
+\end{itemize}\bigskip
+
+Creando un conjunto de doce posibles ejecuciones.
+
+\subsubsection{Algoritmos}
+
+\paragraph{Dijkstra}
+El algoritmo de Dijkstra es un popular algoritmo de determinación de caminos mínimos entre dos puntos de un grafo. Se aplica manteniendo un conjunto de nodos no visitados y un conjunto de distancias tentativas a estos. Seguidamente, selecciona el nodo con la menor distancia tentativa y examina los nodos conectados a él. Por cada uno de estos nodos \say{vecinos}, calcula la distancia a ese nodo sumando la distancia al nodo actual y la distancia entre el nodo actual y él. Si la distancia calculada es menor a la distancia tentativa del nodo \say{vecino}, se actualiza su distancia y se le asigna el actual nodo como su previo. De esta manera, podemos saber cuál es el recorrido inverso desde cualquier nodo al inicio. Este proceso se ejecuta hasta que se encuentra el nodo objetivo.
+
+\begin{code}{\scriptsize}{pascal}
+function Dijkstra(Graph, source, target):
+    
+    for each vertex v in Graph.Vertices:
+        dist[v] := INFINITY
+        prev[v] := UNDEFINED
+        add v to Q
+    dist[source] := 0
+    
+    while Q is not empty:
+        u := vertex in Q with min dist[u]
+        if u is target:
+            exit(dist[], prev[])
+            
+        remove u from Q
+        
+        for each neighbor v of u still in Q:
+            alt := dist[u] + Graph.Edges(u, v)
+            if alt < dist[v]:
+                dist[v] := alt
+                prev[v] := u
+                add v to Q
+
+    exit(solution_not_found)
+\end{code}
+
+Con respecto a la complejidad temporal podemos asegurar que es $O((V + A) logV)$ donde \textit{V} son los vértices y \textit{A} las aristas; Siendo asintóticamente $O(n · logn)$. Por cada nodo el algoritmo debe examinar todos sus \say{vecinos} costando $O(A)$. Al añadir todos los elementos a la cola de prioridad como se ve en la \texttt{línea 3} cuesta $O(V)$ y la extracción del mínimo elemento cuesta $O(logV)$. Finalmente, si componemos todos los costes aseguramos que el coste es de $O((V + A) log V)$. \\
+
+Con respecto al coste espacial, debido a que tenemos que generar dos listas de elementos \texttt{previos} y \texttt{distancias}, obtenemos $O(V)$.
+
+\paragraph{Greedy (Monticulo de fibonacci)}
+
+Este algoritmo utiliza dos búsquedas heurísticas, una desde el nodo inicial y otra desde el nodo objetivo, que se ejecutan simultáneamente. El objetivo es encontrar un camino óptimo desde el nodo inicial hasta el nodo objetivo del grafo, utilizando una función heurística (el peso de cada arista).\\
+
+La función heurística utilizada en este algoritmo se llama "heurística admisible", lo que significa que siempre subestima el costo real para llegar al objetivo. En este caso, se utiliza una función de costo heurístico que se define en la clase \say{Node} y se actualiza durante el proceso de búsqueda.\\
+
+El algoritmo comienza inicializando dos colas de prioridad, que se utilizan para almacenar los nodos visitados en las dos búsquedas simultáneas. Cada cola es ordenada por el valor de la función heurística de cada nodo con respecto al nodo objetivo, es decir, en la primera cola con respecto al nodo final y viceversa en la segunda cola.\\
+
+Luego, se inicializan  cuatro mapas, que se utilizan para almacenar los padres de cada nodo visitado en las dos búsquedas simultáneas, y los otros, que se emplean para almacenar las distancias desde el nodo inicial y el nodo objetivo a cada nodo visitado en las dos búsquedas simultáneas.\\
+
+A continuación, el algoritmo ejecuta un bucle que se ejecutará mientras ambas colas no estén vacías y no se haya encontrado un nodo en común entre las dos búsquedas. En cada iteración, el algoritmo extrae el nodo de cada cola con el menor valor de la función heurística y los compara para buscar una intersección. Si se encuentra un nodo común, se almacena en el nodo de encuentro, se detiene, él finaliza el bucle y se procede a construir la ruta óptima. En caso contrario, se expanden los nodos vecinos de ambos nodos extraídos de las colas y se actualizan los mapas.\\
+
+Finalmente, después de encontrar el nodo de encuentro, se construye la ruta óptima utilizando los mapas para recorrer el camino de ambos extremos hacia el nodo de reunión, donde, por último, se unen los dos caminos para obtener el camino resultado.\\

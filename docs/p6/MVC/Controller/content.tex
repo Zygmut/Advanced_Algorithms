@@ -1,0 +1,101 @@
+\subsection{Controlador}
+El controlador en un MVC es el responsable de recibir y procesar la entrada del usuario y actualizar el modelo. En esta práctica, dicha responsabilidad es la de solucionar el problema del \say{Puzzle 15} para tableros de tamaño genéricos mediante \say{Branch \& Bound} 
+
+\subsubsection{Diseño}
+Esencialmente, el controlador solo presenta un método: Solucionar un tablero dada una heurística. El algoritmo desarrollado tiene como objetivo encontrar la solución óptima explorando el espacio de posibles movimientos dentro de un tablero. Para ello, y por motivos académicos, se decidió tomar una perspectiva no recursiva, optando por la creación de una cola de prioridad. Esto no solo nos permite  simular el comportamiento de un algoritmo recursivo, ya que podemos explorar los nodos más óptimos en cualquier momento, evitando la exploración de nodos menos \say{apropiados} en niveles más profundos.\\
+
+Adicionalmente, se han incorporado nociones de programación dinámica al observar que muchos de los estados de la tabla se repetirán debido a la naturaleza del espacio de movimientos. En el apartado \ref{sec:algt_studies} se puede observar el beneficio obtenido mediante un conjunto de casos de prueba.
+
+En pseudocódigo, el algoritmo podría tener la siguiente forma
+
+\begin{code}{\scriptsize}{python}
+def solve(Board, Heuristic):
+    pq = PriorityQueue(e -> cost(e, Heuristic))
+    pq.add((Board, []))
+
+    memo = HashMap()
+    memo.add(Board, cost(Board))
+
+    lower_bound = INT.MAX
+    best_solution = None
+
+    while(pq.has_values()):
+        best_board, movements = pq.take()
+        cost = cost(best_board)
+
+        if(cost > lower_bound):
+            continue
+
+        if (best_board.is_solved()):
+            lower_bound = cost
+            best_solution = (best_board, movements)
+            continue
+
+        for(movement in possible_movements):
+            moved_board = best_board.move(movement)
+
+            if (moved_board in memo):
+                continue
+
+            memo.put(moved_board, cost(moved_board, Heuristic))
+            pq.add((moved_board, movements + movement))
+
+    return best_solution
+\end{code}
+
+Como se puede observar, de la línea 15 a la 21 se gestiona todo el \say{Branch \& Bound} mientras que las líneas 26 y 27 gestionan la memoización.\\
+
+Con respecto a la complejidad temporal estricta, obtenemos que presenta $O(4^{N^2})$, ya que, en el peor caso posible y suponiendo que siempre se puede mover en las cuatro direcciones cartesianas, el algoritmo deberá explorar todos los posibles estados hasta encontrar la solución; necesitando iterar sobre $N^2$ elementos y por cada uno de ellos efectuar 4 movimientos.\\
+
+Con respecto a la complejidad espacial estricta presentamos un conjunto de estructuras que guardan información extra:
+\begin{itemize}
+    \item \textbf{Priority Queue}: Guarda los todos los nodos a explorar, tomando $O(\mid E\mid)$ donde $\mid E\mid$ es el número de elementos de la cola de prioridad
+    \item \textbf{Memoization}: Guarda todos los estados visitados, tomando $O(\mid V\mid)$ donde $\mid V\mid$ es la cantidad de estados guardados 
+    \item \textbf{currentSol}: Necesita tanto espacio como movimientos tenga la solución. Debido a que esta cantidad es indefinida al depender de la heurística usada, lo tomaremos como $O(\mid M\mid)$ donde $\mid M\mid$ es la cantidad de elementos
+\end{itemize}
+
+Así pues, el coste espacial del algoritmo sería de $O(\mid E\mid + \mid V\mid + \mid M\mid$).
+
+\subsubsection{Estudios}\label{sec:algt_studies}
+
+\paragraph{Memoización}
+
+Para poder apreciar el beneficio explícito de añadir memoización encima de un algoritmo de poda, debemos acuñarnos en las métricas obtenidas para una ejecución cualquiera. Dado una tabla 5x5 mezclándola 150 obtenemos los siguientes resultados:
+
+\begin{itemize}
+    \item \textbf{memo refs     }: 721769
+    \item \textbf{memo hits     }: 239604 (33.19677\%)
+    \item \textbf{prunations    }: 266513
+    \item \textbf{visited states}: 482166   
+\end{itemize}\medskip
+
+Si tomamos en cuenta solo las prunaciones que se hacen, de los 482166 solo evaluamos 215653, siendo esencialmente la mitad. Sin embargo, de ese 50\% aproximado que evaluamos, al estar memoizando los estados de la tabla, se hace \say{hit} a la memoización un 33\% de veces de los nodos que evaluamos. Esto nos reduce de 50\% a aproximadamente 33\%. Esto implica que de los 482166 nodos totales que hemos visitado a lo largo de la computación realmente solo se ejecutan computaciones a 159114. Así pues, al introducir memoización en el algoritmo, reducimos la cantidad de nodos a evaluar sustancialmente.\\
+    
+\paragraph{Heuristicas}
+Al estar escogiendo que nodo evaluar primero mediante una heurística cualquiera, permitimos por diseño la aplicación de una poco óptima para el problema en cuestión. Así pues, y conociendo el dominio del problema, podemos aplicar heurísticas que se adapten más fuertemente a nuestro problema. Una clara heurística aplicar sería la distancia de Manhattan, ya que el dominio de movimientos se rige mediante este tipo de movimientos. Así pues, y para el mismo estado inicial, podemos comparar los beneficios de utilizar heurísticas específicas al problema. Se han ejecutado 5 tableros de diferentes tamaños y cantidad de movimientos para mezclarlos y estos son los resultados: 
+
+\begin{multicols}{2}
+\textbf{Bad Position}
+\begin{itemize}
+    \item 7ms
+    \item 4ms
+    \item 946ms
+    \item DNF
+    \item DNF
+\end{itemize}
+\vfill
+\null
+\columnbreak
+\textbf{Manhattan}
+\begin{itemize}
+    \item 0ms 
+    \item 1ms 
+    \item 87ms 
+    \item 179ms
+    \item 304ms 
+\end{itemize}
+\vfill
+\null
+\end{multicols}
+
+Como se puede apreciar, los datos posicionan a la heurística de Manhattan como la clara vencedora. Esto nos enseña que, aunque un algoritmo esté perfectamente diseñado, el tener una función de prioridad menos específica para el problema en cuestión puede afectar significativamente al rendimiento general de la aplicación.

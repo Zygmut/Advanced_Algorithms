@@ -1,0 +1,45 @@
+\subsection{Time profiler}
+\href{https://github.com/Zygmut/TimeProfiler}{TimeProfiler} es un paquete Java que simplifica el cronometraje de la ejecución de funciones. Con TimeProfiler se puede medir fácilmente el tiempo que se tarda en ejecutar una sola función o varias funciones, una o varias veces, permitiendo fácilmente hacer medias de ejecución.
+
+\subsubsection{Funcionamiento}
+El paquete proporciona cuatro métodos: \texttt{timeIt}, \texttt{batchTimeIt}, \texttt{timeIt} para una matriz de funciones y \texttt{batchTimeIt} para una matriz de funciones. Basta con introducir la(s) función(es) y el tamaño de lote deseado, y TimeProfiler devolverá la(s) duración(es) de la ejecución. El paquete utiliza las clases Instant y Duration de Java para medir el tiempo con precisión y facilitar la conversión de los datos a las diferentes representaciones.\bigskip
+
+Adicionalmente, el paquete usa la estructura de datos TimeResult, que actúa como wrapper a un array de Duration con un conjunto de métodos que ofrecen un conjunto de cálculos hiperoptimizados sobre los datos, como podría ser la media, la moda, la suma de sus valores, etc.
+
+\subsubsection{Implementación}
+
+Antes de explicar brevemente como se ha implementado, se debe comentar el estudio realizado para calcular el posible overhead que ofrece esta librería al usar \texttt{Runnable} en vez de una llamada nativa. Para evaluar si tenemos overhead, se calculó el tiempo medio de ejecución de un algoritmo $N^2$ usando la librería y llamando al método nativamente. El resultado nos dio que la implementación con \texttt{Runnable} es, de media, 0.8\% más lento. Debido a este resultado, uno puede usar esta librería sin tener que preocuparse que el tiempo resultante no sea fiel al real o tenga demasiado overhead.\bigskip
+
+Para el desarrollo de esta librería se ha centrado en el uso de paralelismo mediante programación funcional, de esta manera se aprovecha al máximo la optimización por parte del compilador y aumentamos la velocidad al poder operar paralelamente los streams de datos.\bigskip
+
+La librería se basa en la utilización del método privado \texttt{timeFunction} que dado una función devuelve cuanto tiempo ha tardado en ejecutarse. Todos y cada uno de los métodos disponibles al usuario generan streams de datos y aplican mediante \texttt{maps} o derivados la función \texttt{timeFunction} y devuelven un \texttt{TimeResult}. Esta última estructura de datos es un wrapper de un array de \texttt{Duration} con un conjunto de métodos que aprovechan el paralelismo de la programación funcional para obtener datos de interés sobre ese array; como podría ser la media, la moda, la mediana, etc.
+
+\subsection{Manual de uso}
+A continuación se mostrarán un conjunto de casos de uno.\bigskip
+
+Supongamos que tenemos una función que tiene como argumento un integer \textit{x} (\texttt{fn(int: x)}. Para saber cuanto tarda una ejecución podemos usar \texttt{timeIt}. Añadir que, debido a que se usa la interfaz \texttt{Runnable}, se debe pasar la función como una función lambda:
+
+\begin{code}{\scriptsize}{java}
+TimeResult time = TimeProfiler.timeIt(() -> fn(5));
+\end{code}
+
+Si uno quisiera hacer la media entre cinco ejecuciones, se puede usar \texttt{batchTimeIt} en conjunto a la función \texttt{mean} de \texttt{TimeResult} especificando en que unidad queremos la media; en este caso Nanosegundos:
+
+\begin{code}{\scriptsize}{java}
+double meanNanos = TimeProfiler.batchTimeIt(() -> fn(5), 5).mean(Duration::toNanos);
+\end{code}
+
+Como se ha comentado previamente, también existe la posibilidad de pasar un conjunto de funciones tanto a \texttt{timeIt} como a \texttt{batchTimeIt}. Supongamos que tenemos otra función que toma como argumento un integer \textit{x} (\texttt{fn2(int: x)}. El código modificado sería el siguiente:
+
+\begin{code}{\scriptsize}{java}
+Runnable[] functions = new Runnable[] {
+    () -> fn(5), 
+    () -> fn2(5)};
+TimeResult times = TimeProfiler.timeIt(functions);
+double[] meanNanos = Arrays
+    .stream(TimeProfiler.batchTimeIt(functions, 5))
+    .mapToDouble((x) -> x.mean(Duration::toNanos))
+    .toArray();
+\end{code}
+
+Comentar finalmente, que esta es una posible implementación, pero se puede tratar desde un diseño más imperativo. Si uno quiere explorar la documentación completa, puede acceder a ella a través de este \href{https://zygmut.github.io/TimeProfiler}{\textcolor{blue}{link}}.
