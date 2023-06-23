@@ -153,14 +153,6 @@ public class Controller implements Service {
 		return numbers;
 	}
 
-	private void writeToFile(String filename, String content) {
-		try (BufferedWriter br = new BufferedWriter(new FileWriter(filename))) {
-			br.write(content);
-		} catch (Exception e) {
-			logger.warning(e.getMessage());
-		}
-	}
-
 	@Override
 	public void notifyRequest(Request request) {
 		switch (request.code) {
@@ -282,8 +274,18 @@ public class Controller implements Service {
 				logger.info("RSA keys generated in " + Duration.between(start, end).toMillis() + "ms");
 				final Result result = new Result(Duration.between(start, end), kp);
 				this.sendResponse(new Response(ResponseCode.GENERATE_RSA_KEYS, this, new Body(result)));
-				this.writeToFile(Config.PUBLIC_KEY_FILE_NAME, kp.publicKey().toString());
-				this.writeToFile(Config.PRIVATE_KEY_FILE_NAME, kp.privateKey().toString());
+
+				try (BufferedWriter br = new BufferedWriter(new FileWriter(Config.PUBLIC_KEY_FILE_NAME))) {
+					br.write(kp.publicKey().toString());
+				} catch (Exception e) {
+					logger.warning(e.getMessage());
+				}
+
+				try (BufferedWriter br = new BufferedWriter(new FileWriter(Config.PRIVATE_KEY_FILE_NAME))) {
+					br.write(kp.privateKey().toString());
+				} catch (Exception e) {
+					logger.warning(e.getMessage());
+				}
 			}
 			case CHECK_PRIMALITY -> {
 				final Object[] params = (Object[]) request.body.content;
