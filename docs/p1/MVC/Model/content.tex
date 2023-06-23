@@ -1,0 +1,17 @@
+\subsubsection{Modelo}
+
+El modelo es la representación de los datos que maneja el software. Contiene los mecanismos y la lógica necesaria para acceder a la información y para actualizar el estado del modelo.\bigskip
+
+Esta clase contiene diferentes tipos de estructuras de datos específicas a esta práctica, incluyendo, pero no solamente, la iteración actual del programa, el tamaño del lote, los tiempos de ejecución de todos los algoritmos implementados y el \say{timeout}.\bigskip
+
+Adicionalmente de los datos mencionados previamente, provee unos métodos o funciones auxiliares que facilitan la modificación o adquisición de los datos:\bigskip
+
+\texttt{resetData} y \texttt{resetIterations} permiten poner los valores por defecto de los principales datos del modelo.\bigskip
+
+\texttt{nextIteration} actualiza el tamaño del vector de datos para la siguiente iteración y aumenta el contador de iteraciones.\bigskip
+
+\texttt{collectData} obtiene los resultados de la última iteración presente en el controlador de manera \say{inteligente}, al tratar los datos de diferente manera dependiendo del estado del controlador.\bigskip
+
+\texttt{getData} devuelve todos los tiempos de ejecución hasta ese instante convertidos mediante la función de representación seleccionada en la vista.\bigskip
+
+Finalmente, al ser un módulo de nuestro MVC, implementa la interfaz \texttt{Notify} y su método \texttt{notifyRequest} que le permite recibir notificaciones de los otros módulos del MVC.
