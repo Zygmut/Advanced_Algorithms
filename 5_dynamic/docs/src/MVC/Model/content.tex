@@ -1,0 +1,44 @@
+\subsection{Modelo}
+
+El modelo es la representación de los datos que maneja el software. Contiene los mecanismos y la lógica necesaria para acceder a la información y para actualizar el estado del modelo.\\
+
+Para este proyecto, y con el objetivo de ser lo más fiel a un caso realista aplicable a una aplicación real, se ha decidido crear una \texttt{sqlite} donde se guardarán todos los datos. Así pues, nuestro modelo presenta dos elementos:
+
+\subsubsection{Base de datos}
+La base de datos consta de una tabla por idioma y una tabla para guardar el histórico de tiempos de ejecución; Técnicamente:\\
+
+\begin{itemize}
+    \item \textbf{LANGUAGE}, donde el nombre de la tabla corresponde al nombre corto de un lenguaje. Con los atributos:\begin{itemize}
+        \item \texttt{word}: Representa una palabra del lenguaje.
+    \end{itemize}
+    \item \textbf{Timed\_Execution}, con los atributos:\begin{itemize}
+        \item \texttt{id}: Permite identificar cuál ha sido la última ejecución.
+        \item \texttt{milis}: La cantidad de milisegundos usados durante la última ejecución.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Interfaz}
+Ya que el modelo es realmente la base de datos, es necesaria una interfaz que nos permita leer, modificar o escribir dentro de la base de datos. Para ello, la propia clase \texttt{Model.java} nos permite ejecutar un conjunto de funciones que aplican queries a la base de datos. La mayoría de estos métodos siguen el siguiente patrón:\\
+
+\begin{itemize}
+    \item Conectar a la base de datos
+    \item Ejecutar el query
+    \item Transformar el resultado a un objeto de java (como puede ser un array)
+    \item Devolver el resultado si no hay errores
+\end{itemize}\bigskip
+
+Aunque el diseño se acerca a la posible implementación en una aplicación real, la implicación de usar queries a una base de datos nos proporciona tanto beneficios como perjuicios.\\
+
+\textbf{Beneficios}\begin{itemize}
+    \item Se delega la búsqueda y filtrado de datos a un lenguaje especialmente diseñado para ello.
+    \item Los datos más usados se guardan en la caché, mientras que los demás se pueden guardar en disco.
+    \item Los datos se mantienen entre ejecuciones, por lo que se puede aplicar un posterior estudio de los resultados en otros entornos y lenguajes.
+\end{itemize}\bigskip
+
+\textbf{Perjuicios}\begin{itemize}
+    \item Se genera un overhead general en la aplicación proporcional a cómo esté programada la librería usada, ya que la conexión se debe abrir y cerrar en cada query que se ejecuta, además de la necesidad de transformar los resultados a un objeto del lenguaje usado.
+\end{itemize}\bigskip
+
+Aun así, tanto por interés académico como para crear ejemplos lo más cercanos a una aplicación real, se ha decidido seguir este acercamiento ante el problema de la gestión de un modelo en una aplicación.\\
+
+Finalmente, al ser un módulo de nuestro MVC, implementa la interfaz \texttt{Notify} y su método \texttt{notifyRequest} que le permite recibir notificaciones de los otros módulos del MVC.

@@ -1,0 +1,16 @@
+\subsection{Conceptos MVC}
+
+El Modelo Vista Controlador (MVC) es un patrón arquitectónico de software que divide una aplicación en tres elementos interconectados, separando la representación interna de la información, como se muestra al usuario y donde se hacen cómputos con esa información respectivamente. \bigskip
+
+Para esta práctica, se ha decidido modificar parcialmente este patrón al implementar la comunicación entre los módulos mediante un sistema de peticiones. Por ende, encontramos 4 módulos en nuestro MVC: Modelo, Vista, Controlador y Hub. Este último se encargará de gestionar toda la comunicación. \bigskip
+
+Esta decisión de modificación del MVC ha sido respaldada por la facilidad que obtenemos de escalar el patrón, permitiendo crear tantos módulos como queramos. Esto permitiría que, si en un futuro se quisiera añadir otro controlador en otro lenguaje de programación o encapsular controladores por funcionalidad, el único cambio a efectuar ocurriría en el hub.\bigskip
+
+% El programa principal ejecutará la librería Mesurament.jar para medir un RATIO. Además, se ejecutará una configuración predeterminada del programa a partir de un documento de texto. Creando las partes del programa como interficies y conectando el patrón mediante punteros.  \bigskip
+
+A continuación se explicarán cada uno de los módulos.
+
+\input{MVC/Hub/content}
+\input{MVC/Model/content}
+\input{MVC/View/content}
+\input{MVC/Controller/content}
