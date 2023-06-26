@@ -1,18 +1,25 @@
-## Getting Started
+# Práctica 4: Algoritmos "Greedy"
 
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
+Efectuar una aplicació seguint el patró de disseny MVC per resoldre la problemàtica del camí mínim. L'aplicació haurà de donar resposta a la qüestió de trobar el camí mínim entre dos pobles d'Eivissa i Formentera donats, passant per un tercer. Per defecte hi haurà les localitats representades al mapa d'aquest enunciat. L'algoritme de càlcul desenvolupat haurà de ser obligatòriament un de tipus Dikstra (recursiu o no), que resolgui aquest problema per les illes d'Eivissa i Formentera (es suposa que el ferri és una carretera més, ruta vermella). Al dibuix es mostra un exemple d'indicar la partida (Sant Rafel de sa Creu), el destí (És Caló), passant per San José.
 
-## Folder Structure
+El programa ha de presentar una GUI a on l'usuari pugui clicar sobre el punt d'origen, el destí i el punt intermedi. Associat al codi del programa s'ha de lliurar una memòria i un vídeo amb les mateixes condicions que les pràctiques anteriors. Però en aquest cas puntuaran més a la memòria els aspectes propis de l'exercici i la qualitat de les reflexions de l'alumne. El mateix passarà amb el vídeo, ja que es valoraran molt la qualitat i quantitat dels exemple d'execució. En els tres primers exercicis, per donar temps a l'alumne a familiaritzar-se amb el tipus de document, s'ha corregit de forma molt esquemàtica. A partir d'ara, es valorarà sobretot la forma de presentar i discutir la implementació concreta de l'exercici.
 
-The workspace contains two folders by default, where:
+La part obligatòria puntuarà un màxim de 7 sobre 10.
 
-- `src`: the folder to maintain sources
-- `lib`: the folder to maintain dependencies
+Feines addicionals per l'entrega a la convocatòria durant el curs:
 
-Meanwhile, the compiled output files will be generated in the `bin` folder by default.
+1. Que el programa pugui introduir diferents mapes i arxius de localitzacions emprant tècniques d'arxius XML/SAX.
+2. Que l'algoritme de càlcul empri tècniques d'ordenar les arestes o col·locar-les a un monticle. Efectuar una comparativa de cost dels diferents monticles vists (aquesta feina es pot fer apart).
+3. Que es puguin definir rutes alternatives. Segon més curt, etc.
+4. Altres.
 
-> If you want to customize the folder structure, open `.vscode/settings.json` and update the related settings there.
+## Estrucutra de carpetas
 
-## Dependency Management
+Esta práctica se ha estructurado de la siguiente manera:
 
-The `JAVA PROJECTS` view allows you to manage your dependencies. More details can be found [here](https://github.com/microsoft/vscode-java-dependency#manage-dependencies).
+- `assets`: Conjunto de imagenes y configuración adicional.
+- `docs`: Documentación del proyecto. Generalmente guardrá el código fuente (LaTeX) y su respectivo PDF compilado.
+- `lib`: Dependencias externas.
+- `src`: Código fuente.
+- `tools`: Herramientas adicionales como scripts o estudios.
+- `bin`: Archivos de salida compilados.
