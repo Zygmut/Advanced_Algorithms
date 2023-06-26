@@ -25,19 +25,21 @@ Esta práctica se ha estructurado de la siguiente manera:
 
 - `src`: la carpeta para mantener el código fuente
 - `lib`: la carpeta para mantener las dependencias externas
+- `docs`: la carpeta para mantener la documentación del proyecto. Generalmente guardrá el código fuente (LaTeX) y su respectivo PDF compilado
 
 ```bash
 .
 ├── lib
 │   ├── better-swing.jar
 │   └── TimeProfiler.jar
-└── src
-    ├── Controller
-    ├── Model
-    ├── View
-    └── Master
+├── src
+│   ├── Controller
+│   ├── Model
+│   ├── View
+│   └── Master
+└── docs
+    ├── src
+    └── doc.pdf
 ```
 
 Mientras tanto, los archivos de salida compilados se generarán en la carpeta `bin` por defecto.
-
-> Si quieres personalizar la estructura de carpetas, abre `.vscode/settings.json` y actualiza la configuración relacionada allí.
