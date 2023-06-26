@@ -1,6 +1,28 @@
-# Algoritmos avanzados
+<p align="center">
+    <img width=115px height=115px src="assets/favicon.png" alt="Notepad">
+</p>
 
-## Estructura del repositorio
+<h3 align="center">Algoritmos Avanzados</h3>
+
+<div align="center">
+<img src="https://img.shields.io/github/repo-size/zygmut/Advanced_algorithms?style=flat-square.svg">
+</div>
+
+---
+
+<p align="center">Proyectos usando la arquitectura MVC</p>
+
+## ⚙️ Proyectos
+
+- [Conceptos generales](./1_general_concepts/)
+- [Backtracking](./2_backtracking/)
+- [Divide & Conquer](./3_DANDQ/)
+- [Greedy algorithms](./4_greedy/)
+- [Programación Dinámica](./5_dynamic/)
+- [Branch & Bound](./6_BandB/)
+- [Primalidad y encriptación](./7_probabilistic/)
+
+## 📝 Estructura del repositorio
 
 El repositorio está organizado de la siguiente manera:
 
@@ -9,31 +31,22 @@ El repositorio está organizado de la siguiente manera:
 ├── 1_general_concepts/  # Capítulo 1: Conceptos generales
 ├── 2_backtracking/      # Capítulo 2: Backtracking
 ├── 3_dandq/             # Capítulo 3: Divide y vencerás
-├── 4_greedy/            # Capítulo 4: Greedy algorithms
-├── assets/              # Imágenes y otros recursos
-└── Templates/           # Plantillas para las prácticas
+.
+.
+.
+├── 7_probabilistic/     # Capítulo 7: Primalidad y encriptación
+└── templates/           # Plantillas para las prácticas
 ```
 
-## Prácticas
+## 🧠 Motivación
 
-### Práctica 1: Conceptos generales
+Para la asignatura de Algoritmos avanzados en la [Universidad de las Islas Baleares](https://www.uib.es/es/) se piden un conjunto de proyectos usando el patrón de diseño [MVC](https://developer.mozilla.org/es/docs/Glossary/MVC). A lo largo del desarrollo de la asignatura, se fueron añadiendo funcionalidades adicionales, como podría ser:
 
-Ver más en [Conceptos generales](./1_general_concepts/README.md).
+- Un sistema de peticiones para la comunicación entre módulos, como [node.js](https://nodejs.org/es)
+- La implementación de una base de datos local para guardar los resultados
 
-![Práctica 1](./assets/p1.png)
+Este repositiorio tiene como objetivo inspirar a los siguientes alumnos que hagan esta asignatura a superar los límites impuestos por los profesores y explorar diferentes aspectos de la programación que posiblemente no se enseñen en la carrera.
 
-### Práctica 2: Backtracking
+Adicionalmente, la documentación esta totalmente escrita en [LaTeX](https://www.latex-project.org/) y su código fuente está disponible para la exploración del interesado.
 
-Ver más en [Backtracking](./2_backtracking/README.md).
-
-![Práctica 2](./assets/p2.png)
-
-### Práctica 3: Divide y vencerás
-
-Ver más en [Divide y vencerás](./3_dandq/README.md).
-
-![Práctica 3](./assets/p3.png)
-
-### Práctica 4: Greedy algorithms
-
-Ver más en [Greedy algorithms](./4_greedy/README.md).
+> Para el desarollo de la documentación se usó [Overleaf](https://www.overleaf.com/)
