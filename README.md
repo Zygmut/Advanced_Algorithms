@@ -5,7 +5,7 @@
 <h3 align="center">Algoritmos Avanzados</h3>
 
 <div align="center">
-<img src="https://img.shields.io/github/repo-size/zygmut/Advanced_algorithms?style=flat-square.svg">
+<img src="https://img.shields.io/github/repo-size/zygmut/Advanced_Algorithms?style=flat-square.svg">
 </div>
 
 ---
