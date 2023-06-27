@@ -1,0 +1,4 @@
+# Igore html files
+*.html linguist-vendored
+#Ignore jupyter notebook files
+*.ipynb linguist-vendored
